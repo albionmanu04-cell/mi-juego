@@ -1459,33 +1459,68 @@ async function saveState(){
   await saveRoster(roster.slice(0,3));
   syncLeaderboard();
 }
+
+/* Ranking global: datos publicos del proyecto Supabase. */
+const SUPABASE_URL = 'https://oyavyaoklewafurcyinj.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_FEFV1g_M2x1L56fLAEBA7g_DGlq4s0J';
+const SUPABASE_SESSION_KEY = 'forja-eterna:supabase-session';
+
+function supabaseHeaders(token){
+  const headers = { apikey:SUPABASE_PUBLISHABLE_KEY, 'Content-Type':'application/json' };
+  if(token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
+
+async function getSupabaseSession(){
+  let saved = null;
+  try { saved = JSON.parse(loadLocal(SUPABASE_SESSION_KEY) || 'null'); } catch(e) {}
+  if(saved && saved.access_token && saved.expires_at > Math.floor(Date.now()/1000) + 30) return saved;
+
+  let response;
+  if(saved && saved.refresh_token){
+    response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method:'POST', headers:supabaseHeaders(), body:JSON.stringify({refresh_token:saved.refresh_token})
+    });
+  }
+  if(!response || !response.ok){
+    response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=anonymous`, {
+      method:'POST', headers:supabaseHeaders(), body:'{}'
+    });
+  }
+  if(!response.ok) throw new Error('No se pudo iniciar sesion para el ranking.');
+  const session = await response.json();
+  if(!session.user || !session.access_token) throw new Error('Sesion de ranking invalida.');
+  saveLocal(SUPABASE_SESSION_KEY, JSON.stringify(session));
+  return session;
+}
+
 async function syncLeaderboard(){
-  const entry = JSON.stringify({ name:state.name, level:state.level, resets:state.resets, power:Math.round(power()), updatedAt:Date.now() });
   try{
-    const storage = getStorage();
-    if(storage) await storage.set('leaderboard:'+state.name, entry, true);
-    else saveLocal('forja-eterna:leaderboard:'+state.name, entry);
-  }catch(e){ console.error('leaderboard sync failed', e); }
+    const session = await getSupabaseSession();
+    const entry = {
+      player_id:session.user.id,
+      name:state.name,
+      level:state.level,
+      resets:state.resets,
+      power:Math.round(power()),
+      updated_at:new Date().toISOString()
+    };
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?on_conflict=player_id`, {
+      method:'POST',
+      headers:{ ...supabaseHeaders(session.access_token), Prefer:'resolution=merge-duplicates,return=minimal' },
+      body:JSON.stringify(entry)
+    });
+    if(!response.ok) throw new Error(`Ranking ${response.status}`);
+  }catch(e){ console.warn('No se pudo sincronizar el ranking global.', e); }
 }
 async function fetchLeaderboard(){
   try{
-    const entries = [];
-    const storage = getStorage();
-    if(storage){
-      const listRes = await storage.list('leaderboard:', true);
-      for(const k of ((listRes && listRes.keys) || []).slice(0,60)){
-        try{ const r = await storage.get(k, true); if(r && r.value) entries.push(JSON.parse(r.value)); }catch(e){}
-      }
-    } else {
-      for(let i=0;i<localStorage.length;i++){
-        const key = localStorage.key(i);
-        if(key && key.startsWith('forja-eterna:leaderboard:')){
-          try { entries.push(JSON.parse(localStorage.getItem(key))); } catch(e) {}
-        }
-      }
-    }
-    entries.sort((a,b)=> (b.resets-a.resets) || (b.level-a.level) || (b.power-a.power));
-    renderLeaderboard(entries.slice(0,10));
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?select=name,level,resets,power,updated_at&order=resets.desc,level.desc,power.desc&limit=10`, {
+      headers:supabaseHeaders(), cache:'no-store'
+    });
+    if(!response.ok) throw new Error(`Ranking ${response.status}`);
+    const entries = await response.json();
+    renderLeaderboard(Array.isArray(entries) ? entries : []);
   }catch(e){ renderLeaderboard(null); }
 }
 function renderLeaderboard(entries){
