@@ -237,6 +237,85 @@
   #attackBtn{ background:linear-gradient(180deg, #7a1f1f, #5a1616); color:var(--parchment); border:none; box-shadow:0 3px 0 #3a0e0e; }
   #skillBtn{ background:linear-gradient(180deg, var(--mana), #234a63); color:#0c1a24; border:none; box-shadow:0 3px 0 #16303f; }
   #trainBtn{ background:var(--bg-panel-2); color:var(--parchment); grid-column:1 / -1; }
+  #startRunBtn, #newRunBtn{ background:linear-gradient(180deg, var(--ember), var(--ember-dim)); color:#1a0f08; border:none; box-shadow:0 3px 0 #5c2811; }
+  #rerollBtn{ background:linear-gradient(180deg, var(--mana), #234a63); color:#0c1a24; border:none; box-shadow:0 3px 0 #16303f; }
+  #stayBtn{ background:linear-gradient(180deg, var(--gold), #a87c2b); color:#1a1206; border:none; box-shadow:0 3px 0 #6b4e18; }
+
+  /* ---- Modo Roguelike (Cacería) ---- */
+  .hunt-mode-toggle{ display:flex; gap:8px; margin-bottom:14px; }
+  .hunt-mode-toggle .mode-btn{
+    flex:1; padding:10px 6px; font-family:'Cinzel'; font-weight:700; font-size:11.5px; letter-spacing:1.5px;
+    text-transform:uppercase; cursor:pointer; border-radius:2px; border:1px solid var(--line);
+    background:var(--bg-panel-2); color:var(--parchment-dim); transition:all .2s ease;
+  }
+  .hunt-mode-toggle .mode-btn.active{
+    color:var(--gold-bright); border-color:var(--gold); background:#2a2013;
+    box-shadow:0 0 8px rgba(200,155,60,0.25), 0 0 0 1px #000 inset;
+  }
+  .hunt-mode-toggle .mode-btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+  .run-status-bar{
+    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:2px; padding:9px 12px; margin-bottom:14px;
+    font-family:'JetBrains Mono'; font-size:11.5px; color:var(--parchment-dim);
+  }
+  .run-status-bar .depth-badge{
+    font-family:'Cinzel'; font-weight:700; letter-spacing:1px; color:var(--ember); font-size:12px;
+  }
+  .run-status-bar .rs-res{ display:flex; align-items:center; gap:5px; }
+  .run-status-bar .rs-res .rbar{ width:70px; height:7px; background:var(--bg-deep); border:1px solid var(--line); border-radius:2px; overflow:hidden; }
+  .run-status-bar .rs-res .rbar>div{ height:100%; }
+  .run-status-bar .rs-hp>div{ background:linear-gradient(90deg,#6b1c1c,var(--blood)); }
+  .run-status-bar .rs-mp>div{ background:linear-gradient(90deg,#234a63,var(--mana)); }
+
+  .bounty-intro{ text-align:center; color:var(--gold-bright); font-family:'Cinzel'; font-size:13px; letter-spacing:1px; margin-bottom:12px; }
+  .bounty-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .bounty-card{
+    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:3px; padding:14px 10px; text-align:center;
+    cursor:pointer; transition:all .18s ease; display:flex; flex-direction:column; gap:6px; align-items:center;
+  }
+  .bounty-card:hover{ transform:translateY(-3px); box-shadow:0 6px 14px rgba(0,0,0,0.4); }
+  .bounty-card .b-icon{ font-size:22px; }
+  .bounty-card .b-label{ font-family:'Cinzel'; font-weight:700; letter-spacing:1px; font-size:12.5px; }
+  .bounty-card .b-hint{ font-family:'JetBrains Mono'; font-size:10px; color:var(--parchment-dim); line-height:1.4; }
+  .bounty-card.tier-facil{ border-color:var(--green); } .bounty-card.tier-facil .b-label{ color:var(--green); }
+  .bounty-card.tier-medio{ border-color:var(--gold); } .bounty-card.tier-medio .b-label{ color:var(--gold-bright); }
+  .bounty-card.tier-dificil{ border-color:var(--blood); } .bounty-card.tier-dificil .b-label{ color:#d65a5a; }
+  .retreat-row{ text-align:center; margin-top:12px; }
+  .retreat-btn{
+    background:none; border:1px solid var(--line); color:var(--parchment-dim); font-family:'Cinzel'; font-size:10.5px;
+    letter-spacing:1.5px; text-transform:uppercase; padding:8px 16px; border-radius:2px; cursor:pointer;
+  }
+  .retreat-btn:hover{ color:var(--gold-bright); border-color:var(--gold); }
+
+  .dice-stage{ display:flex; flex-direction:column; align-items:center; gap:12px; height:100%; justify-content:center; }
+  .dice-tier-tag{ font-family:'Cinzel'; letter-spacing:1.5px; font-size:11px; text-transform:uppercase; padding:4px 12px; border-radius:10px; border:1px solid; }
+  .dice-row{ display:flex; gap:10px; }
+  .die{
+    width:52px; height:52px; display:flex; align-items:center; justify-content:center; font-size:34px;
+    background:var(--parchment); color:#2a2013; border-radius:6px; cursor:pointer; user-select:none;
+    box-shadow:0 3px 0 #5a5347; transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .die.held{ background:var(--gold-bright); box-shadow:0 3px 0 #7a5c1a, 0 0 10px rgba(232,196,119,0.6); transform:translateY(-3px); }
+  .die.rolling{ animation:diceRoll .4s ease; }
+  @keyframes diceRoll{ 0%{transform:rotate(0deg);} 50%{transform:rotate(180deg) scale(1.1);} 100%{transform:rotate(360deg);} }
+  .die-hold-label{ font-family:'JetBrains Mono'; font-size:9px; color:var(--parchment-dim); text-align:center; margin-top:4px; }
+  .combo-label{ font-family:'Cinzel'; font-size:15px; letter-spacing:1px; }
+  .rolls-left{ font-family:'JetBrains Mono'; font-size:11px; color:var(--parchment-dim); }
+
+  .reward-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .reward-card{
+    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:3px; padding:12px 8px; text-align:center;
+    cursor:pointer; transition:all .18s ease;
+  }
+  .reward-card:hover{ transform:translateY(-3px); border-color:var(--gold); box-shadow:0 6px 14px rgba(0,0,0,0.4); }
+  .reward-card .r-icon{ font-size:20px; display:block; margin-bottom:4px; }
+  .reward-card .r-label{ font-family:'Cinzel'; font-size:11px; letter-spacing:1px; color:var(--parchment); }
+  .reward-card .r-val{ font-family:'JetBrains Mono'; font-size:12px; color:var(--gold-bright); margin-top:3px; }
+
+  .run-end-panel{ text-align:center; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:center; height:100%; }
+  .run-end-panel .re-title{ font-family:'Cinzel Decorative'; font-size:20px; color:var(--gold-bright); }
+  .run-end-panel .re-stats{ font-family:'JetBrains Mono'; font-size:12px; color:var(--parchment-dim); line-height:1.7; }
 
   #log{
     background:var(--bg-deep); border:1px solid var(--line); border-radius:2px; height:150px; overflow-y:auto;
@@ -569,6 +648,11 @@
     <div class="game-section" id="secHunt">
       <div class="panel">
         <h3>Cacería <small id="powerLabel"></small></h3>
+        <div class="hunt-mode-toggle" id="huntModeToggle">
+          <button class="mode-btn" data-mode="run">🎲 Modo Roguelike</button>
+          <button class="mode-btn" data-mode="free">⚔️ Cacería Libre</button>
+        </div>
+        <div class="run-status-bar" id="runStatusBar" style="display:none;"></div>
         <div class="tier-grid" id="tierGrid"></div>
 
         <div class="arena" id="arena">
@@ -842,6 +926,61 @@ const MONSTER_NAMES = {
 };
 const MONSTER_COLOR = { facil:'#5f8a4c', normal:'#c89b3c', dificil:'#a8541f', elite:'#7a2ab0' };
 
+/* ================= ROGUELIKE HUNT MODE ================= */
+// Escala de rareza de la tirada de 5 dados (estilo Generala), de la más común a la más difícil.
+const DICE_COMBOS = [
+  { rank:0, label:'Nada',       color:'var(--parchment-dim)' },
+  { rank:1, label:'Un Par',     color:'var(--parchment)' },
+  { rank:2, label:'Dos Pares',  color:'var(--green)' },
+  { rank:3, label:'Trío',       color:'var(--mana)' },
+  { rank:4, label:'Escalera',   color:'var(--gold)' },
+  { rank:5, label:'Full',       color:'var(--gold-bright)' },
+  { rank:6, label:'Póker',      color:'var(--ember)' },
+  { rank:7, label:'¡GENERALA!', color:'#ff5a5a' },
+];
+function evaluateDiceCombo(dice){
+  const counts = {};
+  dice.forEach(d=>counts[d]=(counts[d]||0)+1);
+  const countVals = Object.values(counts).sort((a,b)=>b-a);
+  const uniqueSorted = Object.keys(counts).map(Number).sort((a,b)=>a-b);
+  const isStraight = uniqueSorted.length===5 && (uniqueSorted[4]-uniqueSorted[0]===4);
+  if(countVals[0]===5) return 7;
+  if(countVals[0]===4) return 6;
+  if(countVals[0]===3 && countVals[1]===2) return 5;
+  if(isStraight) return 4;
+  if(countVals[0]===3) return 3;
+  if(countVals[0]===2 && countVals[1]===2) return 2;
+  if(countVals[0]===2) return 1;
+  return 0;
+}
+// Tres niveles de contrato (bounty). El multiplicador por rango de dado define qué tan
+// "estadísticamente difícil" hay que tirar para cobrar bien: Fácil tiene un piso decente,
+// Difícil paga casi nada con una tirada mala pero mucho con Full/Póker/Generala.
+const BOUNTY_TIERS = {
+  facil:   { key:'facil',   label:'Fácil',   icon:'🟢', needLabel:'Cualquier tirada rinde algo',      mult:[0.55,0.85,1.15,1.5,1.9,2.3,2.8,3.4] },
+  medio:   { key:'medio',   label:'Medio',   icon:'🟡', needLabel:'Conviene al menos un Trío',          mult:[0.15,0.4,0.75,1.3,2.1,3.1,4.4,6.2] },
+  dificil: { key:'dificil', label:'Difícil', icon:'🔴', needLabel:'Sólo paga fuerte con Full o más',    mult:[0,0.08,0.2,0.55,1.2,2.7,5.4,9.5] },
+};
+function bountyTierClass(key){ return 'tier-'+key; }
+// Escala de profundidad de la cacería roguelike: el primer combate es siempre un monstruo común y débil.
+function depthTierKey(depth){
+  if(depth<=3) return 'facil';
+  if(depth<=6) return 'normal';
+  if(depth<=10) return 'dificil';
+  return 'elite';
+}
+function makeRunMonster(depth){
+  const tierKey = depthTierKey(depth);
+  const m = makeMonster(tierKey);
+  const growth = 1 + (depth-1)*0.13;
+  m.hp = Math.round(m.hp*growth); m.maxHp = m.hp; m.dmg = Math.round(m.dmg*growth);
+  if(depth===1){
+    m.name = 'Rata Común'; m.isBoss = false;
+    m.hp = Math.round(m.hp*0.5); m.maxHp = m.hp; m.dmg = Math.round(m.dmg*0.55);
+  }
+  return m;
+}
+
 const SHOP_ROTATION_MS = 4 * 60 * 1000;
 
 const SHOP_EQUIPMENT_ITEMS = [
@@ -883,6 +1022,9 @@ const ACHIEVEMENTS = [
   { id:'boss10',   label:'Derrotar 10 Jefes',                    check:s=>(s.totalBossWins||0)>=10,         reward:{gold:3500} },
   { id:'richLife', label:'Acumular 10.000 de oro en total',      check:s=>(s.totalGoldEarnedLifetime||0)>=10000, reward:{gold:1000} },
   { id:'fullSet',  label:'Equipar las 7 piezas de equipo',       check:s=>Object.values(s.equipment).filter(Boolean).length>=7, reward:{gold:1500} },
+  { id:'depth5',   label:'Alcanzar profundidad 5 en la Cacería Roguelike',   check:s=>(s.maxHuntDepth||0)>=5,   reward:{gold:300} },
+  { id:'depth10',  label:'Alcanzar profundidad 10 en la Cacería Roguelike',  check:s=>(s.maxHuntDepth||0)>=10,  reward:{gold:900} },
+  { id:'depth20',  label:'Alcanzar profundidad 20 en la Cacería Roguelike',  check:s=>(s.maxHuntDepth||0)>=20,  reward:{gold:2500} },
 ];
 
 let state = null;
@@ -892,6 +1034,8 @@ let activeGuildTab = 'shop';
 let activeLbTab = 'lb';
 let battle = null;
 let winStreak = 0;
+let huntMode = 'run'; // 'run' (roguelike) | 'free' (cacería clásica)
+let runState = null;
 
 /* ================= DATE KEYS ================= */
 function todayKey(){ return new Date().toISOString().slice(0,10); }
@@ -956,6 +1100,7 @@ function defaultState(name) {
     maxLevelEver: 1,
     totalWins: 0,
     totalBossWins: 0,
+    maxHuntDepth: 0,
     totalGoldEarnedLifetime: 0,
     achievementsClaimed: {},
     missions: {
@@ -1101,7 +1246,7 @@ function makeMonster(tier){
 }
 
 function startBattle(){
-  if(battle) return;
+  if(battle || huntMode!=='free') return;
   Sound.click();
   battle = { monster: makeMonster(selectedTier), playerHp: maxHP(), playerMaxHp: maxHP(), playerMana: maxMana(), playerMaxMana: maxMana(), tier: selectedTier, busy:false };
   renderArena(true);
@@ -1109,9 +1254,27 @@ function startBattle(){
   buildTierGrid();
 }
 
+function startRunBattle(){
+  if(battle || !runState) return;
+  Sound.click();
+  const monster = makeRunMonster(runState.depth);
+  const maxHp = maxHP(), maxMp = maxMana();
+  runState.hp = Math.min(runState.hp, maxHp);
+  runState.mana = Math.min(runState.mana, maxMp);
+  battle = {
+    monster, playerHp: runState.hp, playerMaxHp: maxHp, playerMana: runState.mana, playerMaxMana: maxMp,
+    tier: depthTierKey(runState.depth), busy:false, isRun:true
+  };
+  runState.phase = 'fight';
+  renderArena(true);
+  renderActionButtons();
+  render();
+}
+
 function endBattle(result){
   const tier = TIERS[battle.tier];
   const isBoss = battle.monster.isBoss;
+  const isRun = !!battle.isRun;
   if(result==='win'){
     Sound.victory();
     winStreak++;
@@ -1130,17 +1293,30 @@ function endBattle(result){
       gainGold(bonus);
       addLog(`🔥 Racha de ${winStreak} victorias seguidas — bono de +${bonus} oro`, 'level');
     }
+    if(isRun){
+      runState.hp = battle.playerHp;
+      runState.mana = battle.playerMana;
+      runState.monstersDefeated++;
+      state.maxHuntDepth = Math.max(state.maxHuntDepth||0, runState.depth);
+    }
   } else {
     Sound.defeat();
     if(winStreak>=3) addLog(`Se cortó tu racha de ${winStreak} victorias.`, 'lose');
     winStreak = 0;
-    const loss = Math.floor(state.gold * 0.05);
-    state.gold = Math.max(0, state.gold - loss);
     state.missions.day.hunts++;
-    addLog(`${battle.monster.name} te derrotó — perdiste ${loss} de oro`, 'lose');
+    if(isRun){
+      addLog(`${battle.monster.name} te derrotó en la profundidad ${runState.depth} — la cacería termina aquí.`, 'lose');
+    } else {
+      const loss = Math.floor(state.gold * 0.05);
+      state.gold = Math.max(0, state.gold - loss);
+      addLog(`${battle.monster.name} te derrotó — perdiste ${loss} de oro`, 'lose');
+    }
   }
   battle = null;
   rollMissionReset();
+  if(isRun){
+    if(result==='win') advanceToBounty(); else finishRun(false);
+  }
   render();
   saveState();
 }
@@ -1251,7 +1427,7 @@ function doTrain(){
 }
 
 function doReset(){
-  if(state.level < LEVEL_CAP || battle) return;
+  if(state.level < LEVEL_CAP || battle || (runState && runState.phase!=='ended')) return;
   Sound.victory();
   state.resets++;
   state.level = 1;
@@ -1262,6 +1438,258 @@ function doReset(){
   rollMissionReset();
   render();
   saveState();
+}
+
+/* ================= MODO ROGUELIKE: FLUJO DE LA RUN ================= */
+function switchHuntMode(mode){
+  if(mode===huntMode) return;
+  if(battle) return; // no se puede cambiar de modo en pleno combate
+  if(mode==='free' && runState && runState.phase!=='ended') return; // no abandonar una run activa
+  Sound.click();
+  huntMode = mode;
+  render();
+}
+
+function startRun(){
+  if(runState && runState.phase!=='ended') return;
+  Sound.click();
+  runState = {
+    depth: 1,
+    hp: maxHP(), maxHp: maxHP(), mana: maxMana(), maxMana: maxMana(),
+    phase: 'idle',
+    monstersDefeated: 0,
+    chosenBounty: null,
+    dice: [1,2,3,4,5], held: [false,false,false,false,false], rollsLeft: 0,
+    comboRank: null, rewardPreview: null,
+    retreated: false
+  };
+  addLog('🩸 Comienza una nueva Cacería Roguelike. Un monstruo común aguarda en la profundidad 1.', 'level');
+  startRunBattle();
+  saveState();
+}
+
+function advanceToBounty(){
+  runState.depth++;
+  runState.phase = 'bounty';
+  runState.chosenBounty = null;
+}
+
+function chooseBounty(key){
+  if(!runState || runState.phase!=='bounty') return;
+  Sound.click();
+  runState.chosenBounty = key;
+  runState.dice = rollFive();
+  runState.held = [false,false,false,false,false];
+  runState.rollsLeft = 2;
+  runState.comboRank = evaluateDiceCombo(runState.dice);
+  runState.phase = 'dice';
+  render();
+}
+
+function rollFive(){ return [1,2,3,4,5].map(()=>1+Math.floor(Math.random()*6)); }
+
+function toggleHold(i){
+  if(!runState || runState.phase!=='dice' || runState.rollsLeft<=0) return;
+  Sound.click();
+  runState.held[i] = !runState.held[i];
+  render();
+}
+
+function rerollDice(){
+  if(!runState || runState.phase!=='dice' || runState.rollsLeft<=0) return;
+  Sound.click();
+  runState.dice = runState.dice.map((d,i)=> runState.held[i] ? d : 1+Math.floor(Math.random()*6));
+  runState.rollsLeft--;
+  runState.comboRank = evaluateDiceCombo(runState.dice);
+  render();
+  if(runState.rollsLeft<=0){ setTimeout(()=>finalizeDice(), 350); }
+}
+
+function finalizeDice(){
+  if(!runState || runState.phase!=='dice') return;
+  runState.comboRank = evaluateDiceCombo(runState.dice);
+  runState.rewardPreview = computeBountyRewards(runState.chosenBounty, runState.comboRank);
+  runState.phase = 'reward';
+  Sound.victory();
+  render();
+  saveState();
+}
+
+function computeBountyRewards(tierKey, comboRank){
+  const t = BOUNTY_TIERS[tierKey];
+  const m = t.mult[comboRank];
+  const lvl = state.level;
+  const heal = Math.round(maxHP() * Math.min(1, 0.22 * (1+m)));
+  const gold = Math.floor((45 + lvl*4) * (1+m));
+  const exp = Math.floor(expToNext(lvl) * 0.045 * (1+m));
+  const statPoints = Math.max(1, Math.round(1 + m*2.5));
+  return { heal, gold, exp, statPoints };
+}
+
+function claimReward(type){
+  if(!runState || runState.phase!=='reward' || !runState.rewardPreview) return;
+  Sound.click();
+  const r = runState.rewardPreview;
+  const combo = DICE_COMBOS[runState.comboRank];
+  const tierLabel = BOUNTY_TIERS[runState.chosenBounty].label;
+  if(type==='heal'){
+    const before = runState.hp;
+    runState.hp = Math.min(runState.maxHp, runState.hp + r.heal);
+    const healed = runState.hp - before;
+    addLog(`💚 Contrato ${tierLabel} (${combo.label}) — te curás ${healed} de vida.`, 'win');
+  } else if(type==='gold'){
+    gainGold(r.gold);
+    addLog(`💰 Contrato ${tierLabel} (${combo.label}) — +${r.gold} oro.`, 'win');
+  } else if(type==='exp'){
+    gainExp(r.exp);
+    addLog(`📖 Contrato ${tierLabel} (${combo.label}) — +${r.exp} exp.`, 'win');
+  } else if(type==='stat'){
+    const key = pick(STAT_KEYS);
+    state.stats[key] = (state.stats[key]||0) + r.statPoints;
+    addLog(`✨ Contrato ${tierLabel} (${combo.label}) — +${r.statPoints} a ${STAT_LABELS[key]} (permanente).`, 'win');
+  }
+  runState.phase = 'idle';
+  runState.chosenBounty = null;
+  runState.rewardPreview = null;
+  render();
+  saveState();
+  setTimeout(()=>{ if(runState && runState.phase==='idle') startRunBattle(); }, 550);
+}
+
+function retreatRun(){
+  if(!runState || runState.phase!=='bounty') return;
+  Sound.victory();
+  addLog(`🏳 Te retiraste de la cacería en la profundidad ${runState.depth-1} con tu botín intacto.`, 'win');
+  runState.phase = 'ended';
+  runState.retreated = true;
+  render();
+  saveState();
+}
+
+function finishRun(retreated){
+  runState.phase = 'ended';
+  runState.retreated = !!retreated;
+  render();
+}
+
+/* ---- Renderizado del modo roguelike ---- */
+function renderRunStatusBar(){
+  const bar = document.getElementById('runStatusBar');
+  if(!bar) return;
+  if(huntMode!=='run' || !runState){ bar.style.display='none'; return; }
+  bar.style.display='flex';
+  const hpPct = Math.max(0,(runState.hp/runState.maxHp)*100);
+  const mpPct = Math.max(0,(runState.mana/runState.maxMana)*100);
+  bar.innerHTML = `
+    <span class="depth-badge">⛏ Profundidad ${runState.depth}${runState.monstersDefeated?` · ${runState.monstersDefeated} vencidos`:''}</span>
+    <div class="rs-res"><span>Vida</span><div class="rbar rs-hp"><div style="width:${hpPct}%"></div></div><span>${runState.hp}/${runState.maxHp}</span></div>
+    <div class="rs-res"><span>Maná</span><div class="rbar rs-mp"><div style="width:${mpPct}%"></div></div><span>${runState.mana}/${runState.maxMana}</span></div>
+  `;
+}
+
+function renderRunMode(){
+  const grid = document.getElementById('tierGrid');
+  if(grid) grid.style.display = 'none';
+  renderRunStatusBar();
+
+  const arena = document.getElementById('arena');
+  const box = document.getElementById('actionBtns');
+
+  if(!runState){
+    arena.innerHTML = `<div class="arena-idle" id="arenaIdle">Comenzá tu descenso: el primer combate siempre es contra un monstruo común.</div>`;
+    box.innerHTML = `<button id="startRunBtn" style="grid-column:1/-1;">Comenzar Cacería Roguelike</button>`;
+    document.getElementById('startRunBtn').addEventListener('click', startRun);
+    return;
+  }
+
+  if(runState.phase==='fight'){
+    if(battle){ renderArena(false); }
+    renderActionButtons();
+    return;
+  }
+
+  if(runState.phase==='bounty'){
+    arena.innerHTML = `
+      <div class="bounty-intro" style="width:100%;">Elegí un contrato de cacería — tirá 5 dados y cobrá según lo que saques</div>
+      <div class="bounty-grid" style="width:100%;">
+        ${Object.values(BOUNTY_TIERS).map(t=>`
+          <div class="bounty-card ${bountyTierClass(t.key)}" data-bounty="${t.key}">
+            <div class="b-icon">${t.icon}</div>
+            <div class="b-label">${t.label}</div>
+            <div class="b-hint">${t.needLabel}</div>
+          </div>`).join('')}
+      </div>`;
+    arena.querySelectorAll('.bounty-card').forEach(card=>{
+      card.addEventListener('click', ()=>chooseBounty(card.dataset.bounty));
+    });
+    box.innerHTML = `<div class="retreat-row" style="grid-column:1/-1;"><button class="retreat-btn" id="retreatBtn">Retirarse con el botín obtenido</button></div>`;
+    document.getElementById('retreatBtn').addEventListener('click', retreatRun);
+    return;
+  }
+
+  if(runState.phase==='dice'){
+    const combo = DICE_COMBOS[runState.comboRank];
+    const glyphs = ['','⚀','⚁','⚂','⚃','⚄','⚅'];
+    const tierInfo = BOUNTY_TIERS[runState.chosenBounty];
+    arena.innerHTML = `
+      <div class="dice-stage">
+        <span class="dice-tier-tag" style="border-color:${tierInfo.key==='facil'?'var(--green)':tierInfo.key==='medio'?'var(--gold)':'var(--blood)'}; color:${tierInfo.key==='facil'?'var(--green)':tierInfo.key==='medio'?'var(--gold-bright)':'#d65a5a'};">${tierInfo.icon} Contrato ${tierInfo.label}</span>
+        <div class="dice-row">
+          ${runState.dice.map((d,i)=>`<div class="die ${runState.held[i]?'held':''}" data-i="${i}">${glyphs[d]}</div>`).join('')}
+        </div>
+        <div class="combo-label" style="color:${combo.color}">${combo.label}</div>
+        <div class="rolls-left">${runState.rollsLeft>0?`Tiradas restantes: ${runState.rollsLeft} · tocá un dado para guardarlo`:'Última tirada — cerrando resultado…'}</div>
+      </div>`;
+    arena.querySelectorAll('.die').forEach(el=>{
+      el.addEventListener('click', ()=>toggleHold(parseInt(el.dataset.i,10)));
+    });
+    if(runState.rollsLeft>0){
+      box.innerHTML = `
+        <button id="rerollBtn" style="grid-column:1/-1;">Volver a tirar (${runState.rollsLeft})</button>
+        <button id="stayBtn" style="grid-column:1/-1;">Quedarme con este resultado</button>`;
+      document.getElementById('rerollBtn').addEventListener('click', rerollDice);
+      document.getElementById('stayBtn').addEventListener('click', finalizeDice);
+    } else {
+      box.innerHTML = '';
+    }
+    return;
+  }
+
+  if(runState.phase==='reward'){
+    const combo = DICE_COMBOS[runState.comboRank];
+    const r = runState.rewardPreview;
+    arena.innerHTML = `
+      <div class="dice-stage">
+        <div class="combo-label" style="color:${combo.color}">Resultado: ${combo.label}</div>
+        <div class="bounty-intro" style="margin:0;">Elegí tu recompensa</div>
+        <div class="reward-grid" style="width:100%;">
+          <div class="reward-card" data-reward="heal"><span class="r-icon">💚</span><div class="r-label">Curarse</div><div class="r-val">+${r.heal} vida</div></div>
+          <div class="reward-card" data-reward="stat"><span class="r-icon">✨</span><div class="r-label">Estadística al azar</div><div class="r-val">+${r.statPoints} pts</div></div>
+          <div class="reward-card" data-reward="gold"><span class="r-icon">💰</span><div class="r-label">Oro</div><div class="r-val">+${r.gold}</div></div>
+          <div class="reward-card" data-reward="exp"><span class="r-icon">📖</span><div class="r-label">Experiencia</div><div class="r-val">+${r.exp}</div></div>
+        </div>
+      </div>`;
+    arena.querySelectorAll('.reward-card').forEach(card=>{
+      card.addEventListener('click', ()=>claimReward(card.dataset.reward));
+    });
+    box.innerHTML = '';
+    return;
+  }
+
+  if(runState.phase==='ended'){
+    arena.innerHTML = `
+      <div class="run-end-panel">
+        <div class="re-title">${runState.retreated?'🏳 Cacería completada':'☠ Cacería terminada'}</div>
+        <div class="re-stats">
+          Profundidad alcanzada: ${runState.depth - (runState.retreated?1:0)}<br>
+          Monstruos vencidos: ${runState.monstersDefeated}<br>
+          Mejor profundidad histórica: ${state.maxHuntDepth||0}
+        </div>
+      </div>`;
+    box.innerHTML = `<button id="newRunBtn" style="grid-column:1/-1;">Comenzar nueva Cacería</button>`;
+    document.getElementById('newRunBtn').addEventListener('click', ()=>{ runState=null; startRun(); });
+    return;
+  }
 }
 
 /* ================= RENDERIZADO GENERAL ================= */
@@ -1405,6 +1833,10 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     
     render();
   });
+});
+
+document.querySelectorAll('#huntModeToggle .mode-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=> switchHuntMode(btn.dataset.mode));
 });
 
 function initTabListeners() {
@@ -1727,18 +2159,32 @@ function render(){
   document.getElementById('pointsBanner').textContent = state.statPoints>0 ? `${state.statPoints} puntos para asignar` : 'Sin puntos para asignar';
   statAllocList();
 
+  const runLocked = battle || (runState && runState.phase!=='ended');
   const resetBtn = document.getElementById('resetBtn');
-  if(state.level >= LEVEL_CAP && !battle){
+  if(state.level >= LEVEL_CAP && !runLocked){
     resetBtn.disabled = false;
     resetBtn.textContent = `Reset (→ #${state.resets+1})`;
   } else {
     resetBtn.disabled = true;
-    resetBtn.textContent = state.level>=LEVEL_CAP ? 'Termina el combate para resetear' : `Reset (nivel ${LEVEL_CAP} requerido)`;
+    resetBtn.textContent = state.level>=LEVEL_CAP ? 'Termina la cacería para resetear' : `Reset (nivel ${LEVEL_CAP} requerido)`;
   }
 
-  buildTierGrid();
-  renderActionButtons();
-  if(!battle) renderArena(true);
+  document.querySelectorAll('#huntModeToggle .mode-btn').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.mode===huntMode);
+    btn.disabled = !!battle;
+  });
+
+  if(huntMode==='free'){
+    const grid = document.getElementById('tierGrid');
+    if(grid) grid.style.display = '';
+    const bar = document.getElementById('runStatusBar');
+    if(bar) bar.style.display = 'none';
+    buildTierGrid();
+    renderActionButtons();
+    if(!battle) renderArena(true);
+  } else {
+    renderRunMode();
+  }
   renderLog();
   renderActiveSubTabs();
 }
@@ -1767,6 +2213,7 @@ async function boot() {
     if (state.totalWins === undefined) state.totalWins = 0;
     if (state.totalBossWins === undefined) state.totalBossWins = 0;
     if (state.totalGoldEarnedLifetime === undefined) state.totalGoldEarnedLifetime = 0;
+    if (state.maxHuntDepth === undefined) state.maxHuntDepth = 0;
     if (!state.achievementsClaimed) state.achievementsClaimed = {};
 
     rollMissionReset();
