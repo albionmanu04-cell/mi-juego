@@ -1495,6 +1495,7 @@ async function getSupabaseSession(){
 }
 
 async function syncLeaderboard(){
+  if(!state || !state.name) return false;
   try{
     const session = await getSupabaseSession();
     const entry = {
@@ -1511,10 +1512,12 @@ async function syncLeaderboard(){
       body:JSON.stringify(entry)
     });
     if(!response.ok) throw new Error(`Ranking ${response.status}`);
-  }catch(e){ console.warn('No se pudo sincronizar el ranking global.', e); }
+    return true;
+  }catch(e){ console.warn('No se pudo sincronizar el ranking global.', e); return false; }
 }
 async function fetchLeaderboard(){
   try{
+    await syncLeaderboard();
     const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?select=name,level,resets,power,updated_at&order=resets.desc,level.desc,power.desc&limit=10`, {
       headers:supabaseHeaders(), cache:'no-store'
     });
