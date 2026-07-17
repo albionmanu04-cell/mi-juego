@@ -1483,8 +1483,10 @@ async function getSupabaseSession(){
     });
   }
   if(!response || !response.ok){
-    response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=anonymous`, {
-      method:'POST', headers:supabaseHeaders(), body:'{}'
+    response = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+      method:'POST',
+      headers:{ ...supabaseHeaders(), Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}` },
+      body:JSON.stringify({data:{}})
     });
   }
   if(!response.ok) throw new Error('No se pudo iniciar sesion para el ranking.');
