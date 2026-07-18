@@ -108,6 +108,18 @@
   .event-choice{ width:100%; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .event-choice button{ min-height:74px; padding:9px; background:var(--bg-panel-2); border:1px solid var(--line); color:var(--parchment); border-radius:3px; font-family:'Cinzel'; font-size:11px; cursor:pointer; }
   .event-choice button:hover{ border-color:var(--mana); box-shadow:0 0 12px rgba(63,127,168,.25); }
+  .scenario-event{ position:relative; width:100%; min-height:175px; padding:18px 17px; overflow:hidden; text-align:center; border:1px solid rgba(112,154,190,.45); border-radius:6px; background:radial-gradient(circle at 50% 0,rgba(86,127,169,.25),transparent 42%),rgba(15,18,21,.82); box-shadow:inset 0 0 32px rgba(2,8,12,.38); }
+  .scenario-event::before{ content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(105deg,transparent,rgba(255,255,255,.045),transparent); }
+  .scenario-event.biome-forest{ border-color:rgba(102,191,126,.56); background:radial-gradient(circle at 50% 0,rgba(62,131,92,.3),transparent 42%),rgba(11,25,17,.88); }
+  .scenario-event.biome-ruins{ border-color:rgba(200,155,60,.58); background:radial-gradient(circle at 50% 0,rgba(138,94,35,.29),transparent 42%),rgba(27,19,12,.88); }
+  .scenario-event.biome-cavern{ border-color:rgba(225,98,46,.58); background:radial-gradient(circle at 50% 0,rgba(164,56,24,.29),transparent 42%),rgba(29,14,10,.9); }
+  .scenario-event.biome-temple{ border-color:rgba(137,177,239,.58); background:radial-gradient(circle at 50% 0,rgba(69,81,155,.3),transparent 42%),rgba(15,14,30,.9); }
+  .scenario-event.biome-dragon-nest{ border-color:rgba(216,92,64,.64); background:radial-gradient(circle at 50% 0,rgba(149,45,30,.31),transparent 42%),rgba(29,12,10,.9); }
+  .scenario-emblem{ position:relative; z-index:1; margin-bottom:4px; color:var(--gold-bright); font-size:30px; filter:drop-shadow(0 0 13px currentColor); animation:scenarioFloat 2.4s ease-in-out infinite alternate; }
+  .scenario-event .combo-label,.scenario-event .bounty-intro,.scenario-event .event-choice,.scenario-note{ position:relative; z-index:1; }
+  .scenario-event .event-choice{ margin-top:12px; }.scenario-event .event-choice button b{ color:var(--gold-bright); }.scenario-event .event-choice button small{ color:var(--parchment-dim); font:9px 'JetBrains Mono'; }
+  .scenario-note{ display:block; margin-top:10px; color:#9f927f; font:8px 'JetBrains Mono'; }
+  @keyframes scenarioFloat{ to{ transform:translateY(-4px) scale(1.06); filter:drop-shadow(0 0 19px currentColor); } }
 
   /* ---- NAVEGACIÓN PRINCIPAL ---- */
   .main-nav {
@@ -144,6 +156,23 @@
     background: var(--bg-panel-2);
     box-shadow: 0 0 8px rgba(200,155,60,0.25), 0 0 0 1px #000 inset;
   }
+  .mode-game-btn{ margin-left:auto; padding-inline:15px; color:#a9cbe1; border-color:rgba(93,153,190,.48); }
+  .mode-game-btn:hover,.mode-game-btn.active{ color:#d7efff; border-color:#5d9abe; box-shadow:0 0 14px rgba(70,144,190,.24),0 0 0 1px #000 inset; }
+  body.immersive-game{ padding:12px 18px 20px; min-height:100vh; background:
+    radial-gradient(ellipse at 50% 0%,#2d2112 0%,transparent 46%),
+    radial-gradient(ellipse at 88% 88%,#172636 0%,transparent 48%),var(--bg-deep); }
+  body.immersive-game .wrap{ max-width:1460px; }
+  body.immersive-game header{ display:flex; align-items:center; justify-content:center; min-height:52px; margin-bottom:8px; }
+  body.immersive-game header::before,body.immersive-game header::after{ width:30%; }
+  body.immersive-game h1{ font-size:clamp(21px,2.2vw,31px); }
+  body.immersive-game .subtitle{ font-size:8px; letter-spacing:2.5px; }
+  body.immersive-game .main-nav{ position:sticky; z-index:50; top:8px; justify-content:flex-start; margin:0 auto 14px; max-width:1380px; padding:8px 10px; border:1px solid rgba(200,155,60,.28); border-radius:6px; background:rgba(17,13,10,.86); backdrop-filter:blur(10px); box-shadow:0 8px 22px rgba(0,0,0,.34); }
+  body.immersive-game .nav-btn{ padding:9px 16px; font-size:10px; }
+  body.immersive-game #secHunt{ max-width:1180px; }
+  body.immersive-game #secHunt .panel{ min-height:calc(100vh - 130px); }
+  body.immersive-game #secHunt .arena{ min-height:350px; }
+  body.immersive-game .save-indicator{ top:9px; right:14px; }
+  @media(max-width:820px){ .mode-game-btn{margin-left:0}.main-nav{flex-wrap:wrap}.nav-btn{padding:10px 12px}.mode-game-btn{width:100%;}.immersive-game #secHunt .panel{min-height:auto;} }
 
   /* ---- ESTRUCTURA DE SECCIONES ---- */
   .game { display: none; }
@@ -162,12 +191,39 @@
 
   /* Grid Layouts */
   #secHero { grid-template-columns: 1fr 1.2fr; gap: 20px; }
-  #secHunt { grid-template-columns: 1fr; gap: 20px; max-width: 720px; margin: 0 auto; }
+  #secHunt { grid-template-columns:minmax(0,1fr) 265px; gap:16px; max-width:1080px; margin:0 auto; align-items:start; }
   #secGuild { grid-template-columns: 1.2fr 1fr; gap: 20px; }
+  #secForge { grid-template-columns:minmax(0,1.35fr) minmax(260px,.8fr); gap:20px; max-width:1060px; margin:0 auto; }
+  #secOptions { grid-template-columns:minmax(0,720px); justify-content:center; max-width:720px; margin:0 auto; }
 
-  @media (max-width: 820px) {
-    #secHero, #secGuild { grid-template-columns: 1fr; }
+  @media (max-width: 900px) {
+    #secHero, #secGuild, #secHunt, #secForge, #secOptions { grid-template-columns: 1fr; }
   }
+
+  /* ---- OPCIONES ---- */
+  .settings-intro{ color:var(--parchment-dim); line-height:1.5; font-size:13px; margin:-4px 0 16px; }
+  .settings-group{ margin-top:14px; padding:14px; border:1px solid var(--line); border-radius:5px; background:linear-gradient(145deg,rgba(42,32,19,.74),rgba(18,14,10,.7)); }
+  .settings-group h4{ color:var(--gold-bright); font:700 11px 'Cinzel'; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px; }
+  .setting-row{ display:grid; grid-template-columns:minmax(110px,1fr) minmax(160px,1.3fr) 42px; gap:12px; align-items:center; padding:10px 0; border-top:1px solid rgba(58,47,34,.72); }
+  .setting-row:first-of-type{ border-top:0; padding-top:0; }
+  .setting-label b{ display:block; color:var(--parchment); font:700 12px 'Cinzel'; letter-spacing:.4px; }
+  .setting-label small{ display:block; margin-top:2px; color:var(--parchment-dim); font-size:10px; }
+  .setting-row output{ color:var(--gold-bright); font:700 11px 'JetBrains Mono'; text-align:right; }
+  .settings-range{ width:100%; accent-color:var(--gold); cursor:pointer; }
+  .quality-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .quality-btn,.settings-action{ border:1px solid var(--line); border-radius:4px; padding:10px 7px; color:var(--parchment-dim); background:#17120d; font:700 10px 'Cinzel'; letter-spacing:.7px; cursor:pointer; transition:.18s ease; }
+  .quality-btn:hover,.quality-btn.active{ color:var(--gold-bright); border-color:var(--gold); background:linear-gradient(180deg,#3a2a14,#21170d); box-shadow:0 0 14px rgba(200,155,60,.15); }
+  .settings-switch{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0 0; color:var(--parchment); font:600 12px 'Cinzel'; }
+  .settings-switch button{ min-width:86px; border:1px solid var(--line); border-radius:14px; padding:6px 10px; color:var(--parchment-dim); background:#17120d; font:700 9px 'JetBrains Mono'; cursor:pointer; }
+  .settings-switch button.active{ color:#b9e79e; border-color:rgba(95,138,76,.8); background:rgba(45,88,42,.34); }
+  .settings-actions{ display:flex; flex-wrap:wrap; gap:9px; margin-top:16px; }
+  .settings-action{ flex:1; min-width:170px; }
+  .settings-action.danger{ color:#e58f87; border-color:rgba(172,67,57,.5); }
+  body.graphics-medium .arena::before,body.graphics-medium .arena::after{ opacity:.5; }
+  body.graphics-low{ background:#120f0c; }
+  body.graphics-low *,body.reduce-motion *,body.graphics-low *::before,body.graphics-low *::after,body.reduce-motion *::before,body.reduce-motion *::after{ animation:none !important; transition:none !important; }
+  body.graphics-low .arena::before,body.graphics-low .arena::after,body.graphics-low .particles,body.graphics-low .ambient-glow{ display:none !important; }
+  @media(max-width:560px){ .setting-row{ grid-template-columns:1fr 42px; gap:8px; }.setting-row .settings-range{ grid-column:1/-1; grid-row:2; }.quality-grid{ grid-template-columns:1fr; } }
 
   .panel{
     background:var(--bg-panel); border:1px solid var(--line); border-radius:4px; padding:20px;
@@ -270,9 +326,24 @@
   .fighter .name{ font-family:'Cinzel'; font-size:10.5px; letter-spacing:1px; color:var(--parchment-dim); margin-bottom:4px; }
   .fighter .mini-bar{ width:100px; height:6px; background:var(--bg-deep); border:1px solid var(--line); border-radius:2px; overflow:hidden; margin-bottom:6px;}
   .fighter .mini-bar > div{ height:100%; transition:width .3s ease; }
+  .break-meter{ width:104px; margin:-2px 0 6px; display:flex; align-items:center; gap:4px; color:#b7a17a; font:700 7px 'JetBrains Mono'; letter-spacing:.3px; }
+  .break-meter .break-track{ flex:1; height:5px; overflow:hidden; border:1px solid #4d3a20; border-radius:8px; background:#120e09; }
+  .break-meter .break-fill{ height:100%; width:0; background:linear-gradient(90deg,#83512d,#e2ad4e,#ffe29a); box-shadow:0 0 7px rgba(239,187,79,.55); transition:width .22s ease; }
+  .break-meter .break-value{ min-width:20px; text-align:right; color:#e5c478; }
+  .break-meter.is-broken{ color:#f5df99; animation:breakPulse .52s ease-in-out 2; }
+  .break-meter.is-broken .break-track{ border-color:#f0c768; box-shadow:0 0 11px rgba(236,186,72,.5); }
+  @keyframes breakPulse{ 50%{ transform:scale(1.06); filter:brightness(1.35); } }
+  .enemy-intent{ width:114px; margin:0 0 5px; padding:4px 5px; border:1px solid #5a4020; border-radius:3px; background:linear-gradient(135deg,rgba(44,29,18,.92),rgba(15,11,8,.9)); text-align:center; box-shadow:inset 0 1px rgba(255,215,130,.06); }
+  .monster-analysis{ width:116px; min-height:16px; margin:-2px 0 5px; padding:3px 5px; overflow:hidden; border:1px solid rgba(86,158,185,.42); border-radius:10px; text-align:center; white-space:nowrap; text-overflow:ellipsis; background:rgba(11,25,31,.8); color:#a9ddf2; font:700 7px 'JetBrains Mono'; letter-spacing:.1px; box-shadow:0 0 9px rgba(68,155,186,.12); }
+  .monster-analysis.hidden{ border-color:rgba(103,91,69,.35); background:rgba(18,14,10,.72); color:#9a8d77; }
+  .enemy-intent small{ display:block; color:#bca783; font:700 7px 'Cinzel'; letter-spacing:.9px; }
+  .enemy-intent b{ display:block; margin-top:2px; color:#f0c877; font:700 8px 'JetBrains Mono'; letter-spacing:.25px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .enemy-intent.intent-charge{ border-color:#b94c37; box-shadow:0 0 12px rgba(192,62,39,.24),inset 0 1px rgba(255,215,130,.06); animation:intentDanger 1s ease-in-out infinite alternate; }
+  .enemy-intent.intent-charge b{ color:#ff926d; }.enemy-intent.intent-swift b{ color:#b8e9a4; }.enemy-intent.intent-venom b{ color:#a9d07b; }.enemy-intent.intent-boss{ border-color:#b44d57; }.enemy-intent.intent-boss b{ color:#ff9b8c; }
+  @keyframes intentDanger{ from{transform:translateY(0)} to{transform:translateY(-2px);filter:brightness(1.18)} }
   .fighter.player .mini-bar > div{ background:var(--blood); }
   .fighter.monster .mini-bar > div{ background:var(--ember); }
-  .sprite-box{ position:relative; width:90px; height:100px; }
+  .sprite-box{ position:relative; isolation:isolate; width:90px; height:100px; }
   .sprite-box svg{ width:100%; height:100%; overflow:visible; }
 
   #playerArmGroup{ transform-box:fill-box; transform-origin:100% 30%; transition:transform .12s ease; }
@@ -343,10 +414,51 @@
   .run-status-bar .rs-res .rbar>div{ height:100%; }
   .run-status-bar .rs-hp>div{ background:linear-gradient(90deg,#6b1c1c,var(--blood)); }
   .run-status-bar .rs-mp>div{ background:linear-gradient(90deg,#234a63,var(--mana)); }
+  .hunt-subtabs{ display:grid; grid-template-columns:repeat(2,1fr); gap:7px; margin:13px 0; padding:6px; border:1px solid var(--line); border-radius:4px; background:#120f0b; }
+  .hunt-subtab{ min-height:42px; border:1px solid transparent; border-radius:3px; background:transparent; color:var(--parchment-dim); font-family:'Cinzel'; font-size:10px; font-weight:700; letter-spacing:.8px; cursor:pointer; transition:.18s ease; }
+  .hunt-subtab:hover{ color:var(--gold-bright); background:rgba(183,132,37,.08); }
+  .hunt-subtab.active{ color:var(--gold-bright); border-color:var(--gold); background:linear-gradient(180deg,#392914,#21180e); box-shadow:inset 0 0 12px rgba(220,163,46,.09),0 0 11px rgba(196,142,32,.12); }
+  .hunt-subtab .hunt-tab-icon{ display:block; margin-bottom:2px; font-size:13px; }
+  .hunt-view{ display:none; animation:huntViewIn .22s ease both; }
+  .hunt-view.active{ display:block; }
+  @keyframes huntViewIn{ from{ opacity:0; transform:translateY(5px); } to{ opacity:1; transform:translateY(0); } }
+  .hunt-progress-panel{ padding:17px; border:1px solid var(--line); border-radius:4px; background:radial-gradient(ellipse at 78% 0%,rgba(100,72,24,.18),transparent 44%),var(--bg-panel-2); }
+  .hunt-progress-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:13px; }
+  .hunt-progress-head strong{ font-family:'Cinzel'; color:var(--gold-bright); letter-spacing:1px; }
+  .hunt-progress-head small{ color:var(--parchment-dim); font-family:'JetBrains Mono'; }
+  .hunt-metric-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .hunt-metric{ padding:11px 9px; border:1px solid #3d2d18; border-radius:3px; background:rgba(11,9,7,.44); text-align:center; }
+  .hunt-metric small{ display:block; color:var(--parchment-dim); font-family:'Cinzel'; font-size:8px; letter-spacing:1px; }
+  .hunt-metric b{ display:block; margin-top:4px; color:var(--gold-bright); font-family:'JetBrains Mono'; font-size:16px; }
+  .hunt-relic-list{ margin-top:13px; padding:10px; border-left:2px solid var(--mana); background:rgba(34,74,99,.1); font-family:'JetBrains Mono'; font-size:10px; color:var(--parchment-dim); line-height:1.7; }
+  .hunt-relic-list b{ color:#78bfea; }
+  @media(max-width:540px){ .hunt-metric-grid{ grid-template-columns:1fr; } .hunt-subtab{ font-size:8.5px; } }
+  .run-status-bar .run-overview{ flex:1 0 100%; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; padding-top:3px; }
+  .run-stat-chip{
+    position:relative; overflow:hidden; min-height:47px; padding:7px 9px; border:1px solid #3c2d17; border-radius:4px;
+    background:linear-gradient(135deg,rgba(50,37,20,.9),rgba(19,15,10,.95)); box-shadow:inset 0 1px rgba(255,225,145,.05);
+  }
+  .run-stat-chip::after{ content:''; position:absolute; inset:auto -12px -18px auto; width:55px; height:55px; border-radius:50%; background:radial-gradient(circle,rgba(225,168,47,.14),transparent 68%); pointer-events:none; }
+  .run-stat-chip small{ display:block; color:var(--parchment-dim); font-family:'Cinzel'; font-size:8.5px; letter-spacing:1px; }
+  .run-stat-chip strong{ display:block; margin-top:3px; color:var(--gold-bright); font-family:'JetBrains Mono'; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .run-stat-chip.streak strong{ color:#ff8445; text-shadow:0 0 10px rgba(255,99,50,.38); }
+  .run-stat-chip.danger strong{ color:#ef6666; }
+  .run-stat-chip.reward strong{ color:#78c96e; }
+  .run-reward-trail{ grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:1px; padding:6px 9px; border:1px dashed #5e4520; border-radius:3px; background:rgba(87,58,18,.13); font-family:'JetBrains Mono'; font-size:10px; color:var(--parchment-dim); }
+  .run-reward-trail b{ color:var(--gold-bright); font-weight:700; }
+  .run-reward-trail .boss-countdown{ color:#ff8c54; }
+  @media(max-width:620px){ .run-status-bar .run-overview{ grid-template-columns:repeat(2,minmax(0,1fr)); } .run-reward-trail{ font-size:9px; } }
 
   .bounty-intro{ text-align:center; color:var(--gold-bright); font-family:'Cinzel'; font-size:13px; letter-spacing:1px; margin-bottom:12px; }
+  .arena.bounty-selection-mode{ height:auto; min-height:260px; display:block; padding:14px 20px; }
+  .bounty-guide{ width:100%; max-width:660px; margin:0 auto 10px; padding:8px 11px; border:1px solid #4a371c; border-left:3px solid var(--gold); border-radius:3px; background:linear-gradient(90deg,rgba(101,69,20,.28),rgba(22,17,11,.78)); text-align:center; }
+  .bounty-guide b{ display:block; color:var(--gold-bright); font:700 11px 'Cinzel'; letter-spacing:1px; }
+  .bounty-guide span{ display:block; margin-top:4px; color:var(--parchment-dim); font:10px 'JetBrains Mono'; line-height:1.5; }
+  .bounty-steps{ width:100%; max-width:660px; display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:0 auto 12px; }
+  .bounty-step{ padding:7px 8px; border:1px solid #3b2b16; border-radius:3px; background:rgba(10,8,5,.5); color:var(--parchment-dim); font:9px 'JetBrains Mono'; line-height:1.4; }
+  .bounty-step b{ display:block; color:var(--gold-bright); font:10px 'Cinzel'; letter-spacing:.7px; }
   .bounty-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-  .bounty-card{
+  .bounty-card{ 
     background:var(--bg-panel-2); border:1px solid var(--line); border-radius:3px; padding:14px 10px; text-align:center;
     cursor:pointer; transition:all .18s ease; display:flex; flex-direction:column; gap:6px; align-items:center;
   }
@@ -354,6 +466,8 @@
   .bounty-card .b-icon{ font-size:22px; }
   .bounty-card .b-label{ font-family:'Cinzel'; font-weight:700; letter-spacing:1px; font-size:12.5px; }
   .bounty-card .b-hint{ font-family:'JetBrains Mono'; font-size:10px; color:var(--parchment-dim); line-height:1.4; }
+  .bounty-card .b-goal{ padding:3px 7px; border-radius:10px; background:rgba(0,0,0,.22); font:700 9px 'JetBrains Mono'; letter-spacing:.4px; }
+  .bounty-card .b-risk{ min-height:29px; font:9px 'JetBrains Mono'; color:#b9a990; line-height:1.4; }
   .bounty-card.tier-facil{ border-color:var(--green); } .bounty-card.tier-facil .b-label{ color:var(--green); }
   .bounty-card.tier-medio{ border-color:var(--gold); } .bounty-card.tier-medio .b-label{ color:var(--gold-bright); }
   .bounty-card.tier-dificil{ border-color:var(--blood); } .bounty-card.tier-dificil .b-label{ color:#d65a5a; }
@@ -365,6 +479,8 @@
   .retreat-btn:hover{ color:var(--gold-bright); border-color:var(--gold); }
 
   .dice-stage{ display:flex; flex-direction:column; align-items:center; gap:12px; height:100%; justify-content:center; }
+  .dice-help{ width:min(100%,600px); display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; padding:8px 10px; border:1px solid #4d3719; border-radius:3px; background:rgba(34,24,12,.7); }
+  .dice-help b{ color:var(--gold-bright); font:10px 'Cinzel'; letter-spacing:.7px; }.dice-help span{ color:var(--parchment-dim); font:9px 'JetBrains Mono'; line-height:1.4; }.dice-help .dice-multiplier{ padding:5px 8px; border:1px solid var(--gold); border-radius:2px; color:var(--gold-bright); font:700 11px 'JetBrains Mono'; white-space:nowrap; }
   .dice-tier-tag{ font-family:'Cinzel'; letter-spacing:1.5px; font-size:11px; text-transform:uppercase; padding:4px 12px; border-radius:10px; border:1px solid; }
   .dice-row{ display:flex; gap:10px; }
   .die{
@@ -373,11 +489,13 @@
     box-shadow:0 3px 0 #5a5347; transition:transform .12s ease, box-shadow .12s ease;
   }
   .die.held{ background:var(--gold-bright); box-shadow:0 3px 0 #7a5c1a, 0 0 10px rgba(232,196,119,0.6); transform:translateY(-3px); }
+  .dice-hold-note{ color:var(--green); font:700 9px 'JetBrains Mono'; letter-spacing:.7px; min-height:12px; }
   .die.rolling{ animation:diceRoll .4s ease; }
   @keyframes diceRoll{ 0%{transform:rotate(0deg);} 50%{transform:rotate(180deg) scale(1.1);} 100%{transform:rotate(360deg);} }
   .die-hold-label{ font-family:'JetBrains Mono'; font-size:9px; color:var(--parchment-dim); text-align:center; margin-top:4px; }
   .combo-label{ font-family:'Cinzel'; font-size:15px; letter-spacing:1px; }
   .rolls-left{ font-family:'JetBrains Mono'; font-size:11px; color:var(--parchment-dim); }
+  @media(max-width:620px){ .arena.bounty-selection-mode{ padding:12px; }.bounty-steps{ grid-template-columns:1fr; }.dice-help{ grid-template-columns:1fr; text-align:center; }.dice-help .dice-multiplier{ justify-self:center; }.bounty-card{ padding:10px 6px; } }
 
   .reward-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
   .reward-card{
@@ -394,14 +512,38 @@
   .run-end-panel .re-stats{ font-family:'JetBrains Mono'; font-size:12px; color:var(--parchment-dim); line-height:1.7; }
 
   #log{
-    background:var(--bg-deep); border:1px solid var(--line); border-radius:2px; height:150px; overflow-y:auto;
+    background:linear-gradient(135deg,#100e0a,#17120d); border:1px solid #4b3518; border-radius:4px; height:150px; overflow-y:auto;
     padding:10px 14px; font-family:'JetBrains Mono'; font-size:12px; display:flex; flex-direction:column-reverse;
+    box-shadow:inset 0 0 22px rgba(0,0,0,.28), 0 5px 14px rgba(0,0,0,.13);
   }
-  .log-line{ padding:4px 0; border-bottom:1px solid #221c14; color:var(--parchment-dim); line-height:1.5;}
-  .log-line.win{ color:var(--green); }
-  .log-line.lose{ color:var(--blood); }
-  .log-line.level{ color:var(--gold-bright); }
-  .log-line.reset{ color:var(--ember); }
+  .log-line{ padding:5px 7px; border-bottom:1px solid #2b2116; color:var(--parchment-dim); line-height:1.5; border-left:2px solid transparent;}
+  .log-line.win{ color:#78c96e; border-left-color:#5a9c51; background:linear-gradient(90deg,rgba(71,130,54,.11),transparent 55%); }
+  .log-line.lose{ color:#ed7770; border-left-color:var(--blood); background:linear-gradient(90deg,rgba(145,36,32,.13),transparent 55%); }
+  .log-line.level{ color:var(--gold-bright); border-left-color:var(--gold); background:linear-gradient(90deg,rgba(188,139,42,.12),transparent 55%); }
+  .log-line.reset{ color:var(--ember); border-left-color:var(--ember); }
+  .log-line.combat{ color:#b9d8e8; border-left-color:#3c8eb8; background:linear-gradient(90deg,rgba(45,112,150,.12),transparent 55%); }
+  .log-line.enemy{ color:#ee9a7d; border-left-color:#c14c39; background:linear-gradient(90deg,rgba(159,49,30,.13),transparent 55%); }
+  .hunt-log-panel{ position:sticky; top:16px; padding:15px!important; }
+  .hunt-log-panel h3{ margin-bottom:10px!important; font-size:11px!important; }
+  .hunt-log-note{ margin:0 0 9px; color:var(--parchment-dim); font:9px 'JetBrains Mono'; line-height:1.45; }
+  #secHunt .hunt-log-panel #log{ height:min(530px,calc(100vh - 175px)); min-height:255px; padding:7px; font-size:10px; }
+  #secHunt .hunt-log-panel .log-line{ padding:7px 6px; }
+  @media(max-width:900px){ .hunt-log-panel{ position:static; } #secHunt .hunt-log-panel #log{ height:185px; min-height:0; } }
+
+  /* Herrería */
+  #secForge .panel{ background:radial-gradient(circle at 50% -20%,rgba(217,112,42,.15),transparent 44%),linear-gradient(145deg,#21160f,#130e0a); border-color:#634221; }
+  .forge-hero{ padding:13px 14px; border:1px solid rgba(218,145,56,.38); border-radius:5px; background:linear-gradient(110deg,rgba(107,48,17,.45),rgba(18,13,9,.82)); }
+  .forge-hero b{ display:block; color:#ffd68a; font:700 14px 'Cinzel'; letter-spacing:1.4px; }.forge-hero span{ display:block; margin-top:5px; color:var(--parchment-dim); font:10px 'JetBrains Mono'; line-height:1.5; }
+  .forge-materials{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:12px 0; }
+  .forge-material{ padding:9px 7px; text-align:center; border:1px solid #4a321c; border-radius:4px; background:rgba(8,7,5,.48); }.forge-material small{ display:block; color:#aa9779; font:8px 'Cinzel'; letter-spacing:.7px; }.forge-material b{ display:block; margin-top:4px; color:#ffe09b; font:700 14px 'JetBrains Mono'; }
+  .forge-material.core b{ color:#f17955; }.forge-material.gold b{ color:var(--gold-bright); }
+  .forge-title{ margin:15px 0 8px; padding-bottom:6px; border-bottom:1px solid rgba(232,196,119,.18); color:#f0c776; font:700 11px 'Cinzel'; letter-spacing:1.3px; }
+  .forge-blueprints{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .forge-card{ position:relative; min-height:134px; padding:10px; border:1px solid rgba(246,236,173,.42); border-radius:5px; background:radial-gradient(circle at 100% 0,rgba(246,236,173,.11),transparent 46%),rgba(16,12,9,.84); overflow:hidden; }.forge-card.owned{ opacity:.58; border-color:#62563d; }.forge-card::after{ content:'✦'; position:absolute; right:8px; bottom:-16px; color:rgba(246,236,173,.09); font-size:65px; }
+  .forge-card-head{ position:relative; z-index:1; display:flex; align-items:center; gap:7px; }.forge-card-head img{ width:32px; height:32px; object-fit:contain; filter:drop-shadow(0 0 7px rgba(246,236,173,.4)); }.forge-card-head b{ color:#f6ecad; font:700 10px 'Cinzel'; letter-spacing:.5px; line-height:1.3; }.forge-card-head small{ display:block; margin-top:2px; color:#b6a982; font:8px 'JetBrains Mono'; }
+  .forge-stats{ position:relative; z-index:1; min-height:25px; margin:8px 0; color:#cbbd9a; font:9px 'JetBrains Mono'; line-height:1.4; }.forge-cost{ position:relative; z-index:1; color:#d6b567; font:8px 'JetBrains Mono'; }.forge-card button{ position:relative; z-index:1; width:100%; margin-top:7px; min-height:31px; padding:5px; font-size:9px; }.forge-card button:disabled{ opacity:.5; }
+  .forge-side-note{ color:#a8987b; font:9px 'JetBrains Mono'; line-height:1.55; }.forge-salvage{ display:flex; flex-direction:column; gap:7px; max-height:430px; overflow:auto; padding-right:3px; }.salvage-item{ display:grid; grid-template-columns:36px 1fr auto; align-items:center; gap:7px; padding:8px; border:1px solid #3d2c18; border-left:3px solid var(--rarity-color); border-radius:4px; background:rgba(8,7,5,.48); }.salvage-item img{ width:32px; height:32px; object-fit:contain; }.salvage-item b{ color:var(--rarity-color); font:700 9px 'Cinzel'; }.salvage-item small{ display:block; margin-top:3px; color:#a9987d; font:8px 'JetBrains Mono'; }.salvage-item button{ min-height:28px; padding:5px 7px; background:#352016; border-color:#8e4d2b; color:#f3be86; font-size:8px; }.forge-empty{ padding:16px 10px; border:1px dashed #5a4021; border-radius:4px; color:#9c8d76; font:10px 'JetBrains Mono'; text-align:center; }
+  @media(max-width:620px){ .forge-blueprints{ grid-template-columns:1fr; }.forge-materials{ grid-template-columns:repeat(3,1fr); }.forge-hero{ text-align:center; } }
 
   /* Subpestañas */
   .tabs{ display:flex; gap:6px; margin-bottom:14px; flex-wrap: wrap; }
@@ -432,6 +574,9 @@
   #lbStatus{ font-size:11px; color:var(--parchment-dim); text-align:center; padding:10px 0;}
   .lb-intro{ margin:8px 0 10px; color:var(--parchment-dim); font-size:10px; text-align:center; letter-spacing:.3px; }
   .lb-row{ position:relative; min-height:55px; gap:8px; padding:7px 7px; cursor:pointer; border:1px solid transparent; border-bottom-color:var(--line); transition:.18s ease; }
+  button.lb-row{ width:100%; display:flex; align-items:center; justify-content:initial; appearance:none; -webkit-appearance:none; text-align:left; font:inherit; color:inherit; background:linear-gradient(90deg,rgba(31,21,12,.76),rgba(15,10,7,.48)); border-radius:4px; }
+  button.lb-row:nth-of-type(even){ background:linear-gradient(90deg,rgba(43,29,15,.7),rgba(16,11,8,.35)); }
+  button.lb-row.me{ border-color:rgba(232,196,119,.55); background:linear-gradient(90deg,rgba(106,72,22,.4),rgba(31,20,10,.54)); box-shadow:inset 3px 0 0 var(--gold),0 0 13px rgba(200,155,60,.13); }
   .lb-row:hover,.lb-row:focus-visible{ outline:none; transform:translateX(2px); border-color:rgba(232,196,119,.42); background:linear-gradient(90deg,rgba(200,155,60,.16),rgba(25,17,10,.08)); }
   .lb-row .rank{ align-self:center; text-align:center; font-size:13px; }
   .lb-crest{ width:34px; height:34px; display:grid; place-items:center; border:1px solid rgba(232,196,119,.35); border-radius:50%; background:radial-gradient(circle,rgba(200,155,60,.18),rgba(16,11,7,.9)); color:var(--gold-bright); font-size:17px; box-shadow:inset 0 0 10px rgba(200,155,60,.12); }
@@ -673,7 +818,7 @@
   /* ---- JEFES ---- */
 .fighter.monster.boss .sprite-box{ transform:scale(1.22); filter:drop-shadow(0 0 10px var(--ember)) drop-shadow(0 0 4px var(--gold-bright)); }
 .fighter.monster.boss .name{ color:var(--ember); text-shadow:0 0 6px rgba(232,98,44,0.6); }
-.arena.boss-phase-two{ box-shadow:inset 0 0 80px rgba(151,23,39,.42),0 0 26px rgba(218,57,56,.22); animation:bossPhasePulse 1.05s ease-in-out infinite; }
+  .arena.boss-phase-two{ box-shadow:inset 0 0 80px rgba(151,23,39,.42),0 0 26px rgba(218,57,56,.22); animation:bossPhasePulse 1.05s ease-in-out infinite; }
 .arena.boss-phase-two::before{ content:''; position:absolute; inset:0; z-index:2; pointer-events:none; background:radial-gradient(circle at 76% 53%,rgba(220,41,55,.38),transparent 35%); mix-blend-mode:screen; animation:bossPhaseVeil 1.15s ease-in-out infinite; }
 .fighter.monster.boss.phase-two .sprite-box{ transform:scale(1.34); filter:drop-shadow(0 0 17px #f33) drop-shadow(0 0 8px #9c1d44) brightness(1.18) saturate(1.5); animation:bossPhaseFloat .72s ease-in-out infinite alternate; }
 .fighter.monster.boss.phase-two .name{ color:#ff8b75; text-shadow:0 0 11px #e72d3b; }
@@ -681,6 +826,17 @@
 @keyframes bossPhasePulse{ 50%{filter:brightness(1.11) saturate(1.2)} }
 @keyframes bossPhaseVeil{ 50%{opacity:.38} }
 @keyframes bossPhaseFloat{ to{transform:scale(1.39) translateY(-4px)} }
+  .arena.last-stand:not(.boss-phase-two){ box-shadow:inset 0 0 72px rgba(185,35,36,.42),0 0 22px rgba(195,53,42,.2); animation:lastStandPulse 1.15s ease-in-out infinite; }
+  .arena.last-stand::after{ content:''; position:absolute; z-index:5; inset:0; pointer-events:none; background:radial-gradient(circle at 76% 54%,rgba(236,60,49,.25),transparent 34%),linear-gradient(90deg,transparent,rgba(157,24,28,.15),transparent); mix-blend-mode:screen; animation:lastStandVeil 1.15s ease-in-out infinite; }
+  .arena.last-stand .fighter.monster .sprite-box{ filter:drop-shadow(0 0 15px #e44a43) brightness(1.15) saturate(1.25); }
+  .combat-warning{ position:absolute; z-index:30; left:50%; top:14px; width:min(78%,390px); transform:translateX(-50%); padding:8px 12px; border:1px solid #d85b47; border-radius:4px; text-align:center; background:linear-gradient(90deg,rgba(70,15,14,.95),rgba(117,36,25,.95),rgba(70,15,14,.95)); box-shadow:0 0 20px rgba(222,63,45,.45),inset 0 1px rgba(255,225,180,.18); color:#ffe1ba; font:700 10px 'Cinzel'; letter-spacing:1px; animation:warningDrop .7s cubic-bezier(.16,.8,.25,1) both; }
+  .combat-warning small{ display:block; margin-top:3px; color:#f4ab8a; font:9px 'JetBrains Mono'; letter-spacing:0; }.combat-warning.boss{ border-color:#f2b056; background:linear-gradient(90deg,rgba(82,21,14,.96),rgba(137,46,21,.96),rgba(82,21,14,.96)); }
+  @keyframes warningDrop{ 0%{opacity:0;transform:translate(-50%,-15px) scale(.88)} 20%,72%{opacity:1;transform:translate(-50%,0) scale(1)} 100%{opacity:0;transform:translate(-50%,-4px) scale(.97)} }
+  @keyframes lastStandPulse{ 50%{filter:brightness(1.13) saturate(1.18)} } @keyframes lastStandVeil{ 50%{opacity:.78} }
+  .combat-finisher{ position:absolute; z-index:40; inset:0; pointer-events:none; display:grid; place-items:center; overflow:hidden; background:radial-gradient(circle,rgba(255,232,157,.22),transparent 34%); animation:finisherFade .82s ease-out forwards; }
+  .combat-finisher::before{ content:''; width:2px; height:130%; background:linear-gradient(transparent,#fff1ba 35%,#f2b846 50%,transparent); box-shadow:0 0 14px #ffe199,0 0 42px #e98b38; transform:rotate(52deg); animation:finisherSlash .62s cubic-bezier(.15,.74,.25,1) forwards; }
+  .combat-finisher b{ position:absolute; color:#ffe3a0; font:700 21px 'Cinzel'; letter-spacing:3px; text-shadow:0 0 14px #d97931,0 3px 4px #210c08; animation:finisherText .75s ease-out forwards; }
+  @keyframes finisherSlash{ from{opacity:0;transform:rotate(52deg) scaleY(.1)} 25%{opacity:1} to{opacity:0;transform:rotate(52deg) scaleY(1.15)} } @keyframes finisherText{ from{opacity:0;transform:scale(.65)} 34%,70%{opacity:1;transform:scale(1)} to{opacity:0;transform:scale(1.16)} } @keyframes finisherFade{ to{opacity:0} }
 
   /* ---- JUGOSIDAD DE COMBATE ---- */
   .arena.crit-shake{ animation:critShake .4s; }
@@ -817,6 +973,29 @@
   .class-fx.priest::before{ content:'✚'; color:#fff0a6; font-size:76px; text-align:center; text-shadow:0 0 24px #eccf7e; animation:magicFx .55s ease-out forwards; }
   .class-fx.assassin::before{ content:'✧ ✧'; color:#ef9bff; font-size:43px; letter-spacing:25px; text-shadow:0 0 18px #b968c2; animation:dashFx .45s ease-out forwards; }
   .class-fx.skill::before{ filter:brightness(1.5); transform:scale(1.35); }
+  /* Asesino: sombras, dagas y cortes con identidad propia. */
+  .assassin-fx{ position:absolute; z-index:12; pointer-events:none; inset:13% 7% 9%; overflow:hidden; }
+  .assassin-fx .afterimage{ position:absolute; left:10%; bottom:8%; width:76px; height:112px; border-radius:48% 48% 38% 38%; background:linear-gradient(90deg,transparent,rgba(203,112,233,.38),transparent); filter:blur(6px); opacity:0; transform:skewX(-18deg); animation:assassinGhost .58s cubic-bezier(.12,.65,.25,1) forwards; }
+  .assassin-fx .afterimage.two{ left:29%; animation-delay:.09s; opacity:0; }
+  .assassin-fx .dagger-streak{ position:absolute; top:36%; left:28%; width:47%; height:5px; border-radius:50%; background:linear-gradient(90deg,transparent,#f8d7ff 35%,#b85bd2 68%,transparent); box-shadow:0 0 7px #f3a7ff,0 0 19px #9445af; opacity:0; transform:rotate(-30deg) scaleX(.2); animation:assassinSlash .38s ease-out forwards; }
+  .assassin-fx .dagger-streak.b{ top:50%; left:40%; transform:rotate(27deg) scaleX(.15); animation-delay:.12s; }
+  .assassin-fx .dagger-streak.c{ top:23%; left:47%; transform:rotate(-10deg) scaleX(.1); animation-delay:.23s; }
+  .assassin-fx.skill .dagger-streak{ height:7px; box-shadow:0 0 10px #ffd4ff,0 0 28px #b243d0; }
+  .assassin-fx.skill .afterimage{ width:104px; height:142px; filter:blur(9px); }
+  .arena.assassin-strike .fighter.player .sprite-box{ animation:assassinLunge .44s cubic-bezier(.12,.75,.25,1); }
+  .arena.assassin-skill::before{ content:''; position:absolute; z-index:6; inset:0; pointer-events:none; background:radial-gradient(ellipse at 68% 55%,rgba(199,78,221,.35),transparent 25%),linear-gradient(90deg,transparent,rgba(84,22,99,.23),transparent); animation:assassinVeil .72s ease-out forwards; }
+  .arena.assassin-skill .fighter.monster .sprite-box{ animation:assassinMarked .6s ease-out; }
+  @keyframes assassinGhost{ 0%{opacity:0;transform:translateX(-42px) skewX(-18deg) scale(.8)} 28%{opacity:.85} 100%{opacity:0;transform:translateX(168px) skewX(-18deg) scale(1.12)} }
+  @keyframes assassinSlash{ 0%{opacity:0;transform:translateX(-40px) rotate(-30deg) scaleX(.15)} 24%{opacity:1} 74%{opacity:.92} 100%{opacity:0;transform:translateX(150px) rotate(-30deg) scaleX(1.22)} }
+  @keyframes assassinLunge{ 0%,100%{transform:translateX(0) scale(1)} 38%{transform:translateX(32px) scale(1.12)} 56%{transform:translateX(14px) scale(1.04)} }
+  @keyframes assassinVeil{ 0%{opacity:0} 28%{opacity:1} 100%{opacity:0} }
+  @keyframes assassinMarked{ 0%,100%{filter:none} 28%{filter:brightness(2) saturate(.2) drop-shadow(0 0 17px #e36bff)} 62%{filter:brightness(.55) hue-rotate(265deg) drop-shadow(0 0 13px #b63bc9)} }
+  /* Sprite de ataque único: un solo impacto visual por clase. */
+  .class-attack-vfx{ position:absolute; z-index:14; pointer-events:none; inset:-36%; display:grid; place-items:center; mix-blend-mode:screen; animation:classAttackSprite .56s cubic-bezier(.14,.78,.25,1) forwards; }
+  .class-attack-vfx img{ width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 0 14px currentColor); }
+  .class-attack-vfx.warrior{ color:#ff7444; transform:rotate(-12deg); }.class-attack-vfx.archer{ color:#a5e983; transform:scale(.88) translateX(-7%); }.class-attack-vfx.mage{ color:#82c8ff; transform:scale(.95); }.class-attack-vfx.priest{ color:#ffe9a2; transform:scale(.9); }.class-attack-vfx.assassin{ color:#ec9bff; transform:scale(.92) rotate(-7deg); }.class-attack-vfx.tamer{ color:#78e2c6; transform:scale(.92); }
+  .class-attack-vfx.skill{ inset:-50%; animation-duration:.68s; filter:brightness(1.26) saturate(1.22); }
+  @keyframes classAttackSprite{ 0%{opacity:0;transform:scale(.22) rotate(-18deg)} 18%{opacity:1} 58%{opacity:1;transform:scale(1.05) rotate(4deg)} 100%{opacity:0;transform:scale(1.3) rotate(13deg)} }
   .combat-vfx{ position:absolute; z-index:10; pointer-events:none; inset:-48%; display:grid; place-items:center; mix-blend-mode:screen; }
   .combat-vfx img{ width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 0 12px currentColor); }
   .combat-vfx.slash{ animation:vfxSlash .48s cubic-bezier(.15,.8,.25,1) forwards; }
@@ -854,6 +1033,51 @@
   .ability-btn{ min-height:48px; padding:8px 6px!important; background:linear-gradient(145deg,#2b2116,#17110c); color:var(--parchment); border:1px solid var(--line)!important; box-shadow:none!important; }
   .ability-btn strong{ display:block; font:700 10px 'Cinzel'; letter-spacing:.6px; }.ability-btn small{ display:block; margin-top:3px; color:var(--parchment-dim); font:9px 'JetBrains Mono'; }
   .ability-btn.ready{ border-color:var(--mana)!important; color:#b9dcf1; }.ability-btn:disabled{ opacity:.42; cursor:not-allowed; }
+  .stance-row{ grid-column:1/-1; display:grid; grid-template-columns:repeat(3,1fr); gap:5px; padding:6px; border:1px solid var(--line); border-radius:4px; background:#120f0b; }
+  .stance-btn{ min-height:43px; padding:5px 3px; border:1px solid transparent; border-radius:3px; background:rgba(255,255,255,.02); color:var(--parchment-dim); cursor:pointer; font-family:'Cinzel'; font-size:8px; letter-spacing:.45px; transition:.18s ease; }
+  .stance-btn span{ display:block; font-size:12px; margin-bottom:2px; }.stance-btn small{ display:block; margin-top:2px; font:8px 'JetBrains Mono'; color:#8e806b; }
+  .stance-btn:hover:not(:disabled){ color:var(--parchment); background:rgba(255,255,255,.05); }
+  .stance-btn.active{ color:var(--gold-bright); border-color:var(--gold); box-shadow:inset 0 0 10px rgba(211,158,43,.12); }
+  .stance-btn[data-stance="offensive"].active{ border-color:#c95a47; color:#ff9a74; }.stance-btn[data-stance="defensive"].active{ border-color:#4e9ac3; color:#a7dcf3; }
+  /* ---- COMBATE: PRESENTACIÓN UNIFICADA ---- */
+  #secHunt .panel{ position:relative; overflow:hidden; background:linear-gradient(145deg,rgba(35,27,18,.98),rgba(20,15,11,.98)); border-color:#5b4321; box-shadow:inset 0 0 0 1px rgba(0,0,0,.7),0 18px 34px rgba(0,0,0,.3); }
+  #secHunt .panel>h3{ display:flex; align-items:center; justify-content:space-between; padding:0 2px 12px; border-bottom:1px solid rgba(232,196,119,.19); color:var(--gold-bright); letter-spacing:2px; }
+  #secHunt .panel>h3 small{ padding:5px 8px; border:1px solid rgba(232,98,44,.44); border-radius:12px; color:#ff8b55; background:rgba(100,37,16,.16); font:700 10px 'JetBrains Mono'; letter-spacing:.2px; }
+  #secHunt .guild-note{ position:relative; overflow:hidden; padding:10px 12px; border-left:3px solid var(--gold); border-top:1px solid rgba(232,196,119,.1); border-bottom:1px solid rgba(232,196,119,.1); background:linear-gradient(90deg,rgba(91,59,21,.3),rgba(30,21,13,.62),transparent); }
+  #secHunt .guild-note::after{ content:''; position:absolute; top:0; bottom:0; left:-28%; width:20%; background:linear-gradient(90deg,transparent,rgba(255,228,162,.14),transparent); animation:huntRibbon 6s ease-in-out infinite; }
+  @keyframes huntRibbon{ 0%,55%{transform:translateX(0)} 100%{transform:translateX(650%)} }
+  #secHunt .hunt-subtabs{ margin:14px 0 16px; padding:5px; border-color:#4b3820; background:linear-gradient(145deg,#130f0a,#21170f); box-shadow:inset 0 1px rgba(255,233,173,.04); }
+  #secHunt .hunt-subtab{ min-height:48px; color:#a99d87; }
+  #secHunt .hunt-subtab .hunt-tab-icon{ font-size:15px; }
+  #secHunt .hunt-subtab.active{ background:linear-gradient(145deg,#4a3315,#23170c); box-shadow:inset 0 0 17px rgba(238,177,56,.12),0 0 16px rgba(200,150,42,.14); }
+  #secHunt .arena{ margin-bottom:16px; border:1px solid rgba(201,157,69,.5); border-radius:6px; box-shadow:inset 0 0 0 1px rgba(0,0,0,.7),inset 0 -30px 44px rgba(0,0,0,.38),0 14px 28px rgba(0,0,0,.34); }
+  #secHunt .arena .ground{ height:22px; border-top-color:rgba(232,196,119,.25); background:linear-gradient(180deg,rgba(18,14,8,.1),rgba(11,8,5,.72)); }
+  #secHunt .fighter{ min-width:132px; padding:7px 6px 22px; border:1px solid rgba(227,192,117,.16); border-radius:7px; background:linear-gradient(180deg,rgba(14,12,9,.32),rgba(10,8,6,.07)); box-shadow:inset 0 1px rgba(255,239,190,.04); }
+  #secHunt .fighter.player{ border-color:rgba(232,196,119,.35); background:radial-gradient(circle at 50% 52%,rgba(var(--class-rgb),.12),transparent 58%),linear-gradient(180deg,rgba(14,12,9,.4),rgba(10,8,6,.08)); }
+  #secHunt .fighter.monster{ border-color:rgba(232,98,44,.34); background:radial-gradient(circle at 50% 52%,rgba(232,98,44,.1),transparent 59%),linear-gradient(180deg,rgba(23,11,8,.42),rgba(10,8,6,.07)); }
+  #secHunt .fighter .name{ min-height:16px; margin-bottom:3px; font-size:11px; letter-spacing:1.15px; }
+  #secHunt .fighter .mini-bar{ width:112px; height:8px; margin-bottom:7px; border-color:rgba(232,196,119,.32); }
+  #secHunt .fighter .class-tag{ margin:2px 0 6px; }
+  #secHunt .enemy-intent{ width:122px; margin-bottom:7px; border-color:rgba(220,165,70,.58); background:linear-gradient(145deg,rgba(60,38,16,.94),rgba(16,12,8,.94)); }
+  #secHunt .enemy-intent small{ color:#d6bd8c; } #secHunt .enemy-intent b{ color:#ffe0a0; }
+  #secHunt .break-meter{ width:112px; }
+  #secHunt .arena .vs{ display:grid; place-items:center; width:54px; height:54px; margin-bottom:28px; border:1px solid rgba(232,196,119,.2); border-radius:50%; background:radial-gradient(circle,rgba(71,50,22,.5),rgba(14,10,7,.2)); color:rgba(247,214,145,.72); text-shadow:0 0 16px rgba(232,196,119,.45); }
+  #secHunt .action-btns{ gap:9px; margin-bottom:15px; }
+  #secHunt .action-btns button{ min-height:57px; padding:9px; border-radius:5px; letter-spacing:1.1px; box-shadow:inset 0 1px rgba(255,245,200,.14),0 3px 0 rgba(0,0,0,.42)!important; }
+  #secHunt #attackBtn,#secHunt #skillBtn{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; }
+  #secHunt #attackBtn strong,#secHunt #skillBtn strong{ font:700 12px 'Cinzel'; letter-spacing:1.1px; }
+  #secHunt #attackBtn small,#secHunt #skillBtn small{ max-width:100%; color:rgba(255,239,204,.72); font:8px 'JetBrains Mono'; letter-spacing:0; line-height:1.28; text-transform:none; }
+  #secHunt #skillBtn small{ color:rgba(214,239,255,.77); }
+  #secHunt .action-btns button:not(:disabled):hover{ transform:translateY(-2px); box-shadow:inset 0 1px rgba(255,245,200,.2),0 6px 13px rgba(0,0,0,.35)!important; }
+  #secHunt .ability-btn{ background:linear-gradient(145deg,#182a36,#111317); border-color:#3f86aa!important; }
+  #secHunt #classAbilityBtn{ grid-column:1/-1; min-height:66px; border-color:var(--gold)!important; background:radial-gradient(circle at 50% 0,rgba(232,196,119,.16),transparent 66%),linear-gradient(145deg,#352412,#17100a); color:var(--gold-bright); }
+  #secHunt #classAbilityBtn strong{ font-size:12px; letter-spacing:1.2px; } #secHunt #classAbilityBtn small{ color:#d8bc81; }
+  #secHunt .stance-row{ gap:7px; padding:7px; border-color:#4a3821; background:linear-gradient(145deg,#130f0a,#21170f); }
+  #secHunt .stance-btn{ min-height:58px; border-color:rgba(231,196,117,.11); background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(0,0,0,.12)); }
+  #secHunt .stance-btn.active{ background:radial-gradient(circle at 50% 0,rgba(220,172,59,.17),transparent 68%),linear-gradient(180deg,#2d2110,#17100a); box-shadow:inset 0 0 14px rgba(211,158,43,.15),0 0 12px rgba(211,158,43,.1); }
+  #secHunt .combat-status{ margin-top:2px; padding:5px 0 1px; border-top:1px solid rgba(232,196,119,.13); }
+  #secHunt .status-badge{ padding:4px 8px; background:rgba(7,8,7,.34); }
+  @media(max-width:560px){ #secHunt .fighter{ min-width:94px; padding:5px 3px 19px; } #secHunt .fighter .mini-bar{ width:84px; } #secHunt .arena .vs{ width:42px; height:42px; font-size:18px; } #secHunt .enemy-intent{width:94px} #secHunt .break-meter{width:84px} }
   .spark{ position:absolute; width:5px; height:5px; border-radius:50%; pointer-events:none; z-index:8; background:var(--gold-bright); box-shadow:0 0 9px currentColor; animation:sparkBurst .65s ease-out forwards; }
   @keyframes sparkBurst{ to{ transform:translate(var(--x),var(--y)) scale(0); opacity:0; } }
   @media (prefers-reduced-motion:reduce){ *,*::before,*::after{ animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
@@ -1041,8 +1265,11 @@
   <nav class="main-nav" id="mainNav">
     <button class="nav-btn active" data-sec="secHero">🛡️ Héroe</button>
     <button class="nav-btn" data-sec="secHunt">⚔️ Cacería</button>
+    <button class="nav-btn" data-sec="secForge">⚒️ Herrería</button>
+    <button class="nav-btn" data-sec="secOptions">⚙️ Opciones</button>
     <button class="nav-btn" data-sec="secGuild">📜 Gremio</button>
     <button class="nav-btn" id="charactersBtn">👥 Personajes</button>
+    <button class="nav-btn mode-game-btn" id="fullscreenBtn" type="button" aria-pressed="false" title="Abrir modo juego">⛶ Modo juego</button>
   </nav>
 
   <div class="game" id="game">
@@ -1101,15 +1328,44 @@
       <div class="panel">
         <h3>Cacería <small id="powerLabel"></small></h3>
         <div class="guild-note"><span>🎲</span><span><b>Cacería Roguelike</b> — cada descenso es una expedición única.</span></div>
-        <div class="run-status-bar" id="runStatusBar" style="display:none;"></div>
-        <div class="tier-grid" id="tierGrid"></div>
-
-        <div class="arena" id="arena">
-          <div class="arena-idle" id="arenaIdle">Elegí una dificultad y salí a cazar</div>
+        <div class="hunt-subtabs" id="huntSubtabs">
+          <button class="hunt-subtab active" data-hunt-tab="combat"><span class="hunt-tab-icon">⚔</span>Combate</button>
+          <button class="hunt-subtab" data-hunt-tab="progress"><span class="hunt-tab-icon">✦</span>Progreso</button>
         </div>
+        <div class="hunt-view active" id="huntViewCombat">
+          <div class="tier-grid" id="tierGrid"></div>
+          <div class="arena" id="arena">
+            <div class="arena-idle" id="arenaIdle">Comenzá la expedición y elegí tu camino.</div>
+          </div>
+          <div class="action-btns" id="actionBtns"></div>
+        </div>
+        <div class="hunt-view" id="huntViewProgress">
+          <div class="run-status-bar" id="runStatusBar" style="display:none;"></div>
+          <div class="hunt-progress-panel" id="huntProgressContent"></div>
+        </div>
+      </div>
+      <aside class="panel hunt-log-panel">
+        <h3>Bitácora <small id="huntLogCount">Últimos sucesos</small></h3>
+        <p class="hunt-log-note">Daño, recompensas, botín y decisiones de esta expedición.</p>
+        <div id="log" aria-live="polite"></div>
+      </aside>
+    </div>
 
-        <div class="action-btns" id="actionBtns"></div>
-        <div id="log"></div>
+    <div class="game-section" id="secForge">
+      <div class="panel">
+        <h3>Herrería <small>⚒ Forja de leyendas</small></h3>
+        <div id="forgeContent"></div>
+      </div>
+      <aside class="panel">
+        <h3>Desmantelar <small>Materiales</small></h3>
+        <div id="forgeSalvage"></div>
+      </aside>
+    </div>
+
+    <div class="game-section" id="secOptions">
+      <div class="panel">
+        <h3>Opciones <small>Tu experiencia</small></h3>
+        <div id="settingsContent"></div>
       </div>
     </div>
 
@@ -1171,7 +1427,8 @@ const Sound = {
     hunt: [[220,250],[261.63,250],[293.66,250],[329.63,500],[293.66,250],[261.63,250],[246.94,500],[0,250]],
     battle: [[146.83,180],[196,180],[220,180],[246.94,180],[220,180],[196,180],[174.61,180],[220,180]],
     boss: [[110,210],[146.83,210],[164.81,210],[110,210],[130.81,210],[164.81,210],[196,420],[0,210]],
-    bossPhase: [[73.42,150],[110,150],[146.83,150],[82.41,150],[123.47,150],[164.81,300],[196,150],[164.81,150]]
+    bossPhase: [[73.42,150],[110,150],[146.83,150],[82.41,150],[123.47,150],[164.81,300],[196,150],[164.81,150]],
+    danger: [[123.47,140],[146.83,140],[164.81,140],[196,140],[174.61,140],[146.83,140],[110,280],[0,140]]
   },
 
   init() {
@@ -1195,11 +1452,24 @@ const Sound = {
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume();
     }
+    this.applyVolumes();
+  },
+
+  applyVolumes() {
+    if (!this.ctx) return;
+    const settings = (typeof state !== 'undefined' && state && state.settings) ? state.settings : {};
+    const music = settings.musicEnabled === false ? 0 : (Number(settings.musicVolume ?? 55) / 100);
+    const sfx = settings.sfxEnabled === false ? 0 : (Number(settings.sfxVolume ?? 70) / 100);
+    if(this.musicGain) this.musicGain.gain.setTargetAtTime(.34 * music, this.ctx.currentTime, .04);
+    if(this.ambienceGain) this.ambienceGain.gain.setTargetAtTime(.12 * music, this.ctx.currentTime, .04);
+    if(this.sfxGain) this.sfxGain.gain.setTargetAtTime(.55 * sfx, this.ctx.currentTime, .04);
   },
 
   toggleMusic() {
     this.init();
     this.musicEnabled = !this.musicEnabled;
+    if(typeof state !== 'undefined' && state && state.settings){ state.settings.musicEnabled = this.musicEnabled; saveState(); }
+    this.applyVolumes();
     const icon = document.getElementById('musicIcon');
     
     if (this.musicEnabled) {
@@ -1235,7 +1505,7 @@ const Sound = {
   updateMusicControl() {
     const toggle = document.getElementById('musicToggle');
     if (!toggle) return;
-    const names = { menu:'Forja Eterna', hunt:'Expedición', battle:'Combate', boss:'Jefe', bossPhase:'Jefe · Fase II' };
+    const names = { menu:'Forja Eterna', hunt:'Expedición', battle:'Combate', boss:'Jefe', bossPhase:'Jefe · Fase II', danger:'Peligro' };
     toggle.classList.toggle('active', this.musicEnabled);
     toggle.dataset.audioLabel = this.musicEnabled ? `♫ ${names[this.scene] || 'Música'} · clic para silenciar` : '♫ Activar música y efectos';
     toggle.setAttribute('aria-pressed', String(this.musicEnabled));
@@ -1308,14 +1578,14 @@ const Sound = {
     const duration = note[1];
 
     if (freq > 0) {
-      const tense = this.scene==='battle' || this.scene==='boss' || this.scene==='bossPhase';
+      const tense = this.scene==='battle' || this.scene==='boss' || this.scene==='bossPhase' || this.scene==='danger';
       this.musicTone(freq, duration, (this.scene==='boss' || this.scene==='bossPhase') ? 'sawtooth' : 'triangle', tense ? .039 : .032);
       this.musicTone(freq*1.5, Math.max(90,duration*.48), 'sine', tense ? .012 : .017);
       if(this.melodyIndex%2===0) this.musicTone(freq/2, Math.min(duration*1.8,760), 'sine', .021);
       if(tense) this.percussion(this.melodyIndex%2===0);
     }
     if(this.melodyIndex%4===0){
-      const roots = {menu:98, hunt:110, battle:73.42, boss:55, bossPhase:46.25};
+      const roots = {menu:98, hunt:110, battle:73.42, boss:55, bossPhase:46.25, danger:61.74};
       this.pad(roots[this.scene] || 98);
     }
 
@@ -1329,7 +1599,7 @@ const Sound = {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.sfxGain || this.ctx.destination);
 
     osc.type = 'sine';
     osc.frequency.setValueAtTime(600, this.ctx.currentTime);
@@ -1348,7 +1618,7 @@ const Sound = {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.sfxGain || this.ctx.destination);
 
     osc.type = 'triangle';
     osc.frequency.setValueAtTime(150, this.ctx.currentTime);
@@ -1367,7 +1637,7 @@ const Sound = {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.sfxGain || this.ctx.destination);
 
     osc.type = 'sawtooth';
     osc.frequency.setValueAtTime(350, this.ctx.currentTime);
@@ -1389,7 +1659,7 @@ const Sound = {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.sfxGain || this.ctx.destination);
 
     osc.type = 'sine';
     osc.frequency.setValueAtTime(200, this.ctx.currentTime);
@@ -1408,7 +1678,7 @@ const Sound = {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.sfxGain || this.ctx.destination);
 
     osc.type = 'triangle';
     osc.frequency.setValueAtTime(400, this.ctx.currentTime);
@@ -1426,7 +1696,7 @@ const Sound = {
     [0, .055, .11].forEach((delay, index) => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-      osc.connect(gain); gain.connect(this.ctx.destination);
+      osc.connect(gain); gain.connect(this.sfxGain || this.ctx.destination);
       osc.type = 'square';
       osc.frequency.setValueAtTime(190 + index * 70, this.ctx.currentTime + delay);
       gain.gain.setValueAtTime(.001, this.ctx.currentTime + delay);
@@ -1442,7 +1712,7 @@ const Sound = {
     [523.25, 659.25, 783.99].forEach((freq, index) => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-      osc.connect(gain); gain.connect(this.ctx.destination);
+      osc.connect(gain); gain.connect(this.sfxGain || this.ctx.destination);
       osc.type = 'sine';
       const at = this.ctx.currentTime + index * .075;
       osc.frequency.setValueAtTime(freq, at);
@@ -1461,7 +1731,7 @@ const Sound = {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
+        gain.connect(this.sfxGain || this.ctx.destination);
 
         osc.type = 'square';
         osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
@@ -1483,7 +1753,7 @@ const Sound = {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
+        gain.connect(this.sfxGain || this.ctx.destination);
 
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
@@ -1544,6 +1814,43 @@ const BIOMES = [
   { key:'dragon-nest', label:'Nido del Dragon', until:Infinity, icon:'🐉' }
 ];
 function biomeForDepth(depth){ return BIOMES.find(biome=>depth<=biome.until) || BIOMES[0]; }
+const SCENARIO_EVENTS = {
+  forest:[
+    { icon:'🌿', title:'CLARO DE LUCES ERRANTES', text:'Pequeñas luces verdes flotan entre raíces antiguas. El bosque parece ofrecerte refugio.', choices:[
+      { id:'rest', label:'Respirar con el bosque', detail:'Recuperá 28% de vida', effect:'heal' },
+      { id:'gather', label:'Recolectar savia lunar', detail:'Oro y esencia', effect:'gather' }
+    ]}
+  ],
+  ruins:[
+    { icon:'🏛', title:'OBELISCO DE CENIZA', text:'Runas apagadas laten bajo la piedra. Una vibra restaura tu mente; otra exige un sacrificio.', choices:[
+      { id:'focus', label:'Escuchar las runas', detail:'Recuperá 45% de maná', effect:'mana' },
+      { id:'offering', label:'Ofrecer sangre', detail:'Vida por oro y esencia', effect:'offering' }
+    ]}
+  ],
+  cavern:[
+    { icon:'🔥', title:'RÍO DE BRASAS', text:'Un cauce de fuego corta la caverna. A un lado hay vapor curativo; al otro, un cofre al rojo vivo.', choices:[
+      { id:'steam', label:'Entrar al vapor', detail:'Recuperá 24% de vida', effect:'heal' },
+      { id:'coffer', label:'Abrir el cofre ardiente', detail:'Oro, con un pequeño coste', effect:'coffer' }
+    ]}
+  ],
+  temple:[
+    { icon:'✦', title:'ESPEJO DEL VELO', text:'Tu reflejo sostiene una reliquia idéntica. Solo una versión de la expedición podrá conservarla.', choices:[
+      { id:'relic', label:'Tomar el reflejo', detail:'Reliquia temporal aleatoria', effect:'relic' },
+      { id:'clarity', label:'Romper el espejo', detail:'Maná y esencia', effect:'clarity' }
+    ]}
+  ],
+  'dragon-nest':[
+    { icon:'🐉', title:'ESCAMAS DEL NIDO', text:'Entre huesos gigantes hay una escama intacta. Su calor puede reforzarte o venderse por una fortuna.', choices:[
+      { id:'scale', label:'Fundir la escama', detail:'Reliquia temporal aleatoria', effect:'relic' },
+      { id:'sell', label:'Guardar la escama', detail:'Gran cantidad de oro', effect:'jackpot' }
+    ]}
+  ]
+};
+function makeScenarioEvent(){
+  const biome = biomeForDepth(runState ? runState.depth : 1);
+  const pool = SCENARIO_EVENTS[biome.key] || SCENARIO_EVENTS.forest;
+  return { ...pick(pool), biome:biome.key };
+}
 
 /* ================= ROGUELIKE HUNT MODE ================= */
 // Escala de rareza de la tirada de 5 dados (estilo Generala), de la más común a la más difícil.
@@ -1576,9 +1883,9 @@ function evaluateDiceCombo(dice){
 // "estadísticamente difícil" hay que tirar para cobrar bien: Fácil tiene un piso decente,
 // Difícil paga casi nada con una tirada mala pero mucho con Full/Póker/Generala.
 const BOUNTY_TIERS = {
-  facil:   { key:'facil',   label:'Fácil',   icon:'🟢', needLabel:'Cualquier tirada rinde algo',      mult:[0.55,0.85,1.15,1.5,1.9,2.3,2.8,3.4] },
-  medio:   { key:'medio',   label:'Medio',   icon:'🟡', needLabel:'Conviene al menos un Trío',          mult:[0.15,0.4,0.75,1.3,2.1,3.1,4.4,6.2] },
-  dificil: { key:'dificil', label:'Difícil', icon:'🔴', needLabel:'Sólo paga fuerte con Full o más',    mult:[0,0.08,0.2,0.55,1.2,2.7,5.4,9.5] },
+  facil:   { key:'facil',   label:'Fácil',   icon:'🟢', needLabel:'Seguro · premio menor', goal:'Buscá: Par o mejor', risk:'Recompensa segura, pero moderada.', mult:[0.55,0.85,1.15,1.5,1.9,2.3,2.8,3.4] },
+  medio:   { key:'medio',   label:'Medio',   icon:'🟡', needLabel:'Riesgo medio · buen premio', goal:'Buscá: Trío o mejor', risk:'Una tirada baja paga poco; el Trío cambia la run.', mult:[0.15,0.4,0.75,1.3,2.1,3.1,4.4,6.2] },
+  dificil: { key:'dificil', label:'Difícil', icon:'🔴', needLabel:'Alto riesgo · gran premio', goal:'Buscá: Full o mejor', risk:'Alto riesgo: sin una gran combinación casi no cobrás.', mult:[0,0.08,0.2,0.55,1.2,2.7,5.4,9.5] },
 };
 function bountyTierClass(key){ return 'tier-'+key; }
 const MAP_NODE_TYPES = {
@@ -1676,13 +1983,13 @@ const LEGACY_SHOP_EQUIPMENT_ITEMS = [
 ];
 
 const ITEM_RARITIES = {
-  common:    { label:'Com&uacute;n',     chance:.78,  price:110,  color:'#a9b3bd', glow:'rgba(169,179,189,.24)' },
-  uncommon:  { label:'Poco com&uacute;n',chance:.50,  price:250,  color:'#75c977', glow:'rgba(76,181,88,.28)' },
-  rare:      { label:'Raro',             chance:.28,  price:520,  color:'#5bb6ff', glow:'rgba(67,150,242,.30)' },
-  epic:      { label:'&Eacute;pico',     chance:.14,  price:1050, color:'#c77cff', glow:'rgba(184,88,240,.34)' },
-  legendary: { label:'Legendario',        chance:.065, price:2100, color:'#ffae42', glow:'rgba(246,161,45,.37)' },
-  mythic:    { label:'M&iacute;tico',      chance:.025, price:4200, color:'#ff5d7a', glow:'rgba(240,65,101,.40)' },
-  unique:    { label:'&Uacute;nico',     chance:.009, price:8500, color:'#f6ecad', glow:'rgba(246,236,173,.48)' }
+  common:    { label:'Com&uacute;n',     chance:.65,  price:110,  color:'#a9b3bd', glow:'rgba(169,179,189,.24)' },
+  uncommon:  { label:'Poco com&uacute;n',chance:.18,  price:250,  color:'#75c977', glow:'rgba(76,181,88,.28)' },
+  rare:      { label:'Raro',             chance:.08,  price:520,  color:'#5bb6ff', glow:'rgba(67,150,242,.30)' },
+  epic:      { label:'&Eacute;pico',     chance:.04,  price:1050, color:'#c77cff', glow:'rgba(184,88,240,.34)' },
+  legendary: { label:'Legendario',        chance:.015, price:2100, color:'#ffae42', glow:'rgba(246,161,45,.37)' },
+  mythic:    { label:'M&iacute;tico',      chance:.03,  price:4200, color:'#ff5d7a', glow:'rgba(240,65,101,.40)' },
+  unique:    { label:'&Uacute;nico',     chance:.005, price:8500, color:'#f6ecad', glow:'rgba(246,236,173,.48)' }
 };
 function itemRarityMeta(item){
   const normalized = String(item.rarityKey || item.rarity || 'common').toLowerCase();
@@ -1735,7 +2042,8 @@ function classArmory(classOnly, pieces){
   });
 }
 
-const SHOP_EQUIPMENT_ITEMS = [
+// Semillas de cada ranura. Más abajo se generan sus siete calidades para completar la progresión.
+const CLASS_ARMORY_SEEDS = [
   ...classArmory('warrior', [
     ['warrior_iron_helm','helmet','Yelmo del Recluta','common','&#x1F9D9;', {bonusDef:5}],
     ['warrior_plate','chest','Coraza de Guardia','uncommon','&#x1F6E1;', {bonusDef:13,bonusHp:12}],
@@ -1791,6 +2099,132 @@ const SHOP_EQUIPMENT_ITEMS = [
     ['tamer_totem','ring','Totem de la Manada','unique','&#x1F43E;', {bonusDef:13,bonusCrit:20,bonusCritDmg:40,bonusHp:22}]
   ])
 ];
+
+const RARITY_PROGRESS_ORDER = ['common','uncommon','rare','epic','legendary','mythic','unique'];
+const RARITY_POWER_SCALE = { common:1, uncommon:1.6, rare:2.3, epic:3.3, legendary:4.6, mythic:6.4, unique:8.7 };
+const RARITY_TITLE = { common:'Común', uncommon:'Poco común', rare:'Raro', epic:'Épico', legendary:'Legendario', mythic:'Mítico', unique:'Único' };
+
+function scaleEquipmentBonuses(seed, targetRarity){
+  const sourceScale = RARITY_POWER_SCALE[seed.rarityKey] || 1;
+  const targetScale = RARITY_POWER_SCALE[targetRarity] || 1;
+  const result = {};
+  Object.entries(seed).forEach(([key,value])=>{
+    if(key.startsWith('bonus') && typeof value==='number') result[key] = Math.max(1, Math.round((value/sourceScale)*targetScale));
+  });
+  return result;
+}
+
+function completeClassArmory(seeds){
+  return seeds.flatMap(seed=>RARITY_PROGRESS_ORDER.map(rarityKey=>{
+    const tier = ITEM_RARITIES[rarityKey];
+    const isOriginalTier = rarityKey===seed.rarityKey;
+    return {
+      ...seed,
+      ...scaleEquipmentBonuses(seed, rarityKey),
+      id:isOriginalTier ? seed.id : `${seed.id}_${rarityKey}`,
+      name:isOriginalTier ? seed.name : `${seed.name} · ${RARITY_TITLE[rarityKey]}`,
+      rarity:tier.label,
+      rarityKey,
+      chance:tier.chance,
+      price:tier.price,
+      color:tier.color,
+      glow:tier.glow
+    };
+  }));
+}
+
+// Cada casco/velo, vestidura, guante, bota, arma y accesorio existe de Común a Único.
+const SHOP_EQUIPMENT_ITEMS = completeClassArmory(CLASS_ARMORY_SEEDS);
+
+/* ================= HERRERÍA ================= */
+const FORGE_SALVAGE_ESSENCE = { common:2, uncommon:4, rare:7, epic:11, legendary:18, mythic:28, unique:45 };
+function forgeBlueprints(){
+  return SHOP_EQUIPMENT_ITEMS.filter(item=>item.classOnly===state.characterClass && item.rarityKey==='unique');
+}
+function forgeCost(item){
+  return { essence:28, bossCore:2, gold:Math.max(650, Math.round(item.price*.18)) };
+}
+function forgeItemStats(item){
+  const entries = [];
+  if(item.bonusAtk) entries.push(`+${item.bonusAtk} Atq`);
+  if(item.bonusDef) entries.push(`+${item.bonusDef} Def`);
+  if(item.bonusHp) entries.push(`+${item.bonusHp} Vida`);
+  if(item.bonusMana) entries.push(`+${item.bonusMana} Maná`);
+  if(item.bonusCrit) entries.push(`+${item.bonusCrit}% Crít.`);
+  if(item.bonusCritDmg) entries.push(`+${item.bonusCritDmg}% D.C.`);
+  if(item.bonusSpeed) entries.push(`+${item.bonusSpeed}% Rapidez`);
+  return entries.join(' · ') || 'Pieza excepcional';
+}
+function isForgeLocked(){ return !!(battle || (runState && runState.phase!=='ended')); }
+function craftUniqueItem(id){
+  if(isForgeLocked()){ showFeedback('HERRERÍA CERRADA','Terminá la cacería antes de forjar.','danger'); return; }
+  const item = forgeBlueprints().find(entry=>entry.id===id);
+  if(!item || (state.ownedItems[item.id]||0)>0) return;
+  const cost = forgeCost(item);
+  const materials = state.materials;
+  if((materials.essence||0)<cost.essence || (materials.bossCore||0)<cost.bossCore || state.gold<cost.gold){
+    showFeedback('MATERIALES INSUFICIENTES',`Necesitás ${cost.essence} esencia · ${cost.bossCore} núcleos · ${cost.gold} oro.`,'danger');
+    return;
+  }
+  materials.essence -= cost.essence;
+  materials.bossCore -= cost.bossCore;
+  state.gold -= cost.gold;
+  state.ownedEquipment.push({ ...item, crafted:true });
+  state.ownedItems[item.id] = (state.ownedItems[item.id]||0)+1;
+  Sound.reward();
+  burstSparks(item.color || 'var(--gold-bright)', 18);
+  addLog(`⚒ Forjaste ${item.name} (Único).`, 'level');
+  showFeedback('⚒ PIEZA ÚNICA FORJADA',item.name,'reward');
+  saveState();
+  renderForge();
+  render();
+}
+function dismantleForgeItem(index){
+  if(isForgeLocked()){ showFeedback('HERRERÍA CERRADA','Terminá la cacería antes de desmantelar.','danger'); return; }
+  const item = state.ownedEquipment[index];
+  if(!item) return;
+  const meta = itemRarityMeta(item);
+  const essence = FORGE_SALVAGE_ESSENCE[meta.key] || 2;
+  const core = meta.key==='unique' ? 1 : 0;
+  state.ownedEquipment.splice(index,1);
+  if(item.id && state.ownedItems[item.id]){
+    state.ownedItems[item.id]--;
+    if(state.ownedItems[item.id]<=0) delete state.ownedItems[item.id];
+  }
+  state.materials.essence = (state.materials.essence||0)+essence;
+  if(core) state.materials.bossCore = (state.materials.bossCore||0)+core;
+  Sound.click();
+  addLog(`⚒ Desmantelaste ${item.name}: +${essence} esencia${core?' · +1 núcleo':''}.`, 'level');
+  showFeedback('PIEZA RECICLADA',`+${essence} esencia${core?' · +1 núcleo':''}`,'reward');
+  saveState();
+  renderForge();
+}
+function renderForge(){
+  const box = document.getElementById('forgeContent');
+  const salvage = document.getElementById('forgeSalvage');
+  if(!box || !salvage || !state) return;
+  const heroClass = currentClass();
+  const materials = state.materials || {};
+  const locked = isForgeLocked();
+  const blueprints = forgeBlueprints();
+  const unowned = blueprints.filter(item=>(state.ownedItems[item.id]||0)<=0);
+  box.innerHTML = `<div class="forge-hero"><b>${heroClass.icon} Forja de ${heroClass.label}</b><span>Usá Esencia de élites y Núcleos de jefe para crear piezas Únicas. Las piezas únicas no aparecen dos veces en la misma mochila.</span></div>
+    <div class="forge-materials"><div class="forge-material"><small>◇ ESENCIA</small><b>${materials.essence||0}</b></div><div class="forge-material core"><small>◈ NÚCLEOS DE JEFE</small><b>${materials.bossCore||0}</b></div><div class="forge-material gold"><small>◉ ORO</small><b>${state.gold||0}</b></div></div>
+    <div class="forge-title">PLANOS ÚNICOS · ${unowned.length}/${blueprints.length} DISPONIBLES</div>
+    <div class="forge-blueprints">${blueprints.map(item=>{
+      const cost=forgeCost(item), owned=(state.ownedItems[item.id]||0)>0;
+      const enough=(materials.essence||0)>=cost.essence && (materials.bossCore||0)>=cost.bossCore && state.gold>=cost.gold;
+      return `<div class="forge-card ${owned?'owned':''}"><div class="forge-card-head">${item.image?`<img src="${item.image}" alt="">`:`<span>${item.icon}</span>`}<div><b>${escapeHtml(item.name)}</b><small>${equipmentSlotMeta(item.type).label} · Único</small></div></div><div class="forge-stats">${forgeItemStats(item)}</div><div class="forge-cost">◇ ${cost.essence} · ◈ ${cost.bossCore} · ◉ ${cost.gold}</div><button data-craft-item="${item.id}" ${owned||!enough||locked?'disabled':''}>${owned?'YA FORJADO':locked?'CACERÍA ACTIVA':enough?'FORJAR ÚNICO':'FALTAN MATERIALES'}</button></div>`;
+    }).join('')}</div>`;
+  box.querySelectorAll('[data-craft-item]').forEach(button=>button.addEventListener('click',()=>craftUniqueItem(button.dataset.craftItem)));
+
+  const pieces = state.ownedEquipment || [];
+  salvage.innerHTML = `<p class="forge-side-note">Desmantelá piezas de la mochila para recuperar Esencia. Las Únicas además devuelven un Núcleo de jefe.</p><div class="forge-salvage">${pieces.length ? pieces.map((item,index)=>{
+    const meta=itemRarityMeta(item), value=FORGE_SALVAGE_ESSENCE[meta.key]||2;
+    return `<div class="salvage-item" style="--rarity-color:${meta.color}">${item.image?`<img src="${item.image}" alt="">`:`<span>${item.icon}</span>`}<div><b>${escapeHtml(item.name)}</b><small>+${value} esencia${meta.key==='unique'?' · +1 núcleo':''}</small></div><button data-salvage-item="${index}" ${locked?'disabled':''}>RECICLAR</button></div>`;
+  }).join(''):`<div class="forge-empty">Tu mochila está vacía.<br>El equipo que no uses puede convertirse en materiales.</div>`}</div>`;
+  salvage.querySelectorAll('[data-salvage-item]').forEach(button=>button.addEventListener('click',()=>dismantleForgeItem(Number(button.dataset.salvageItem))));
+}
 
 const MISSION_DEFS = {
   day:[
@@ -1881,6 +2315,7 @@ let selectedTier = 'normal';
 let activeHeroTab = 'gear';
 let activeGuildTab = 'shop';
 let activeLbTab = 'lb';
+let activeHuntTab = 'combat';
 let battle = null;
 let winStreak = 0;
 let huntMode = 'run'; // 'run' (roguelike) | 'free' (cacería clásica)
@@ -1935,9 +2370,12 @@ function defaultState(name, classId='warrior') {
     gold: 150,
     statPoints: 0,
     stats: { ataque: 1, vida: 1, mana: 1, agilidad: 1, rapidez: 1 },
-    allocatedPoints: { ataque:0, vida:0, mana:0, agilidad:0, rapidez:0, robustez:0, critRate:0, critDmg:0 },
-    pendingPoints: { ataque:0, vida:0, mana:0, agilidad:0, rapidez:0, robustez:0, critRate:0, critDmg:0 },
+    allocatedPoints: { ataque:0, vida:0, mana:0, agilidad:0, rapidez:0, robustez:0, percepcion:0, critRate:0, critDmg:0 },
+    pendingPoints: { ataque:0, vida:0, mana:0, agilidad:0, rapidez:0, robustez:0, percepcion:0, critRate:0, critDmg:0 },
     robustness: 0,
+    perception: 0,
+    statResetsUsed: 0,
+    statResetsEarned: 0,
     strength: 5,
     defense: 5,
     critRateStat: 5, 
@@ -1973,6 +2411,7 @@ function defaultState(name, classId='warrior') {
     shop: null,
     ownedItems: {},
     materials: { essence: 0, bossCore: 0 },
+    settings: { musicVolume:55, sfxVolume:70, musicEnabled:false, sfxEnabled:true, graphics:'high', reducedMotion:false },
     log: []
   };
 }
@@ -2170,6 +2609,10 @@ function renderLeaderboard(entries){
     </div>`).join('');
 }
 function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function decorateLeaderboardEntry(entry){
+  const isCurrentHero = !!state && String(entry.name)===String(state.name) && Number(entry.level)===Number(state.level) && Number(entry.resets)===Number(state.resets);
+  return entry.class_key || !isCurrentHero ? entry : { ...entry, ...leaderboardProfile() };
+}
 function openLeaderboardProfile(index){
   const entry = leaderboardEntries[index]; if(!entry) return;
   const hero = leaderboardClassInfo(entry.class_key);
@@ -2183,9 +2626,9 @@ function renderLeaderboard(entries){
   if(!box) return;
   if(!entries){ box.innerHTML = `<div id="lbStatus">No se pudo cargar el ranking global.</div>`; return; }
   if(entries.length===0){ box.innerHTML = `<div id="lbStatus">Todavía no hay nadie en el ranking. ¡Sé el primero!</div>`; return; }
-  leaderboardEntries = entries;
+  leaderboardEntries = entries.map(decorateLeaderboardEntry);
   box.innerHTML = `<div class="lb-intro">Elegí un aventurero para ver su ficha pública.</div>` + entries.map((e,i)=>{
-    const hero = leaderboardClassInfo(e.class_key);
+    const hero = leaderboardClassInfo(decorateLeaderboardEntry(e).class_key);
     return `<button class="lb-row ${e.name===state.name?'me':''}" type="button" onclick="openLeaderboardProfile(${i})" aria-label="Ver perfil de ${escapeHtml(e.name)}"><span class="rank">${i+1}</span><span class="lb-crest">${hero.icon}</span><span class="lb-player"><strong>${escapeHtml(e.name)}</strong><small><b>${hero.label}</b> · Nv. ${e.level} · ${e.resets} reset${Number(e.resets)===1?'':'s'}</small></span><span class="lb-power"><b>⚡ ${Number(e.power)||0}</b><span class="lb-view">VER FICHA ›</span></span></button>`;
   }).join('');
 }
@@ -2246,6 +2689,11 @@ function rollMissionReset(){
   if(m.monthKeyVal !== monthKey()){ m.monthKeyVal = monthKey(); m.month = { resets:0, goldEarned:0, claimed:[false,false] }; }
 }
 function damageReduction(){ return Math.min(.6, (state.robustness||0) * .01); }
+// El análisis tiene un techo natural de 100%; el bono de botín sigue creciendo por cada punto.
+function perceptionChance(){ return Math.min(100, 18 + (state.perception||0) * 7); }
+function perceptionLootBonus(){ return (state.perception||0) * .025; }
+function earnedStatResets(){ return Math.max(0, state.statResetsEarned||0); }
+function availableStatResets(){ return Math.max(0, earnedStatResets() - (state.statResetsUsed||0)); }
 
 function normalizeState(){
   const fresh = defaultState(state.name || 'Guerrero');
@@ -2255,6 +2703,9 @@ function normalizeState(){
   state.allocatedPoints = { ...fresh.allocatedPoints, ...(state.allocatedPoints || {}) };
   state.pendingPoints = { ...fresh.pendingPoints, ...(state.pendingPoints || {}) };
   state.robustness = Number(state.robustness) || 0;
+  state.perception = Number(state.perception) || 0;
+  state.statResetsUsed = Math.max(0, Number(state.statResetsUsed) || 0);
+  state.statResetsEarned = Math.max(Math.floor((state.level||0)/5), Number(state.statResetsEarned) || 0);
   state.equipment = { ...fresh.equipment, ...(state.equipment || {}) };
   state.ownedEquipment = Array.isArray(state.ownedEquipment) ? state.ownedEquipment : [];
   Object.keys(state.equipment).forEach(slot=>{
@@ -2266,6 +2717,13 @@ function normalizeState(){
   });
   state.ownedItems = state.ownedItems || {};
   state.materials = { ...fresh.materials, ...(state.materials || {}) };
+  state.settings = { ...fresh.settings, ...(state.settings || {}) };
+  state.settings.musicVolume = Math.max(0, Math.min(100, Number(state.settings.musicVolume)));
+  state.settings.sfxVolume = Math.max(0, Math.min(100, Number(state.settings.sfxVolume)));
+  state.settings.musicEnabled = !!state.settings.musicEnabled;
+  state.settings.sfxEnabled = state.settings.sfxEnabled !== false;
+  state.settings.graphics = ['high','medium','low'].includes(state.settings.graphics) ? state.settings.graphics : 'high';
+  state.settings.reducedMotion = !!state.settings.reducedMotion;
   state.log = Array.isArray(state.log) ? state.log : [];
   state.achievementsClaimed = state.achievementsClaimed || {};
   state.bestiary = state.bestiary || {};
@@ -2285,7 +2743,6 @@ const RUN_RELICS = [
   { id:'iron_root', icon:'✦', name:'Raiz de Hierro', description:'+24 vida maxima durante esta expedicion', stat:'hp', value:24 },
   { id:'hunter_eye', icon:'◉', name:'Ojo del Cazador', description:'+8% critico durante esta expedicion', stat:'crit', value:8 },
   { id:'gilded_fang', icon:'✧', name:'Colmillo Dorado', description:'+25% oro obtenido durante esta expedicion', stat:'gold', value:.25 },
-  { id:'blood_quill', icon:'🩸', name:'Pluma Carmesi', description:'Sangrado dura 1 turno mas', stat:'bleedTurns', value:1 },
   { id:'mana_sigil', icon:'✧', name:'Sello del Alba', description:'La primera habilidad de cada combate no cuesta mana', stat:'firstSkillFree', value:1 },
   { id:'vampire_gem', icon:'♦', name:'Gema del Verdugo', description:'Tus criticos curan 3% de vida maxima', stat:'critHeal', value:.03 },
   { id:'iron_oath', icon:'🛡', name:'Juramento de Acero', description:'+8 defensa durante esta expedicion', stat:'def', value:8, classOnly:'warrior' },
@@ -2295,6 +2752,12 @@ const RUN_RELICS = [
   { id:'night_fang', icon:'🗡', name:'Colmillo Nocturno', description:'+50% daño critico', stat:'critDmg', value:.50, classOnly:'assassin' },
   { id:'pack_whistle', icon:'🪢', name:'Silbato de Manada', description:'El compañero del Domador ataca con mas frecuencia', stat:'companionRate', value:.30, classOnly:'tamer' }
 ];
+// Reliquias retiradas junto con el kit universal antiguo (Curación/Escudo/Sangrado).
+const REMOVED_RUN_RELIC_IDS = new Set(['blood_quill']);
+function purgeRemovedRunRelics(){
+  if(!runState || !Array.isArray(runState.relics)) return;
+  runState.relics = runState.relics.filter(relic=>!REMOVED_RUN_RELIC_IDS.has(relic.id));
+}
 function relicsForCurrentClass(){ return RUN_RELICS.filter(relic=>!relic.classOnly || relic.classOnly===state.characterClass); }
 function runRelicValue(stat){
   if(!runState || runState.phase==='ended' || !Array.isArray(runState.relics)) return 0;
@@ -2335,7 +2798,8 @@ function awardRunLoot(monster){
 
   const rarityRank = { common:0, uncommon:1, rare:2, epic:3, legendary:4, mythic:5, unique:6 };
   const minRank = isBoss ? 3 : 2;
-  const gearChance = isBoss ? .72 : .34;
+  // La probabilidad final no puede superar 100%, pero Percepción no tiene límite de bonificación.
+  const gearChance = Math.min(1, (isBoss ? .72 : .34) + perceptionLootBonus());
   let item = null;
   if(Math.random()<gearChance){
     const candidates = SHOP_EQUIPMENT_ITEMS.filter(entry=>entry.classOnly===state.characterClass && rarityRank[entry.rarityKey]>=minRank);
@@ -2367,6 +2831,7 @@ function gainExp(amount){
     state.exp -= expToNext(state.level);
     state.level++;
     state.statPoints += 5;
+    if(state.level % 5 === 0) state.statResetsEarned = (state.statResetsEarned||0) + 1;
     state.missions.day.levelsGained++;
     leveled = true;
   }
@@ -2392,6 +2857,26 @@ const MONSTER_ARCHETYPES = [
   { key:'charger', label:'Bruto', hint:'Carga un golpe devastador', icon:'💥' },
   { key:'venom', label:'Tóxico', hint:'Sus golpes pueden envenenar', icon:'☣' }
 ];
+function getMonsterIntent(monster){
+  if(!monster) return { key:'normal', icon:'⚔', label:'ATAQUE', hint:'Golpe directo' };
+  if(monster.status && monster.status.stunnedTurns>0) return { key:'break', icon:'✦', label:'ATURDIDO', hint:'Perderá su próximo turno' };
+  if(monster.charging) return { key:'charge', icon:'💥', label:'GOLPE DEVASTADOR', hint:'Se prepara para impactar' };
+  if(monster.isBoss && monster.phaseTwo) return { key:'boss', icon:'☠', label:'ATAQUE DE FASE II', hint:'Poder del guardián desatado' };
+  const key = monster.archetype && monster.archetype.key;
+  if(key==='swift') return { key:'swift', icon:'⚡', label:'DOBLE GARRA', hint:'Atacará dos veces' };
+  if(key==='venom') return { key:'venom', icon:'☣', label:'MORDEDURA TÓXICA', hint:'Puede aplicar veneno' };
+  if(key==='guardian') return { key:'guard', icon:'🛡', label:'GOLPE PROTEGIDO', hint:'Resiste parte del daño' };
+  if(key==='charger') return { key:'charge', icon:'💥', label:'PREPARA CARGA', hint:'Su próximo turno será feroz' };
+  return { key:'normal', icon:'⚔', label:'ATAQUE DIRECTO', hint:'Un golpe normal' };
+}
+function renderMonsterIntent(){
+  const box = document.getElementById('enemyIntent');
+  if(!box || !battle) return;
+  const intent = getMonsterIntent(battle.monster);
+  box.className = `enemy-intent intent-${intent.key}`;
+  box.innerHTML = `<small>PRÓXIMA INTENCIÓN</small><b>${intent.icon} ${intent.label}</b>`;
+  box.title = intent.hint;
+}
 function makeMonster(tier){
   const t = TIERS[tier];
   const p = power();
@@ -2408,9 +2893,10 @@ function makeMonster(tier){
 function startBattle(){
   if(battle || huntMode!=='free') return;
   Sound.click();
-  battle = { monster: prepareMonster(makeMonster(selectedTier)), playerHp: maxHP(), playerMaxHp: maxHP(), playerMana: maxMana(), playerMaxMana: maxMana(), tier: selectedTier, busy:false, playerStatus:{shieldTurns:0,poisonTurns:0,cooldowns:{heal:0,shield:0,bleed:0}} };
+  battle = { monster: prepareMonster(makeMonster(selectedTier)), playerHp: maxHP(), playerMaxHp: maxHP(), playerMana: maxMana(), playerMaxMana: maxMana(), tier: selectedTier, busy:false, playerStatus:newPlayerStatus() };
   renderArena(true);
   renderActionButtons();
+  announceMonsterAnalysis();
   buildTierGrid();
 }
 
@@ -2422,12 +2908,18 @@ function startRunBattle(){
   const maxHp = runState.maxHp, maxMp = runState.maxMana;
   battle = {
     monster, playerHp: runState.hp, playerMaxHp: maxHp, playerMana: runState.mana, playerMaxMana: maxMp,
-    tier: depthTierKey(runState.depth), busy:false, isRun:true, playerStatus:{shieldTurns:0,poisonTurns:0,cooldowns:{heal:0,shield:0,bleed:0}}
+    tier: depthTierKey(runState.depth), busy:false, isRun:true, playerStatus:newPlayerStatus()
   };
   runState.phase = 'fight';
   renderArena(true);
   renderActionButtons();
+  announceMonsterAnalysis();
   render();
+}
+
+function announceMonsterAnalysis(){
+  if(!battle || !battle.monster.analyzed) return;
+  showFeedback('🔎 PERCEPCIÓN ACTIVADA', `${battle.monster.name}: ${battle.monster.hp}/${battle.monster.maxHp} vida`, 'mana');
 }
 
 function prepareMonster(monster){
@@ -2437,7 +2929,34 @@ function prepareMonster(monster){
   if(monster.fury === undefined) monster.fury = false;
   if(monster.phaseTwo === undefined) monster.phaseTwo = false;
   if(monster.phaseAttackCounter === undefined) monster.phaseAttackCounter = 0;
+  if(monster.breakMeter === undefined) monster.breakMeter = 0;
+  if(monster.breakMax === undefined) monster.breakMax = Math.max(42, Math.min(105, Math.round(monster.maxHp*.42)));
+  if(monster.breakStage === undefined) monster.breakStage = 0;
+  if(monster.status.breakVulnerableTurns === undefined) monster.status.breakVulnerableTurns = 0;
+  if(monster.analysisChance === undefined) monster.analysisChance = perceptionChance();
+  if(monster.analyzed === undefined) monster.analyzed = Math.random()*100 < monster.analysisChance;
   return monster;
+}
+
+function addMonsterBreak(damage, isCrit=false){
+  if(!battle || !battle.monster || battle.monster.hp<=0) return false;
+  const monster = battle.monster;
+  const gain = Math.max(7, Math.round(damage*.58 + (isCrit ? 8 : 0)));
+  monster.breakMeter = Math.min(monster.breakMax, monster.breakMeter + gain);
+  if(monster.breakMeter < monster.breakMax) return false;
+  monster.breakMeter = 0;
+  monster.breakStage++;
+  monster.breakMax = Math.min(150, Math.round(monster.breakMax*1.18));
+  monster.charging = false;
+  monster.status.stunnedTurns = Math.max(monster.status.stunnedTurns, 1);
+  monster.status.breakVulnerableTurns = 1;
+  Sound.crit();
+  playCombatVfx('impact','monster','critical');
+  burstSparks('#f3c45e',18);
+  spawnFloatText('monster','✦ RUPTURA','crit');
+  showFeedback('✦ DEFENSA ROTA','El enemigo queda aturdido y vulnerable','reward');
+  addLog(`${monster.name}: defensa rota. Pierde su próximo turno.`, 'level');
+  return true;
 }
 
 function bossPhaseDetails(monster){
@@ -2479,6 +2998,7 @@ function triggerBossPhaseTwo(){
 function bossPhaseAttack(monster){
   const details = bossPhaseDetails(monster);
   Sound.skill();
+  showCombatWarning(`☠ ${details.label}`, details.hint, true);
   playCombatVfx('arcane','player','enemy-hit');
   playCombatVfx('impact','player','enemy-hit');
   burstSparks('#ec5b67',12);
@@ -2496,11 +3016,21 @@ function syncRunResources(){
 }
 
 function endBattle(result){
+  if(!battle) return;
+  if(result==='win'){
+    if(battle.finishing) return;
+    battle.finishing = true;
+    battle.busy = true;
+    Sound.victory();
+    playCombatFinisher(!!battle.monster.isBoss);
+    setTimeout(()=>endBattle('resolve-win'),720);
+    return;
+  }
+  const victory = result==='resolve-win';
   const tier = TIERS[battle.tier];
   const isBoss = battle.monster.isBoss;
   const isRun = !!battle.isRun;
-  if(result==='win'){
-    Sound.victory();
+  if(victory){
     flashArena('reward');
     burstSparks(isBoss ? 'var(--ember)' : 'var(--gold-bright)', isBoss ? 18 : 10);
     winStreak++;
@@ -2552,7 +3082,7 @@ function endBattle(result){
   battle = null;
   rollMissionReset();
   if(isRun){
-    if(result==='win') advanceToBounty(); else finishRun(false);
+    if(victory) advanceToBounty(); else finishRun(false);
   }
   render();
   saveState();
@@ -2587,6 +3117,28 @@ function flashArena(kind='reward'){
   arena.classList.add(`${kind}-flash`);
 }
 
+function showCombatWarning(title, detail='', isBoss=false){
+  const arena = document.getElementById('arena');
+  if(!arena) return;
+  arena.querySelectorAll('.combat-warning').forEach(el=>el.remove());
+  const el = document.createElement('div');
+  el.className = `combat-warning${isBoss?' boss':''}`;
+  el.innerHTML = `<span>${title}</span>${detail ? `<small>${detail}</small>` : ''}`;
+  arena.appendChild(el);
+  setTimeout(()=>el.remove(),900);
+}
+
+function playCombatFinisher(isBoss=false){
+  const arena = document.getElementById('arena');
+  if(!arena) return;
+  arena.querySelectorAll('.combat-finisher').forEach(el=>el.remove());
+  const el = document.createElement('div');
+  el.className = 'combat-finisher';
+  el.innerHTML = `<b>${isBoss ? 'GUARDIÁN VENCIDO' : 'REMATE FINAL'}</b>`;
+  arena.appendChild(el);
+  setTimeout(()=>el.remove(),850);
+}
+
 function burstSparks(color='var(--gold-bright)', amount=10){
   const arena = document.getElementById('arena');
   if(!arena) return;
@@ -2613,10 +3165,29 @@ const COMBAT_VFX = {
   impact:'assets/images/fx-impact.webp',
   poison:'assets/images/fx-poison.webp'
 };
+const CLASS_ATTACK_VFX = {
+  warrior:'assets/images/fx-warrior.webp', archer:'assets/images/fx-archer.webp', mage:'assets/images/fx-mage.webp',
+  priest:'assets/images/fx-priest.webp', assassin:'assets/images/fx-assassin.webp', tamer:'assets/images/fx-tamer.webp'
+};
+function playClassAttackSprite(isSkill=false){
+  const target = document.querySelector('.fighter.monster .sprite-box');
+  const classKey = state.characterClass || 'warrior';
+  const source = CLASS_ATTACK_VFX[classKey] || CLASS_ATTACK_VFX.warrior;
+  if(!target || !source) return;
+  // Un único efecto de ataque de clase: evita que golpes rápidos dejen sprites superpuestos.
+  target.querySelectorAll('.class-attack-vfx, .combat-vfx.slash').forEach(node=>node.remove());
+  const effect = document.createElement('i');
+  effect.className = `class-attack-vfx ${classKey} ${isSkill?'skill':''}`;
+  effect.innerHTML = `<img src="${source}" alt="">`;
+  target.appendChild(effect);
+  setTimeout(()=>effect.remove(), isSkill ? 850 : 680);
+}
 function playCombatVfx(kind, side='monster', extra=''){
   const fighter = document.querySelector(`.fighter.${side==='player' ? 'player' : 'monster'} .sprite-box`);
   const source = COMBAT_VFX[kind];
   if(!fighter || !source) return;
+  // El mismo tipo de efecto se reemplaza en vez de apilarse visualmente.
+  fighter.querySelectorAll(`.combat-vfx.${kind}`).forEach(node=>node.remove());
   const effect = document.createElement('i');
   effect.className = `combat-vfx ${kind} ${extra}`;
   effect.innerHTML = `<img src="${source}" alt="">`;
@@ -2639,14 +3210,63 @@ const CLASS_MOVE_NAMES = {
   tamer:{ attack:'Latigazo Salvaje', skill:'Llamado de la Manada' }
 };
 function classMoveNames(){ return CLASS_MOVE_NAMES[state.characterClass] || CLASS_MOVE_NAMES.warrior; }
-function playClassAttackEffect(isSkill){
+const CLASS_MOVE_INFO = {
+  warrior:{ attack:'Golpe físico · recupera 3 maná', skill:'Embate potenciado · 28% de aturdir' },
+  archer:{ attack:'Disparo rápido · recupera 3 maná', skill:'Disparo potenciado · 28% de aturdir' },
+  mage:{ attack:'Chispa arcana · recupera 3 maná', skill:'Explosión arcana · 28% de aturdir' },
+  priest:{ attack:'Golpe sagrado · cura 4.5% de vida', skill:'Luz concentrada · 28% de aturdir' },
+  assassin:{ attack:'Corte ágil · recupera 3 maná', skill:'Corte umbrío · 28% de aturdir' },
+  tamer:{ attack:'Látigo preciso · recupera 3 maná', skill:'Llamado de manada · 28% de aturdir' }
+};
+function classMoveInfo(){ return CLASS_MOVE_INFO[state.characterClass] || CLASS_MOVE_INFO.warrior; }
+function combatDamageEstimate(isSkill=false){
+  if(!battle) return { min:0, max:0, critMin:0, critMax:0 };
+  let multiplier = combatStance().attack;
+  if(isSkill) multiplier *= 2.3 * currentClass().skillMult * (1+runRelicValue('skillPower'));
+  if(battle.playerStatus.markedTurns>0) multiplier *= 1.30;
+  if(battle.playerStatus.arcaneCharges>0) multiplier *= 1.35;
+  if(battle.monster.status.breakVulnerableTurns>0) multiplier *= 1.25;
+  if(battle.monster.archetype && battle.monster.archetype.key==='guardian') multiplier *= .72;
+  const min = Math.max(1,Math.round(atkDamage()*multiplier*.85));
+  const max = Math.max(min,Math.round(atkDamage()*multiplier*1.15));
+  return { min, max, critMin:Math.round(min*critMultiplier()), critMax:Math.round(max*critMultiplier()) };
+}
+const COMBAT_STANCES = {
+  offensive:{ icon:'⚔', label:'Ofensiva', hint:'+25% daño · +15% daño recibido', attack:1.25, taken:1.15 },
+  balanced:{ icon:'◈', label:'Equilibrada', hint:'Sin modificadores', attack:1, taken:1 },
+  defensive:{ icon:'🛡', label:'Defensiva', hint:'-15% daño · -30% daño recibido', attack:.85, taken:.70 }
+};
+function combatStance(){
+  const key = battle && battle.playerStatus && battle.playerStatus.stance;
+  return COMBAT_STANCES[key] || COMBAT_STANCES.balanced;
+}
+function setCombatStance(key){
+  if(!battle || battle.busy || !COMBAT_STANCES[key]) return;
+  if(battle.playerStatus.stance===key) return;
+  battle.playerStatus.stance = key;
+  Sound.click();
+  showFeedback(`${COMBAT_STANCES[key].icon} POSTURA ${COMBAT_STANCES[key].label.toUpperCase()}`, COMBAT_STANCES[key].hint, key==='defensive'?'mana':key==='offensive'?'danger':'reward');
+  renderActionButtons();
+  renderCombatStatus();
+}
+function playAssassinAttackEffect(isSkill){
   const arena = document.getElementById('arena');
   if(!arena) return;
-  const effect = document.createElement('i');
-  effect.className = `class-fx ${state.characterClass || 'warrior'} ${isSkill?'skill':''}`;
-  arena.appendChild(effect);
-  playCombatVfx(isSkill ? 'arcane' : 'slash', 'monster');
-  setTimeout(()=>effect.remove(),650);
+  const fx = document.createElement('div');
+  fx.className = `assassin-fx ${isSkill?'skill':''}`;
+  fx.innerHTML = `<i class="afterimage"></i><i class="afterimage two"></i><i class="dagger-streak"></i><i class="dagger-streak b"></i>${isSkill?'<i class="dagger-streak c"></i>':''}`;
+  arena.classList.remove('assassin-strike','assassin-skill');
+  void arena.offsetWidth;
+  arena.classList.add(isSkill?'assassin-skill':'assassin-strike');
+  arena.appendChild(fx);
+  if(isSkill){
+    setTimeout(()=>playCombatVfx('impact','monster','critical'),130);
+    setTimeout(()=>playCombatVfx('slash','monster','critical'),240);
+  }
+  setTimeout(()=>{ fx.remove(); arena.classList.remove('assassin-strike','assassin-skill'); },800);
+}
+function playClassAttackEffect(isSkill){
+  playClassAttackSprite(isSkill);
 }
 
 function abilityDefinitions(){
@@ -2655,6 +3275,69 @@ function abilityDefinitions(){
     { key:'shield', label:'Escudo', icon:'🛡', level:8, cost:.18, cooldown:3, hint:'Reduce 2 ataques enemigos' },
     { key:'bleed', label:'Sangrado', icon:'🩸', level:12, cost:.22, cooldown:3, hint:'Daño por 3 turnos' }
   ];
+}
+
+function newPlayerStatus(){
+  return { stance:'balanced', shieldTurns:0, poisonTurns:0, counterReady:0, markedTurns:0, arcaneCharges:0, companionBoostTurns:0, classCooldown:0, cooldowns:{heal:0,shield:0,bleed:0} };
+}
+const CLASS_ABILITIES = {
+  warrior:{ icon:'🛡', label:'Guardia del Juramento', cost:.18, cooldown:3, hint:'Bloquea y contraataca el próximo golpe' },
+  archer:{ icon:'🎯', label:'Marca del Cazador', cost:.16, cooldown:3, hint:'Tus próximos 2 golpes hacen +30% daño' },
+  mage:{ icon:'✦', label:'Sobrecarga Astral', cost:.20, cooldown:3, hint:'Potencia tus próximos 2 golpes arcanos' },
+  priest:{ icon:'☀', label:'Bendición del Alba', cost:.20, cooldown:3, hint:'Cura y concede un escudo' },
+  assassin:{ icon:'🗡', label:'Sentencia Umbría', cost:.22, cooldown:4, hint:'Golpe letal, más fuerte bajo 35% de vida' },
+  tamer:{ icon:'🐾', label:'Orden de Manada', cost:.18, cooldown:3, hint:'Tu compañero ataca y se enfurece' }
+};
+function classAbility(){ return CLASS_ABILITIES[state.characterClass] || CLASS_ABILITIES.warrior; }
+function classAbilityCost(){ return Math.round(battle.playerMaxMana*classAbility().cost); }
+
+function useClassAbility(){
+  if(!battle || battle.busy || battle.playerStatus.classCooldown>0) return;
+  const ability = classAbility();
+  const cost = classAbilityCost();
+  if(battle.playerMana<cost) return;
+  if(state.characterClass==='tamer' && !state.companion) return;
+  battle.busy = true;
+  battle.playerMana -= cost;
+  battle.playerStatus.classCooldown = ability.cooldown;
+  Sound.skill();
+  const ps = battle.playerStatus;
+  const monster = battle.monster;
+  if(state.characterClass==='warrior'){
+    ps.shieldTurns = Math.max(ps.shieldTurns,1); ps.counterReady = 1;
+    playCombatVfx('shield','player');
+    showFeedback('🛡 GUARDIA DEL JURAMENTO','El próximo golpe será bloqueado y respondido','mana');
+  } else if(state.characterClass==='archer'){
+    ps.markedTurns = 2;
+    playCombatVfx('arcane','monster');
+    spawnFloatText('monster','🎯 MARCADO','crit');
+    showFeedback('🎯 MARCA DEL CAZADOR','Los próximos 2 golpes infligen +30% daño','reward');
+  } else if(state.characterClass==='mage'){
+    ps.arcaneCharges = 2;
+    playCombatVfx('arcane','player');
+    showFeedback('✦ SOBRECARGA ASTRAL','Los próximos 2 golpes reciben poder arcano','mana');
+  } else if(state.characterClass==='priest'){
+    const heal = Math.max(1,Math.round(battle.playerMaxHp*.22));
+    battle.playerHp = Math.min(battle.playerMaxHp,battle.playerHp+heal); ps.shieldTurns = Math.max(ps.shieldTurns,1);
+    playCombatVfx('heal','player'); playCombatVfx('shield','player'); spawnFloatText('player',`+${heal}`,'heal');
+    showFeedback('☀ BENDICIÓN DEL ALBA',`+${heal} vida y escudo sagrado`,'mana');
+  } else if(state.characterClass==='assassin'){
+    const execute = monster.hp<=monster.maxHp*.35;
+    const damage = Math.max(1,Math.round(atkDamage()*(execute?3.15:1.25)*combatStance().attack));
+    monster.hp = Math.max(0,monster.hp-damage);
+    playClassAttackEffect(true); playCombatVfx('impact','monster','critical'); addMonsterBreak(damage,true);
+    spawnFloatText('monster',`${execute?'EJECUCIÓN ':'🗡 '}-${damage}`,'crit');
+    showFeedback('🗡 SENTENCIA UMBRÍA',execute?'La sombra encuentra un punto vital':`-${damage} daño`,'danger');
+  } else if(state.characterClass==='tamer'){
+    ps.companionBoostTurns = 2;
+    const damage = companionAssist(true);
+    showFeedback('🐾 ORDEN DE MANADA',`${state.companion.name} ataca y gana furia por 2 turnos${damage?` · -${damage}`:''}`,'reward');
+  }
+  addLog(`${currentClass().label} usa ${ability.label}${cost?` · -${cost} maná`:''}.`, 'combat');
+  syncBattleUi();
+  renderActionButtons();
+  if(monster.hp<=0){ setTimeout(()=>endBattle('win'),380); return; }
+  startMonsterTurn();
 }
 
 function firstSkillIsFree(){
@@ -2670,6 +3353,9 @@ function spendSkillCost(baseCost){
 
 function renderAbilityButtons(box){
   if(!battle || !box) return;
+  // Curación, escudo y sangrado se retiraron del kit universal: cada clase combate con sus tres acciones principales.
+  box.insertAdjacentHTML('beforeend', '<div class="combat-status" id="combatStatus"></div>');
+  return;
   const cooldowns = battle.playerStatus.cooldowns;
   const html = abilityDefinitions().map(ability=>{
     const unlocked = state.level>=ability.level;
@@ -2680,7 +3366,10 @@ function renderAbilityButtons(box){
     const sub = !unlocked ? `Nivel ${ability.level}` : cd>0 ? `Recarga: ${cd}` : cost===0 ? 'GRATIS · reliquia' : `${cost} maná`;
     return `<button class="ability-btn ${ready?'ready':''}" data-ability="${ability.key}" ${ready?'':'disabled'}><strong>${ability.icon} ${ability.label}</strong><small>${sub}</small></button>`;
   }).join('');
-  box.insertAdjacentHTML('afterbegin', html);
+  // El orden del combate es: ataque base + habilidad general, habilidad única y luego técnicas secundarias.
+  const signatureButton = box.querySelector('#classAbilityBtn');
+  if(signatureButton) signatureButton.insertAdjacentHTML('afterend', html);
+  else box.insertAdjacentHTML('afterbegin', html);
   box.insertAdjacentHTML('beforeend', '<div class="combat-status" id="combatStatus"></div>');
   box.querySelectorAll('[data-ability]').forEach(button=>button.addEventListener('click',()=>useAbility(button.dataset.ability)));
 }
@@ -2691,11 +3380,18 @@ function renderCombatStatus(){
   const ps = battle.playerStatus;
   const ms = battle.monster.status;
   const tags = [];
+  const stance = combatStance();
+  tags.push(`<span class="status-badge ${ps.stance==='defensive'?'shield':ps.stance==='offensive'?'fury':''}">${stance.icon} Postura ${stance.label}</span>`);
   if(battle.monster.archetype) tags.push(`<span class="status-badge">${battle.monster.archetype.icon} ${battle.monster.archetype.label}</span>`);
   if(ps.shieldTurns>0) tags.push(`<span class="status-badge shield">🛡 Escudo ${ps.shieldTurns}</span>`);
   if(ps.poisonTurns>0) tags.push(`<span class="status-badge poison">☣ Veneno ${ps.poisonTurns}</span>`);
+  if(ps.counterReady>0) tags.push(`<span class="status-badge shield">↩ Contraataque listo</span>`);
+  if(ps.markedTurns>0) tags.push(`<span class="status-badge stun">🎯 Marca: ${ps.markedTurns} golpes</span>`);
+  if(ps.arcaneCharges>0) tags.push(`<span class="status-badge shield">✦ Cargas arcanas: ${ps.arcaneCharges}</span>`);
+  if(ps.companionBoostTurns>0) tags.push(`<span class="status-badge fury">🐾 Manada: ${ps.companionBoostTurns} turnos</span>`);
   if(ms.bleedTurns>0) tags.push(`<span class="status-badge bleed">🩸 Sangrado ${ms.bleedTurns}</span>`);
   if(ms.stunnedTurns>0) tags.push(`<span class="status-badge stun">✦ Aturdido</span>`);
+  if(ms.breakVulnerableTurns>0) tags.push(`<span class="status-badge stun">✦ Defensa rota · +25% daño</span>`);
   if(battle.monster.fury) tags.push(`<span class="status-badge fury">🔥 Furia</span>`);
   if(firstSkillIsFree()) tags.push(`<span class="status-badge shield">✧ Próxima habilidad gratis</span>`);
   box.innerHTML = tags.join('');
@@ -2794,10 +3490,11 @@ function tryTameMonster(){
     setTimeout(()=>startMonsterTurn(),340);
   }
 }
-function companionAssist(){
-  const chance = .46 + runRelicValue('companionRate');
-  if(!battle || !state.companion || Math.random()>chance) return 0;
-  const damage = Math.max(2, Math.round(atkDamage()*.38 + state.level*.8));
+function companionAssist(force=false){
+  const boosted = !!(battle && battle.playerStatus && battle.playerStatus.companionBoostTurns>0);
+  const chance = .46 + runRelicValue('companionRate') + (boosted ? .24 : 0);
+  if(!battle || !state.companion || (!force && Math.random()>chance)) return 0;
+  const damage = Math.max(2, Math.round((atkDamage()*.38 + state.level*.8) * (boosted?1.35:1)));
   battle.monster.hp = Math.max(0, battle.monster.hp-damage);
   playCombatVfx('slash','monster');
   Sound.reward();
@@ -2814,29 +3511,39 @@ function runPlayerHits(totalHits, isSkill, doneCount){
     const isCrit = Math.random() < critChance();
     if (isCrit) {
       Sound.crit();
-      playCombatVfx('slash','monster','critical');
-      playCombatVfx('impact','monster','critical');
-      burstSparks('var(--gold-bright)', 14);
+      const critColors = { warrior:'#ff8a55', archer:'#a9e981', mage:'#8bc8ff', priest:'#ffe7a0', assassin:'#dc9dff', tamer:'#78e2c6' };
+      burstSparks(critColors[state.characterClass] || 'var(--gold-bright)', 14);
       const arenaEl = document.getElementById('arena');
       arenaEl.classList.remove('crit-shake'); void arenaEl.offsetWidth; arenaEl.classList.add('crit-shake');
     }
     else if (doneCount > 0) Sound.hit();
 
     const comboMult = 1 + Math.min(0.5, winStreak*0.03);
-    let dmg = atkDamage() * (isSkill ? 2.3 * currentClass().skillMult * (1+runRelicValue('skillPower')) : 1) * comboMult * (0.85+Math.random()*0.3);
+    const marked = battle.playerStatus.markedTurns>0;
+    const arcaneCharged = battle.playerStatus.arcaneCharges>0;
+    let dmg = atkDamage() * combatStance().attack * (isSkill ? 2.3 * currentClass().skillMult * (1+runRelicValue('skillPower')) : 1) * comboMult * (0.85+Math.random()*0.3);
+    if(marked) dmg *= 1.30;
+    if(arcaneCharged) dmg *= 1.35;
     if(isCrit) dmg *= critMultiplier();
     if(battle.monster.archetype && battle.monster.archetype.key==='guardian') dmg *= .72;
+    const vulnerable = battle.monster.status.breakVulnerableTurns>0;
+    if(vulnerable) dmg *= 1.25;
     dmg = Math.round(dmg);
     battle.monster.hp = Math.max(0, battle.monster.hp - dmg);
+    if(vulnerable) battle.monster.status.breakVulnerableTurns--;
+    if(marked) battle.playerStatus.markedTurns--;
+    if(arcaneCharged) battle.playerStatus.arcaneCharges--;
     if(isCrit && runRelicValue('critHeal')>0){
       const heal = Math.max(1,Math.round(battle.playerMaxHp*runRelicValue('critHeal')));
       battle.playerHp = Math.min(battle.playerMaxHp,battle.playerHp+heal);
       spawnFloatText('player',`+${heal}`,'heal');
     }
+    addMonsterBreak(dmg, isCrit);
     companionAssist();
     mf.classList.remove('hit'); void mf.offsetWidth; mf.classList.add('hit');
     const tag = isCrit ? '¡CRÍTICO! ' : (doneCount>0 ? `Golpe extra x${doneCount+1}! ` : '');
     spawnFloatText('monster', tag+'-'+dmg, isCrit?'crit':'');
+    addLog(`${isSkill?'✦ Habilidad':'⚔ Ataque'}${isCrit?' crítico':''}: ${battle.monster.name} recibe ${dmg} de daño.`, 'combat');
     pf.classList.remove('attacking');
     syncBattleUi();
 
@@ -2958,6 +3665,8 @@ function endMonsterTurn(){
     spawnFloatText('player',`☣ -${poison}`,'miss');
   }
   Object.keys(ps.cooldowns).forEach(key=>{ if(ps.cooldowns[key]>0) ps.cooldowns[key]--; });
+  if(ps.classCooldown>0) ps.classCooldown--;
+  if(ps.companionBoostTurns>0) ps.companionBoostTurns--;
   battle.busy = false;
   syncBattleUi();
   renderActionButtons();
@@ -2982,11 +3691,12 @@ function resolveMonsterHits(remaining, special={}){
       Sound.miss();
       playDodge('player');
       spawnFloatText('player','Esquivado','miss');
+      addLog(`↝ Esquivaste el ataque de ${monster.name}.`, 'combat');
     } else {
       let mult = monster.fury ? 1.45 : 1;
       if(monster.charging){ mult *= 1.85; monster.charging=false; }
       if(special.mult) mult *= special.mult;
-      let damage = monster.dmg*(.85+Math.random()*.3)*mult;
+      let damage = monster.dmg*(.85+Math.random()*.3)*mult*combatStance().taken;
       const shielded = battle.playerStatus.shieldTurns>0;
       if(shielded){ damage*=.48; battle.playerStatus.shieldTurns--; }
       damage = Math.max(1,Math.round((damage-getDefense()*.4) * (1-damageReduction())));
@@ -2995,6 +3705,7 @@ function resolveMonsterHits(remaining, special={}){
       playCombatVfx(shielded ? 'shield' : 'impact','player',shielded ? '' : 'enemy-hit');
       spawnFloatText('player',`-${damage}`, '');
       Sound.hit();
+      addLog(`${monster.name} te golpea por ${damage} de daño${shielded?' · daño bloqueado':''}.`, 'enemy');
       if(special.manaBurn){
         const burn = Math.max(1,Math.round(battle.playerMaxMana*special.manaBurn));
         battle.playerMana = Math.max(0,battle.playerMana-burn);
@@ -3006,8 +3717,18 @@ function resolveMonsterHits(remaining, special={}){
         playCombatVfx('poison','player');
         spawnFloatText('player','☣ Veneno','miss');
       }
+      if(battle.playerStatus.counterReady>0){
+        const counter = Math.max(1,Math.round(atkDamage()*.72));
+        battle.playerStatus.counterReady = 0;
+        monster.hp = Math.max(0,monster.hp-counter);
+        playCombatVfx('slash','monster','critical');
+        addMonsterBreak(counter,true);
+        spawnFloatText('monster',`↩ -${counter}`,'crit');
+        addLog(`↩ Contraataque: ${monster.name} recibe ${counter} de daño.`, 'combat');
+      }
     }
     syncBattleUi();
+    if(monster.hp<=0){ setTimeout(()=>endBattle('win'),350); return; }
     if(battle.playerHp<=0){ endMonsterTurn(); return; }
     if(remaining>1){ setTimeout(()=>resolveMonsterHits(remaining-1,special),220); }
     else endMonsterTurn();
@@ -3047,6 +3768,7 @@ function startMonsterTurn(){
     Sound.skill();
     playCombatVfx('impact','monster');
     spawnFloatText('monster','💥 Cargando','crit');
+    showCombatWarning('⚠ GOLPE DEVASTADOR','Usá Defensa, Escudo o rompé su carga');
     showFeedback('💥 GOLPE CARGADO','Interrumpilo o preparate','danger');
     syncBattleUi();
     setTimeout(endMonsterTurn,380);
@@ -3111,6 +3833,7 @@ function enterSelectedMapNode(){
     advanceToBounty(); render(); saveState();
     return;
   }
+  if(node.type==='event') runState.scenarioEvent = makeScenarioEvent();
   runState.phase = node.type;
   render();
 }
@@ -3160,6 +3883,59 @@ function chooseEvent(kind){
     showFeedback('? ALTAR ANTIGUO', `-${cost} vida · +${points} ${STAT_LABELS[stat]}`, 'danger');
   }
   Sound.reward();
+  advanceToBounty(); render(); saveState();
+}
+
+function chooseScenarioEvent(choiceId){
+  if(!runState || runState.phase!=='event' || !runState.scenarioEvent) return;
+  const event = runState.scenarioEvent;
+  const choice = event.choices.find(entry=>entry.id===choiceId);
+  if(!choice) return;
+  const depthFactor = 1 + runState.depth*.08;
+  let result = '';
+  if(choice.effect==='heal'){
+    const amount = Math.round(runState.maxHp*.28);
+    const before = runState.hp;
+    runState.hp = Math.min(runState.maxHp,runState.hp+amount);
+    result = `+${runState.hp-before} vida`;
+  } else if(choice.effect==='mana'){
+    const amount = Math.round(runState.maxMana*.45);
+    const before = runState.mana;
+    runState.mana = Math.min(runState.maxMana,runState.mana+amount);
+    result = `+${runState.mana-before} maná`;
+  } else if(choice.effect==='gather'){
+    const gold = Math.round((24+state.level*3)*depthFactor);
+    gainGold(gold); state.materials.essence = (state.materials.essence||0)+3;
+    result = `+${gold} oro · +3 esencia`;
+  } else if(choice.effect==='offering'){
+    const cost = Math.max(1,Math.round(runState.maxHp*.12));
+    const gold = Math.round((42+state.level*4)*depthFactor);
+    runState.hp = Math.max(1,runState.hp-cost); gainGold(gold); state.materials.essence = (state.materials.essence||0)+4;
+    result = `-${cost} vida · +${gold} oro · +4 esencia`;
+  } else if(choice.effect==='coffer'){
+    const cost = Math.max(1,Math.round(runState.maxHp*.08));
+    const gold = Math.round((56+state.level*4)*depthFactor);
+    runState.hp = Math.max(1,runState.hp-cost); gainGold(gold);
+    result = `-${cost} vida · +${gold} oro`;
+  } else if(choice.effect==='clarity'){
+    const amount = Math.round(runState.maxMana*.34);
+    const before = runState.mana;
+    runState.mana = Math.min(runState.maxMana,runState.mana+amount); state.materials.essence = (state.materials.essence||0)+5;
+    result = `+${runState.mana-before} maná · +5 esencia`;
+  } else if(choice.effect==='jackpot'){
+    const gold = Math.round((100+state.level*7)*depthFactor);
+    gainGold(gold); result = `+${gold} oro`;
+  } else if(choice.effect==='relic'){
+    const pool = relicsForCurrentClass().filter(relic=>!(runState.relics||[]).some(owned=>owned.id===relic.id));
+    const relic = pick(pool.length ? pool : relicsForCurrentClass());
+    addRunRelic(relic); result = `${relic.icon} ${relic.name}`;
+  }
+  Sound.reward();
+  flashArena('reward');
+  burstSparks(choice.effect==='relic' ? 'var(--mana)' : 'var(--gold-bright)', 13);
+  addLog(`${event.title}: ${choice.label} — ${result}.`, 'level');
+  showFeedback(`${event.icon} ${event.title}`,result,choice.effect==='mana'||choice.effect==='clarity'?'mana':'reward');
+  runState.scenarioEvent = null;
   advanceToBounty(); render(); saveState();
 }
 
@@ -3223,8 +3999,10 @@ function claimReward(type){
   const r = runState.rewardPreview;
   const combo = DICE_COMBOS[runState.comboRank];
   const tierLabel = BOUNTY_TIERS[runState.chosenBounty].label;
+  // La estadística se sorte a una sola vez, para poder mostrar exactamente qué recibió el jugador.
+  const statKey = type==='stat' ? pick(STAT_KEYS) : null;
   const labels = { heal:'RECUPERACIÓN', gold:'ORO OBTENIDO', exp:'EXPERIENCIA', stat:'MEJORA PERMANENTE' };
-  const values = { heal:`+${r.heal} vida`, gold:`+${r.gold} oro`, exp:`+${r.exp} exp`, stat:`+${r.statPoints} puntos` };
+  const values = { heal:`+${r.heal} vida`, gold:`+${r.gold} oro`, exp:`+${r.exp} exp`, stat:`+${r.statPoints} ${STAT_LABELS[statKey]}` };
   showFeedback(`✦ ${labels[type]}`, values[type], type==='exp' ? 'mana' : '');
   if(type==='heal'){
     const before = runState.hp;
@@ -3238,7 +4016,7 @@ function claimReward(type){
     gainExp(r.exp);
     addLog(`📖 Contrato ${tierLabel} (${combo.label}) — +${r.exp} exp.`, 'win');
   } else if(type==='stat'){
-    const key = pick(STAT_KEYS);
+    const key = statKey;
     state.stats[key] = (state.stats[key]||0) + r.statPoints;
     syncRunResources();
     addLog(`✨ Contrato ${tierLabel} (${combo.label}) — +${r.statPoints} a ${STAT_LABELS[key]} (permanente).`, 'win');
@@ -3277,6 +4055,12 @@ function renderRunStatusBar(){
   const hpPct = Math.max(0,(runState.hp/runState.maxHp)*100);
   const mpPct = Math.max(0,(runState.mana/runState.maxMana)*100);
   const biome = biomeForDepth(runState.depth);
+  const nodeInfo = MAP_NODE_TYPES[(runState.currentNode && runState.currentNode.type) || 'fight'] || MAP_NODE_TYPES.fight;
+  const untilBoss = 5 - ((runState.depth - 1) % 5);
+  const estimatedExp = Math.max(5, Math.round((7 + state.level * 2) * (1 + runState.depth * .11)));
+  const estimatedGold = Math.max(8, Math.round((11 + state.level * 3) * (1 + runState.depth * .13)));
+  const dangerLabel = nodeInfo.label || 'Combate';
+  const bossLabel = untilBoss === 1 ? 'GUARDIÁN AHORA' : `JEFE EN ${untilBoss}`;
   bar.innerHTML = `
     <span class="depth-badge">⛏ Profundidad ${runState.depth}${runState.monstersDefeated?` · ${runState.monstersDefeated} vencidos`:''}</span>
     <span class="biome-badge">${biome.icon} ${biome.label}</span>
@@ -3284,12 +4068,21 @@ function renderRunStatusBar(){
     <span class="biome-badge">◇ Esencia ${state.materials ? state.materials.essence : 0}</span>
     <div class="rs-res"><span>Vida</span><div class="rbar rs-hp"><div style="width:${hpPct}%"></div></div><span>${runState.hp}/${runState.maxHp}</span></div>
     <div class="rs-res"><span>Maná</span><div class="rbar rs-mp"><div style="width:${mpPct}%"></div></div><span>${runState.mana}/${runState.maxMana}</span></div>
+    <div class="run-overview">
+      <div class="run-stat-chip streak"><small>RACHA ACTUAL</small><strong>🔥 ${winStreak} victorias</strong></div>
+      <div class="run-stat-chip"><small>PODER DE RUN</small><strong>⚡ ${Math.round(power())}</strong></div>
+      <div class="run-stat-chip danger"><small>PELIGRO</small><strong>${nodeInfo.icon || '⚔'} ${dangerLabel}</strong></div>
+      <div class="run-stat-chip reward"><small>BOTÍN DE RUN</small><strong>✦ ${runState.relics ? runState.relics.length : 0} reliquias</strong></div>
+      <div class="run-reward-trail"><span>Próxima victoria estimada: <b>+${estimatedExp} EXP</b> · <b>+${estimatedGold} oro</b></span><span class="boss-countdown">♛ ${bossLabel}</span></div>
+    </div>
   `;
 }
 
 function renderRunMode(){
   const grid = document.getElementById('tierGrid');
   if(grid) grid.style.display = 'none';
+  // Limpia reliquias de partidas iniciadas antes de retirar el kit universal antiguo.
+  purgeRemovedRunRelics();
   renderRunStatusBar();
 
   const arena = document.getElementById('arena');
@@ -3298,6 +4091,7 @@ function renderRunMode(){
   BIOMES.forEach(entry=>arena.classList.remove(`biome-${entry.key}`));
   arena.classList.add(`biome-${biome.key}`);
   arena.classList.toggle('route-map-mode', !!(runState && runState.phase==='map'));
+  arena.classList.toggle('bounty-selection-mode', !!(runState && runState.phase==='bounty'));
   arena.classList.toggle('boss-phase-two', !!(battle && battle.monster && battle.monster.phaseTwo));
   arena.classList.toggle('has-companion', !!(battle && state.characterClass==='tamer' && state.companion));
 
@@ -3369,20 +4163,24 @@ function renderRunMode(){
   }
 
   if(runState.phase==='event'){
-    arena.innerHTML = `<div class="dice-stage"><div class="combo-label" style="color:var(--mana)">? Encuentro misterioso</div><div class="bounty-intro">Un viajero señala un altar cubierto de runas</div><div class="event-choice"><button data-event="safe">Aceptar su bolsa<br><small>Oro seguro</small></button><button data-event="risky">Tocar el altar<br><small>Vida por estadística permanente</small></button></div></div>`;
-    arena.querySelectorAll('[data-event]').forEach(button=>button.addEventListener('click',()=>chooseEvent(button.dataset.event)));
+    const event = runState.scenarioEvent || makeScenarioEvent();
+    runState.scenarioEvent = event;
+    arena.innerHTML = `<div class="scenario-event biome-${event.biome}"><div class="scenario-emblem">${event.icon}</div><div class="combo-label" style="color:var(--mana)">${event.title}</div><div class="bounty-intro">${event.text}</div><div class="event-choice">${event.choices.map(choice=>`<button data-scenario-choice="${choice.id}"><b>${choice.label}</b><br><small>${choice.detail}</small></button>`).join('')}</div><small class="scenario-note">La elección se aplica de inmediato. Las reliquias solo duran esta expedición.</small></div>`;
+    arena.querySelectorAll('[data-scenario-choice]').forEach(button=>button.addEventListener('click',()=>chooseScenarioEvent(button.dataset.scenarioChoice)));
     box.innerHTML = '';
     return;
   }
 
   if(runState.phase==='bounty'){
     arena.innerHTML = `
-      <div class="bounty-intro" style="width:100%;">Elegí un contrato de cacería — tirá 5 dados y cobrá según lo que saques</div>
+      <div class="bounty-guide"><b>Contrato de cacería</b><span>Elegí una dificultad · tirá 5 dados · guardá los que te sirvan · cobrá según la combinación.</span></div>
+      <div class="bounty-intro" style="width:100%;">Elegí tu riesgo</div>
       <div class="bounty-grid" style="width:100%;">
         ${Object.values(BOUNTY_TIERS).map(t=>`
           <div class="bounty-card ${bountyTierClass(t.key)}" data-bounty="${t.key}">
             <div class="b-icon">${t.icon}</div>
             <div class="b-label">${t.label}</div>
+            <div class="b-goal">${t.goal}</div>
             <div class="b-hint">${t.needLabel}</div>
           </div>`).join('')}
       </div>`;
@@ -3398,22 +4196,26 @@ function renderRunMode(){
     const combo = DICE_COMBOS[runState.comboRank];
     const glyphs = ['','⚀','⚁','⚂','⚃','⚄','⚅'];
     const tierInfo = BOUNTY_TIERS[runState.chosenBounty];
+    const heldCount = runState.held.filter(Boolean).length;
+    const multiplier = tierInfo.mult[runState.comboRank];
     arena.innerHTML = `
       <div class="dice-stage">
         <span class="dice-tier-tag" style="border-color:${tierInfo.key==='facil'?'var(--green)':tierInfo.key==='medio'?'var(--gold)':'var(--blood)'}; color:${tierInfo.key==='facil'?'var(--green)':tierInfo.key==='medio'?'var(--gold-bright)':'#d65a5a'};">${tierInfo.icon} Contrato ${tierInfo.label}</span>
+        <div class="dice-help"><div><b>${tierInfo.goal}</b><span>Tu resultado actual es <strong style="color:${combo.color}">${combo.label}</strong>. Tocá un dado para guardarlo; al volver a tirar, los guardados no cambian.</span></div><div class="dice-multiplier">PREMIO x${multiplier.toFixed(2)}</div></div>
         <div class="dice-row">
           ${runState.dice.map((d,i)=>`<div class="die ${runState.held[i]?'held':''}" data-i="${i}">${glyphs[d]}</div>`).join('')}
         </div>
+        <div class="dice-hold-note">${heldCount ? `✓ ${heldCount} dado${heldCount===1?'':'s'} guardado${heldCount===1?'':'s'} · los demás volverán a tirarse` : 'Elegí los dados que querés conservar'}</div>
         <div class="combo-label" style="color:${combo.color}">${combo.label}</div>
-        <div class="rolls-left">${runState.rollsLeft>0?`Tiradas restantes: ${runState.rollsLeft} · tocá un dado para guardarlo`:'Última tirada — cerrando resultado…'}</div>
+        <div class="rolls-left">${runState.rollsLeft>0?`Te quedan ${runState.rollsLeft} nueva${runState.rollsLeft===1?'':'s'} tirada${runState.rollsLeft===1?'':'s'}. Podés cobrar ahora o intentar mejorar.`:'Última tirada — cerrando resultado…'}</div>
       </div>`;
     arena.querySelectorAll('.die').forEach(el=>{
       el.addEventListener('click', ()=>toggleHold(parseInt(el.dataset.i,10)));
     });
     if(runState.rollsLeft>0){
       box.innerHTML = `
-        <button id="rerollBtn" style="grid-column:1/-1;">Volver a tirar (${runState.rollsLeft})</button>
-        <button id="stayBtn" style="grid-column:1/-1;">Quedarme con este resultado</button>`;
+        <button id="rerollBtn" style="grid-column:1/-1;">↻ Tirar los dados no guardados (${runState.rollsLeft})<small>Intentá mejorar ${combo.label} · los dados dorados se conservan</small></button>
+        <button id="stayBtn" style="grid-column:1/-1;">✓ Cobrar recompensa con ${combo.label}<small>Premio actual: x${multiplier.toFixed(2)} · pasás a elegir tu recompensa</small></button>`;
       document.getElementById('rerollBtn').addEventListener('click', rerollDice);
       document.getElementById('stayBtn').addEventListener('click', finalizeDice);
     } else {
@@ -3463,6 +4265,8 @@ function renderRunMode(){
 function renderLog(){
   const log = document.getElementById('log');
   if(log) log.innerHTML = state.log.map(l => `<div class="log-line ${l.cls}">${l.text}</div>`).reverse().join('');
+  const count = document.getElementById('huntLogCount');
+  if(count) count.textContent = state.log.length ? `${state.log.length} sucesos` : 'Sin sucesos aún';
 }
 function renderSealRings(){
   const g = document.getElementById('sealResetRings');
@@ -3484,19 +4288,21 @@ const ALLOCATION_STATS = [
   { key:'mana', group:'Supervivencia', icon:'✦', label:'Mana', description:'Aumenta el mana disponible para habilidades.', value:()=>maxMana(), add:1 },
   { key:'robustez', group:'Supervivencia', icon:'⬡', label:'Robustez', description:'Reduce porcentualmente todo el daño recibido.', value:()=>Math.round(damageReduction()*100)+'%', add:1 },
   { key:'agilidad', group:'Supervivencia', icon:'↝', label:'Agilidad', description:'Mejora la posibilidad de esquivar ataques.', value:()=>Math.round(dodgeChance()*100)+'%', add:1 },
-  { key:'rapidez', group:'Supervivencia', icon:'⚡', label:'Rapidez', description:'Mejora la probabilidad de obtener un golpe extra.', value:()=>Math.round(extraTurnChance()*100)+'%', add:1 }
+  { key:'rapidez', group:'Supervivencia', icon:'⚡', label:'Rapidez', description:'Mejora la probabilidad de obtener un golpe extra.', value:()=>Math.round(extraTurnChance()*100)+'%', add:1 },
+  { key:'percepcion', group:'Exploración', icon:'🔎', label:'Percepción', description:'Puede revelar la vida exacta del enemigo. También aumenta el botín de élites y jefes.', value:()=>`${Math.round(perceptionChance())}% análisis · botín +${Math.round(perceptionLootBonus()*100)}%`, add:1 },
 ];
 
-function canRespecPoints(){ return state.level >= 5 && state.level % 5 === 0 && !battle && !(runState && runState.phase!=='ended'); }
+function canRespecPoints(){ return availableStatResets()>0 && !battle && !(runState && runState.phase!=='ended'); }
 function allocationTotal(){ return Object.values(state.allocatedPoints || {}).reduce((sum, value)=>sum+(Number(value)||0),0); }
 function pendingTotal(){ return Object.values(state.pendingPoints || {}).reduce((sum, value)=>sum+(Number(value)||0),0); }
-function emptyPointMap(){ return { ataque:0, vida:0, mana:0, agilidad:0, rapidez:0, robustez:0, critRate:0, critDmg:0 }; }
+function emptyPointMap(){ return { ataque:0, vida:0, mana:0, agilidad:0, rapidez:0, robustez:0, percepcion:0, critRate:0, critDmg:0 }; }
 function applyStatDelta(key, points){
   const conf = ALLOCATION_STATS.find(stat=>stat.key===key);
   if(!conf || !points) return;
   if(key==='critRate') state.critRateStat = Math.max(0, state.critRateStat + points*conf.add);
   else if(key==='critDmg') state.critDmgStat = Math.max(0, state.critDmgStat + points*conf.add);
   else if(key==='robustez') state.robustness = Math.max(0, state.robustness + points*conf.add);
+  else if(key==='percepcion') state.perception = Math.max(0, state.perception + points*conf.add);
   else state.stats[key] = Math.max(1, (state.stats[key]||1) + points*conf.add);
 }
 function editPendingAllocation(key, direction){
@@ -3532,7 +4338,8 @@ function resetAllocatedPoints(){
   });
   state.statPoints += allocationTotal();
   state.allocatedPoints = emptyPointMap();
-  Sound.reward(); showFeedback('PUNTOS RESTABLECIDOS', 'Distribuilos como quieras'); render(); saveState();
+  state.statResetsUsed = (state.statResetsUsed||0) + 1;
+  Sound.reward(); showFeedback('PUNTOS RESTABLECIDOS', `Distribuilos como quieras · ${availableStatResets()} disponible${availableStatResets()===1?'':'s'}`); render(); saveState();
 }
 function renderStatPips(saved, pending){
   const total = saved + pending;
@@ -3565,7 +4372,8 @@ function statAllocList(){
       <div class="stat-card-bottom"><div class="stat-pips">${pips}</div><div class="stat-controls"><button class="stat-control" data-remove-stat="${stat.key}" ${pending?'':'disabled'}>−</button><button class="stat-control add" data-add-stat="${stat.key}" ${canSpend?'':'disabled'}>+</button></div></div>
     </div>`;
   }).join('');
-  const resetText = hasPending ? 'Guarda los cambios antes de restablecer.' : (respecReady ? 'Listo para redistribuir tus puntos.' : 'Restablecimiento disponible cada 5 niveles.');
+  const availableResets = availableStatResets();
+  const resetText = hasPending ? 'Guarda los cambios antes de restablecer.' : (respecReady ? `Listo para redistribuir tus puntos · ${availableResets} disponible${availableResets===1?'':'s'}.` : `Restablecimientos: ${availableResets} disponible${availableResets===1?'':'s'} · ganás 1 cada 5 niveles.`);
   box.innerHTML = `<div class="respec-panel"><small>${hasPending ? `${pendingTotal()} punto${pendingTotal()===1?'':'s'} sin guardar.<br>` : ''}${resetText}</small><div class="stat-controls"><button class="respec-btn" id="saveStatsBtn" ${hasPending?'':'disabled'}>▣ GUARDAR</button><button class="respec-btn" id="respecBtn" ${respecReady?'':'disabled'}>↻ RESTABLECER</button></div></div><div class="stat-board">${rows}</div>`;
   box.querySelectorAll('[data-add-stat]').forEach(button=>button.addEventListener('click', ()=>editPendingAllocation(button.dataset.addStat, 1)));
   box.querySelectorAll('[data-remove-stat]').forEach(button=>button.addEventListener('click', ()=>editPendingAllocation(button.dataset.removeStat, -1)));
@@ -3677,6 +4485,9 @@ function renderArena(fresh){
       <div class="fighter monster monster-${battle.monster.visualType || 'slime'} ${battle.monster.isBoss?'boss':''} ${battle.monster.phaseTwo?'phase-two':''}">
         <div class="name">${escapeHtml(battle.monster.name)}</div>
         <div class="mini-bar"><div id="arenaMonsterHp" style="width:100%"></div></div>
+        <div class="monster-analysis ${battle.monster.analyzed?'revealed':'hidden'}" id="monsterAnalysis">${battle.monster.analyzed ? `🔎 ${battle.monster.hp}/${battle.monster.maxHp} vida` : `🔍 Análisis fallido · ${Math.round(battle.monster.analysisChance)}%`}</div>
+        <div class="break-meter" id="breakMeter"><span>RUPTURA</span><div class="break-track"><div class="break-fill" id="breakFill"></div></div><span class="break-value" id="breakValue">0%</span></div>
+        <div class="enemy-intent" id="enemyIntent"></div>
         <div class="sprite-box">${monsterArt(battle.monster)}</div>
       </div>
       <div class="ground"></div>`;
@@ -3686,13 +4497,23 @@ function renderArena(fresh){
     }
   }
   renderArenaBars();
+  renderMonsterIntent();
 }
 function renderArenaBars(){
   if(!battle) return;
   const php = document.getElementById('arenaPlayerHp');
   const mhp = document.getElementById('arenaMonsterHp');
+  const breakFill = document.getElementById('breakFill');
+  const breakValue = document.getElementById('breakValue');
+  const breakMeter = document.getElementById('breakMeter');
+  const analysis = document.getElementById('monsterAnalysis');
   if(php) php.style.width = Math.max(0,(battle.playerHp/battle.playerMaxHp)*100)+'%';
   if(mhp) mhp.style.width = Math.max(0,(battle.monster.hp/battle.monster.maxHp)*100)+'%';
+  const breakPct = Math.min(100, Math.round((battle.monster.breakMeter||0) / (battle.monster.breakMax||1) * 100));
+  if(breakFill) breakFill.style.width = breakPct+'%';
+  if(breakValue) breakValue.textContent = breakPct+'%';
+  if(breakMeter) breakMeter.classList.toggle('is-broken', !!(battle.monster.status && battle.monster.status.stunnedTurns>0));
+  if(analysis && battle.monster.analyzed) analysis.textContent = `🔎 ${battle.monster.hp}/${battle.monster.maxHp} vida`;
 }
 
 function syncBattleUi(){
@@ -3703,6 +4524,7 @@ function syncBattleUi(){
     renderRunStatusBar();
   }
   renderArenaBars();
+  updateCombatTension();
   const box = document.getElementById('actionBtns');
   const labels = box ? box.querySelectorAll('.bar-label span:last-child') : [];
   const hpLabel = labels[0];
@@ -3719,7 +4541,22 @@ function syncBattleUi(){
   const cost = visibleSkillCost(rawCost);
   if(attack) attack.disabled = battle.busy;
   if(skill) skill.disabled = battle.busy || battle.playerMana < cost;
+  renderMonsterIntent();
   renderCombatStatus();
+}
+
+function updateCombatTension(){
+  if(!battle || !battle.monster) return;
+  const monster = battle.monster;
+  const arena = document.getElementById('arena');
+  const ratio = monster.maxHp ? monster.hp / monster.maxHp : 1;
+  const lowHealth = monster.hp>0 && ratio<=.30;
+  if(arena) arena.classList.toggle('last-stand', lowHealth);
+  if(!lowHealth || monster.tensionTriggered) return;
+  monster.tensionTriggered = true;
+  if(!(monster.isBoss && monster.phaseTwo)) Sound.setScene('danger');
+  showCombatWarning('⚠ ÚLTIMA RESISTENCIA','El enemigo pelea con todo lo que le queda', monster.isBoss);
+  spawnFloatText('monster','¡FURIA FINAL!','crit');
 }
 
 function renderActionButtons(){
@@ -3729,11 +4566,22 @@ function renderActionButtons(){
     const rawCost = Math.round(battle.playerMaxMana*currentClass().manaCost);
     const cost = visibleSkillCost(rawCost);
     const moves = classMoveNames();
+    const moveInfo = classMoveInfo();
+    const attackPreview = combatDamageEstimate(false);
+    const skillPreview = combatDamageEstimate(true);
+    const signature = classAbility();
+    const signatureCost = classAbilityCost();
+    const signatureReady = !battle.busy && battle.playerStatus.classCooldown===0 && battle.playerMana>=signatureCost && !(state.characterClass==='tamer' && !state.companion);
+    const signatureSub = state.characterClass==='tamer' && !state.companion ? 'Requiere un compañero domado' : battle.playerStatus.classCooldown>0 ? `Recarga: ${battle.playerStatus.classCooldown}` : `${signatureCost} maná`;
     const canTame = state.characterClass==='tamer' && battle.isRun && !battle.monster.isBoss && battle.monster.hp<=battle.monster.maxHp*.5 && !battle.busy;
     const tameHint = state.characterClass==='tamer' ? (!battle.isRun ? 'Solo durante una expedición' : battle.monster.isBoss ? 'Los jefes no pueden domarse' : battle.monster.hp>battle.monster.maxHp*.5 ? 'Debilitá al enemigo al 50%' : `Domar (${Math.round(tamingChance())}% chance)`) : '';
     box.innerHTML = `
-      <button id="attackBtn">${moves.attack}</button>
+      <button id="attackBtn" title="${moveInfo.attack}"><strong>${moves.attack}</strong><small>${moveInfo.attack} · Daño ${attackPreview.min}–${attackPreview.max}${critChance()>0 ? ` · crítico ${attackPreview.critMin}–${attackPreview.critMax}` : ''}</small></button>
       <button id="skillBtn" ${battle.playerMana<cost?'disabled':''}>${moves.skill} (${cost===0?'GRATIS ✧':cost+' maná'})</button>
+      <button id="classAbilityBtn" class="ability-btn ${signatureReady?'ready':''}" ${signatureReady?'':'disabled'}><strong>${signature.icon} ${signature.label}</strong><small>Habilidad única · ${signatureSub}</small></button>
+      <div class="stance-row">
+        ${Object.entries(COMBAT_STANCES).map(([key,stance])=>`<button class="stance-btn ${battle.playerStatus.stance===key?'active':''}" data-stance="${key}" ${battle.busy?'disabled':''} title="${stance.hint}"><span>${stance.icon}</span>${stance.label}<small>${key==='offensive'?'+25% daño':key==='defensive'?'-30% recibido':'Sin cambios'}</small></button>`).join('')}
+      </div>
       ${state.characterClass==='tamer' ? `<button id="tameBtn" class="ability-btn ${canTame?'ready':''}" ${canTame?'':'disabled'}>🪢 ${tameHint}</button>` : ''}
       ${state.companion ? `<div class="status-badge shield" style="grid-column:1/-1;justify-self:start;">✦ Compañero: ${state.companion.name}</div>` : ''}
       <div class="bar-label" style="grid-column:1/-1;margin-bottom:0;"><span>Tu vida</span><span>${battle.playerHp}/${battle.playerMaxHp}</span></div>
@@ -3741,8 +4589,19 @@ function renderActionButtons(){
       <div class="bar-label" style="grid-column:1/-1;margin-bottom:0;"><span>Tu maná</span><span>${battle.playerMana}/${battle.playerMaxMana}</span></div>
       <div class="bar mp" style="grid-column:1/-1;"><div style="width:${(battle.playerMana/battle.playerMaxMana)*100}%"></div></div>
     `;
+    const attackButton = document.getElementById('attackBtn');
+    const skillButton = document.getElementById('skillBtn');
+    const classButton = document.getElementById('classAbilityBtn');
+    attackButton.title = moveInfo.attack;
+    attackButton.innerHTML = `<strong>${moves.attack}</strong><small>${moveInfo.attack} · Daño ${attackPreview.min}–${attackPreview.max}${critChance()>0 ? ` · crítico ${attackPreview.critMin}–${attackPreview.critMax}` : ''}</small>`;
+    skillButton.title = moveInfo.skill;
+    skillButton.innerHTML = `<strong>${moves.skill}</strong><small>${moveInfo.skill} · Daño ${skillPreview.min}–${skillPreview.max} · ${cost===0?'GRATIS ✧':cost+' maná'}</small>`;
+    classButton.title = signature.hint;
+    classButton.innerHTML = `<strong>${signature.icon} ${signature.label}</strong><small>Habilidad única · ${signature.hint} · ${signatureSub}</small>`;
     document.getElementById('attackBtn').addEventListener('click', ()=>playerAttack(false));
     document.getElementById('skillBtn').addEventListener('click', ()=>playerAttack(true));
+    document.getElementById('classAbilityBtn').addEventListener('click', useClassAbility);
+    box.querySelectorAll('[data-stance]').forEach(button=>button.addEventListener('click',()=>setCombatStance(button.dataset.stance)));
     if(document.getElementById('tameBtn')) document.getElementById('tameBtn').addEventListener('click', tryTameMonster);
     renderAbilityButtons(box);
     renderCombatStatus();
@@ -3821,12 +4680,48 @@ function initTabListeners() {
       renderActiveSubTabs();
     });
   });
+  document.querySelectorAll('#huntSubtabs [data-hunt-tab]').forEach(tab=>{
+    tab.onclick = ()=>{
+      activeHuntTab = tab.dataset.huntTab;
+      Sound.click();
+      renderHuntSubTabs();
+    };
+  });
+}
+
+function renderHuntSubTabs(){
+  const active = ['combat','progress'].includes(activeHuntTab) ? activeHuntTab : 'combat';
+  activeHuntTab = active;
+  document.querySelectorAll('#huntSubtabs [data-hunt-tab]').forEach(tab=>tab.classList.toggle('active', tab.dataset.huntTab===active));
+  const views = { combat:'huntViewCombat', progress:'huntViewProgress' };
+  Object.entries(views).forEach(([key,id])=>document.getElementById(id)?.classList.toggle('active', key===active));
+  renderHuntProgress();
+}
+
+function renderHuntProgress(){
+  const box = document.getElementById('huntProgressContent');
+  if(!box) return;
+  if(!runState){
+    box.innerHTML = `<div class="hunt-progress-head"><strong>PREPARÁ TU DESCENSO</strong><small>La expedición aún no comenzó</small></div>
+      <div class="hunt-metric-grid"><div class="hunt-metric"><small>PODER</small><b>⚡ ${Math.round(power())}</b></div><div class="hunt-metric"><small>MEJOR PROFUNDIDAD</small><b>⛏ ${state.maxRunDepth || 0}</b></div><div class="hunt-metric"><small>RACHA</small><b>🔥 ${winStreak}</b></div></div>
+      <div class="hunt-relic-list"><b>CONSEJO:</b> Equipá piezas de tu clase y elegí rutas seguras al comienzo. Los élites y guardianes ofrecen el botín más valioso.</div>`;
+    return;
+  }
+  const untilBoss = 5 - ((runState.depth - 1) % 5);
+  const relics = (runState.relics || []).map(r=>escapeHtml(r.name || r.label || r.id || 'Reliquia desconocida'));
+  box.innerHTML = `<div class="hunt-progress-head"><strong>ESTADO DE LA EXPEDICIÓN</strong><small>Acto ${Math.floor((runState.depth - 1) / 5) + 1}</small></div>
+    <div class="hunt-metric-grid"><div class="hunt-metric"><small>PROFUNDIDAD</small><b>⛏ ${runState.depth}</b></div><div class="hunt-metric"><small>VENCIDOS</small><b>☠ ${runState.monstersDefeated || 0}</b></div><div class="hunt-metric"><small>PRÓXIMO JEFE</small><b>♛ ${untilBoss === 1 ? 'AHORA' : `${untilBoss} salas`}</b></div></div>
+    <div class="hunt-relic-list"><b>RELIQUIAS ACTIVAS (${relics.length}):</b> ${relics.length ? relics.join(' · ') : 'Todavía no encontraste reliquias en esta expedición.'}</div>`;
 }
 
 function renderActiveSubTabs() {
   const heroActive = document.getElementById('secHero').classList.contains('active');
   const guildActive = document.getElementById('secGuild').classList.contains('active');
+  const forgeActive = document.getElementById('secForge').classList.contains('active');
+  const optionsActive = document.getElementById('secOptions').classList.contains('active');
   if(heroActive) renderHeroSubTab();
+  if(forgeActive) renderForge();
+  if(optionsActive) renderOptions();
   if(guildActive){
     renderGuildSubTab();
     renderLbSubTab();
@@ -3996,12 +4891,14 @@ function renderGuildSubTab() {
     const owned = state.ownedItems || {};
     const summary = guildSummaryMarkup();
     const heroClass = currentClass();
-    const classItems = SHOP_EQUIPMENT_ITEMS.filter(it=>it.classOnly===state.characterClass);
+    const classItems = Object.values(state.shop.offered || {})
+      .map(id=>SHOP_EQUIPMENT_ITEMS.find(item=>item.id===id))
+      .filter(Boolean);
     
     box.innerHTML = `<div class="shop-timer">Rotación en ${mm}:${ss}</div>` +
       `<div class="guild-note"><span>${heroClass.icon}</span><span><b>Armería de ${heroClass.label}</b> — piezas diseñadas para tu clase actual.</span></div>` +
-      `<div class="quest-label">EQUIPO CARACTERÍSTICO</div>` +
-      [...classItems, ...SHOP_EQUIPMENT_ITEMS.filter(it=>!it.classOnly)].map(it=>{
+      `<div class="quest-label">OFERTAS DE HOY · UNA PIEZA POR RANURA</div>` +
+      classItems.map(it=>{
         const stock = state.shop.inStock[it.id];
         const count = owned[it.id] || 0;
         const canBuy = stock && state.gold >= it.price;
@@ -4025,7 +4922,7 @@ function renderGuildSubTab() {
             <span class="irarity" style="color:${it.color}">${it.rarity}</span>
           </div>
           <div class="shop-stat">${statString} &nbsp;·&nbsp; ${it.price} oro</div>
-          <div class="shop-meta"><span>Disponibilidad por rotación</span><b>${Math.max(.1,it.chance*100).toFixed(it.chance<.01?1:0)}%</b></div>
+          <div class="shop-meta"><span>Chance de esta rareza</span><b>${(it.chance*100).toFixed(it.chance<.01?1:0)}%</b></div>
           ${count>0?`<div class="shop-owned">Comprados: ${count}</div>`:''}
           <button class="claim-btn ${canBuy?'ready':''}" data-buy="${it.id}" ${canBuy?'':'disabled'}>${btnLabel}</button>
         </div>`;
@@ -4124,17 +5021,91 @@ function renderLbSubTab() {
 /* ================= TIENDA Y EQUIPAMIENTO ================= */
 function ensureShop(){
   const now = Date.now();
-  if(!state.shop || state.shop.version !== 2 || now - state.shop.generatedAt >= SHOP_ROTATION_MS){
+  if(!state.shop || state.shop.version !== 4 || now - state.shop.generatedAt >= SHOP_ROTATION_MS){
     const inStock = {};
-    SHOP_EQUIPMENT_ITEMS.forEach(it=>{ inStock[it.id] = Math.random() < it.chance; });
     const classItems = SHOP_EQUIPMENT_ITEMS.filter(it=>it.classOnly===state.characterClass);
-    if(!classItems.some(it=>inStock[it.id])){
-      const guaranteed = classItems.find(it=>it.rarityKey==='common') || classItems[0];
-      if(guaranteed) inStock[guaranteed.id] = true;
-    }
-    state.shop = { version:2, generatedAt: now, inStock };
+    const offered = {};
+    Object.keys(CLASS_EQUIPMENT_SLOTS[state.characterClass] || {}).forEach(slot=>{
+      const candidates = classItems.filter(item=>item.type===slot);
+      if(!candidates.length) return;
+      let roll = Math.random();
+      let rarityKey = 'common';
+      for(const key of RARITY_PROGRESS_ORDER){
+        roll -= ITEM_RARITIES[key].chance;
+        if(roll<=0){ rarityKey = key; break; }
+      }
+      const item = candidates.find(entry=>entry.rarityKey===rarityKey) || candidates.find(entry=>entry.rarityKey==='common') || candidates[0];
+      offered[slot] = item.id;
+      inStock[item.id] = true;
+    });
+    state.shop = { version:4, generatedAt: now, inStock, offered };
     saveState();
   }
+}
+
+function applyVisualSettings(){
+  const settings = state.settings || {};
+  document.body.classList.toggle('graphics-medium', settings.graphics === 'medium');
+  document.body.classList.toggle('graphics-low', settings.graphics === 'low');
+  document.body.classList.toggle('reduce-motion', !!settings.reducedMotion);
+  if(Sound){
+    Sound.musicEnabled = !!settings.musicEnabled;
+    Sound.applyVolumes();
+    Sound.updateMusicControl();
+  }
+}
+
+function renderOptions(){
+  const box = document.getElementById('settingsContent');
+  if(!box) return;
+  const s = state.settings || {};
+  const musicOn = !!s.musicEnabled;
+  const sfxOn = s.sfxEnabled !== false;
+  box.innerHTML = `
+    <p class="settings-intro">Ajustá la experiencia a tu gusto. Estos cambios se guardan para este personaje.</p>
+    <section class="settings-group">
+      <h4>Audio</h4>
+      <div class="setting-row">
+        <div class="setting-label"><b>♫ Música</b><small>Ambiente del menú y combate</small></div>
+        <input class="settings-range" id="musicVolume" type="range" min="0" max="100" value="${s.musicVolume}" aria-label="Volumen de música">
+        <output id="musicVolumeValue">${s.musicVolume}%</output>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label"><b>✦ Efectos</b><small>Golpes, recompensas y avisos</small></div>
+        <input class="settings-range" id="sfxVolume" type="range" min="0" max="100" value="${s.sfxVolume}" aria-label="Volumen de efectos">
+        <output id="sfxVolumeValue">${s.sfxVolume}%</output>
+      </div>
+      <div class="settings-switch"><span>Música en segundo plano</span><button type="button" id="musicEnabledBtn" class="${musicOn?'active':''}">${musicOn?'ACTIVADA':'SILENCIADA'}</button></div>
+      <div class="settings-switch"><span>Efectos de sonido</span><button type="button" id="sfxEnabledBtn" class="${sfxOn?'active':''}">${sfxOn?'ACTIVADOS':'SILENCIADOS'}</button></div>
+    </section>
+    <section class="settings-group">
+      <h4>Imagen y comodidad</h4>
+      <div class="setting-label" style="margin-bottom:9px"><b>Calidad gráfica</b><small>Reducíla si el juego va lento.</small></div>
+      <div class="quality-grid">
+        ${[['high','Alta','Efectos completos'],['medium','Media','Menos partículas'],['low','Baja','Mayor fluidez']].map(([id,title,detail])=>`<button type="button" class="quality-btn ${s.graphics===id?'active':''}" data-quality="${id}">${title}<small style="display:block;font:8px 'JetBrains Mono';margin-top:4px;color:var(--parchment-dim)">${detail}</small></button>`).join('')}
+      </div>
+      <div class="settings-switch"><span>Reducir animaciones</span><button type="button" id="motionBtn" class="${s.reducedMotion?'active':''}">${s.reducedMotion?'ACTIVADO':'DESACTIVADO'}</button></div>
+    </section>
+    <div class="settings-actions">
+      <button type="button" class="settings-action" id="testSoundBtn">✦ Probar sonido</button>
+      <button type="button" class="settings-action" id="optionsFullscreenBtn">⛶ Alternar modo juego</button>
+      <button type="button" class="settings-action danger" id="resetOptionsBtn">↺ Restaurar opciones</button>
+    </div>`;
+
+  const updateRange = (key, outputId) => event => {
+    state.settings[key] = Number(event.target.value);
+    document.getElementById(outputId).textContent = `${event.target.value}%`;
+    Sound.applyVolumes(); saveState();
+  };
+  box.querySelector('#musicVolume').addEventListener('input', updateRange('musicVolume','musicVolumeValue'));
+  box.querySelector('#sfxVolume').addEventListener('input', updateRange('sfxVolume','sfxVolumeValue'));
+  box.querySelector('#musicEnabledBtn').addEventListener('click', ()=>{ state.settings.musicEnabled=!state.settings.musicEnabled; Sound.musicEnabled=state.settings.musicEnabled; if(Sound.musicEnabled){ Sound.init(); Sound.playNextNote(); } Sound.applyVolumes(); saveState(); renderOptions(); });
+  box.querySelector('#sfxEnabledBtn').addEventListener('click', ()=>{ state.settings.sfxEnabled=!state.settings.sfxEnabled; Sound.applyVolumes(); Sound.click(); saveState(); renderOptions(); });
+  box.querySelectorAll('[data-quality]').forEach(btn=>btn.addEventListener('click',()=>{ state.settings.graphics=btn.dataset.quality; applyVisualSettings(); saveState(); renderOptions(); }));
+  box.querySelector('#motionBtn').addEventListener('click',()=>{ state.settings.reducedMotion=!state.settings.reducedMotion; applyVisualSettings(); saveState(); renderOptions(); });
+  box.querySelector('#testSoundBtn').addEventListener('click',()=>{ Sound.click(); setTimeout(()=>Sound.reward(),100); });
+  box.querySelector('#optionsFullscreenBtn').addEventListener('click',()=>toggleGameMode());
+  box.querySelector('#resetOptionsBtn').addEventListener('click',()=>{ state.settings={musicVolume:55,sfxVolume:70,musicEnabled:false,sfxEnabled:true,graphics:'high',reducedMotion:false}; Sound.musicEnabled=false; applyVisualSettings(); saveState(); renderOptions(); });
 }
 
 function buyItem(id){
@@ -4217,11 +5188,13 @@ function unequipItem(slotName) {
 
 /* ================= ACTUALIZACIÓN DE PANTALLA ================= */
 function render(){
+  applyVisualSettings();
   syncMusicScene();
   document.getElementById('pName').textContent = state.name;
   const heroClass = currentClass();
   document.getElementById('heroClassTitle').textContent = `${heroClass.icon} ${heroClass.label}`;
-  document.getElementById('pResets').textContent = `${state.resets} RESET${state.resets===1?'':'S'}`;
+  const availableResets = availableStatResets();
+  document.getElementById('pResets').textContent = `${availableResets} RESTABLECIMIENTO${availableResets===1?'':'S'} DISP.`;
   document.getElementById('sealLevelText').textContent = state.level;
   renderSealRings();
 
@@ -4249,6 +5222,7 @@ function render(){
   huntMode = 'run';
   renderRunMode();
   renderLog();
+  renderHuntSubTabs();
   renderActiveSubTabs();
 }
 
@@ -4294,7 +5268,13 @@ function renderCharacterGate(roster){
 
 function syncMusicScene(){
   if(!state){ Sound.setScene('menu'); return; }
-  if(battle){ Sound.setScene(battle.monster && battle.monster.isBoss ? (battle.monster.phaseTwo ? 'bossPhase' : 'boss') : 'battle'); return; }
+  if(battle){
+    const monster = battle.monster;
+    const lowHealth = monster && monster.hp>0 && monster.hp/monster.maxHp<=.30;
+    if(lowHealth && !(monster.isBoss && monster.phaseTwo)){ Sound.setScene('danger'); return; }
+    Sound.setScene(monster && monster.isBoss ? (monster.phaseTwo ? 'bossPhase' : 'boss') : 'battle');
+    return;
+  }
   const huntOpen = document.getElementById('secHunt')?.classList.contains('active');
   Sound.setScene(huntOpen ? 'hunt' : 'menu');
 }
@@ -4336,10 +5316,45 @@ async function createCharacter(){
   showGame();
 }
 
+function syncGameMode(){
+  const active = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  document.body.classList.toggle('immersive-game', active);
+  const button = document.getElementById('fullscreenBtn');
+  if(button){
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+    button.textContent = active ? '⛶ Salir del modo juego' : '⛶ Modo juego';
+  }
+}
+
+async function toggleGameMode(){
+  const active = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  try{
+    if(active){
+      if(document.exitFullscreen) await document.exitFullscreen();
+      else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }else{
+      const root = document.documentElement;
+      if(root.requestFullscreen) await root.requestFullscreen();
+      else if(root.webkitRequestFullscreen) root.webkitRequestFullscreen();
+      else throw new Error('fullscreen no disponible');
+    }
+  }catch(_error){
+    const cinematic = !document.body.classList.contains('immersive-game');
+    document.body.classList.toggle('immersive-game', cinematic);
+    const button = document.getElementById('fullscreenBtn');
+    if(button){ button.classList.toggle('active', cinematic); button.setAttribute('aria-pressed', String(cinematic)); button.textContent = cinematic ? '⛶ Salir del modo juego' : '⛶ Modo juego'; }
+    showFeedback(cinematic ? '⛶ MODO JUEGO ACTIVADO' : '⛶ MODO JUEGO CERRADO', cinematic ? 'Vista ampliada activada' : 'Vista normal restaurada');
+  }
+}
+
 async function boot() {
   document.getElementById('musicToggle').addEventListener('click', () => {
     Sound.toggleMusic();
   });
+  document.getElementById('fullscreenBtn').addEventListener('click', toggleGameMode);
+  document.addEventListener('fullscreenchange', syncGameMode);
+  document.addEventListener('webkitfullscreenchange', syncGameMode);
   Sound.updateMusicControl();
 
   const roster = await loadRoster();
