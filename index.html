@@ -68,15 +68,21 @@
   .character-select{ display:grid; grid-template-columns:38px 1fr auto; gap:10px; align-items:center; min-width:0; padding:5px; border:0; background:transparent; color:inherit; cursor:pointer; text-align:left; font:inherit; }
   .character-delete{ width:30px; height:30px; border:1px solid rgba(180,60,53,.45); border-radius:3px; background:rgba(180,60,53,.08); color:#dd756d; cursor:pointer; font-size:15px; transition:.18s ease; }
   .character-delete:hover{ background:rgba(180,60,53,.2); border-color:#dd756d; transform:scale(1.06); }
-  .character-card .char-icon{ font-size:22px; text-align:center; }
+.character-card .char-icon{ display:grid; place-items:center; width:28px; height:28px; text-align:center; }
+.character-card .char-icon .class-emblem{ width:28px; height:28px; object-fit:contain; filter:drop-shadow(0 1px 3px rgba(0,0,0,.65)); }
   .character-card .char-name{ font-family:'Cinzel'; font-size:13px; color:var(--gold-bright); }
   .character-card .char-meta{ font-family:'JetBrains Mono'; color:var(--parchment-dim); font-size:10px; margin-top:3px; }
   .character-card .char-play{ font-family:'Cinzel'; font-size:10px; color:var(--green); letter-spacing:1px; }
   .character-divider{ display:flex; align-items:center; gap:10px; color:var(--parchment-dim); font-size:11px; margin:16px 0 8px; }
   .character-divider::before,.character-divider::after{ content:""; flex:1; height:1px; background:var(--line); }
-  .class-picker{ display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin:10px 0 14px; }
-  .class-choice{ min-height:68px; padding:5px 3px; background:var(--bg-panel-2); border:1px solid var(--line); color:var(--parchment-dim); border-radius:3px; cursor:pointer; font-family:'Cinzel'; font-size:9px; letter-spacing:.3px; }
-  .class-choice span{ display:block; font-size:19px; margin-bottom:3px; }
+.class-picker{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; width:min(100%,300px); margin:10px auto 14px; }
+.class-choice{ min-height:72px; padding:6px 3px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:var(--bg-panel-2); border:1px solid var(--line); color:var(--parchment-dim); border-radius:3px; cursor:pointer; font-family:'Cinzel'; font-size:9px; letter-spacing:.3px; }
+.class-choice span{ display:block; font-size:19px; margin-bottom:3px; }
+.class-choice .class-emblem{ display:block; width:31px; height:31px; margin:0 auto 4px; object-fit:contain; filter:drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
+.class-choice:hover .class-emblem,.class-choice.active .class-emblem{ filter:drop-shadow(0 0 7px rgba(232,196,119,.52)); }
+.class-emblem.inline{ width:22px; height:22px; object-fit:contain; vertical-align:middle; margin-right:5px; filter:drop-shadow(0 1px 3px rgba(0,0,0,.65)); }
+.class-emblem.loadout{ width:30px; height:30px; object-fit:contain; vertical-align:middle; margin-right:7px; filter:drop-shadow(0 0 6px rgba(232,196,119,.32)); }
+.character-class-icon .class-emblem{ width:24px; height:24px; object-fit:contain; }
   .class-choice:hover,.class-choice.active{ color:var(--gold-bright); border-color:var(--gold); background:#2a2013; box-shadow:0 0 12px rgba(200,155,60,.18); }
   .class-description{ min-height:32px; margin:-4px 0 10px; color:var(--parchment-dim); font-size:11px; line-height:1.35; }
   .route-map{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; width:100%; padding:6px 2px; }
@@ -87,8 +93,18 @@
   .route-node .map-icon{ font-size:25px; color:var(--node-color); text-shadow:0 0 12px currentColor; }
   .route-node .map-label{ font-family:'Cinzel'; font-size:11px; font-weight:700; letter-spacing:1px; color:var(--parchment); }
   .route-node .map-hint{ font-family:'JetBrains Mono'; font-size:9px; line-height:1.35; color:var(--parchment-dim); }
-  .route-node.boss{ grid-column:1/-1; min-height:92px; flex-direction:row; gap:14px; border-color:#a43c36; }
-  .route-node.boss .map-icon{ font-size:34px; }
+.route-node.boss{ grid-column:1/-1; min-height:92px; flex-direction:row; gap:14px; border-color:#a43c36; }
+.route-node.boss .map-icon{ font-size:34px; }
+.arena.route-map-mode{ height:auto; min-height:500px; padding:15px; overflow:hidden; }
+.spire-map{ position:relative; width:100%; min-height:460px; padding:16px 14px 22px; overflow:hidden; border:1px solid rgba(200,155,60,.42); border-radius:8px; background:radial-gradient(circle at 50% 45%,rgba(92,66,30,.28),transparent 48%),linear-gradient(125deg,rgba(71,49,23,.9),rgba(24,17,10,.96)); box-shadow:inset 0 0 55px rgba(0,0,0,.45),0 12px 26px rgba(0,0,0,.3); }
+.spire-map::before{ content:''; position:absolute; inset:7px; pointer-events:none; border:1px dashed rgba(232,196,119,.18); border-radius:5px; opacity:.8; }
+.spire-map-title{ position:relative; z-index:3; display:flex; align-items:center; justify-content:space-between; margin:0 4px 12px; color:var(--gold-bright); font:700 11px 'Cinzel'; letter-spacing:1.4px; }.spire-map-title small{ color:var(--parchment-dim); font:9px 'JetBrains Mono'; letter-spacing:.35px; }
+.spire-map-legend{ position:relative; z-index:3; display:flex; flex-wrap:wrap; justify-content:center; gap:5px 10px; margin-bottom:10px; color:#b9aa8d; font:8px 'JetBrains Mono'; }.spire-map-legend span{ white-space:nowrap; }
+.spire-rows{ position:relative; z-index:2; display:flex; min-height:368px; flex-direction:column-reverse; justify-content:space-between; gap:17px; padding:8px 2px 5px; }
+.spire-row{ position:relative; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:center; gap:12px; min-height:66px; }.spire-row:not(:first-child)::before{ content:''; position:absolute; z-index:-1; left:17%; right:17%; bottom:calc(100% - 2px); height:31px; border-top:1px dashed rgba(232,196,119,.4); border-radius:50% 50% 0 0; transform:skewY(-8deg); }.spire-row.solo .spire-node{ grid-column:2; }
+.spire-node{ position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; width:54px; height:54px; justify-self:center; padding:3px; border:1px solid var(--node-color); border-radius:50%; color:var(--node-color); background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.12),rgba(22,14,8,.95) 64%); box-shadow:0 0 0 4px rgba(0,0,0,.21),0 0 13px color-mix(in srgb,var(--node-color) 23%,transparent); cursor:pointer; transition:.2s ease; }.spire-node .node-icon{ font-size:21px; line-height:1; filter:drop-shadow(0 0 5px currentColor); }.spire-node .node-name{ display:none; }.spire-node.available::after{ content:'ELEGIR'; position:absolute; top:calc(100% + 4px); color:var(--gold-bright); font:700 7px 'JetBrains Mono'; letter-spacing:.7px; }.spire-node.available:hover{ transform:translateY(-4px) scale(1.1); border-color:var(--gold-bright); box-shadow:0 0 0 4px rgba(200,155,60,.15),0 0 20px color-mix(in srgb,var(--node-color) 52%,transparent); }.spire-node.locked{ cursor:default; opacity:.35; filter:grayscale(.75); }.spire-node.cleared{ opacity:.58; cursor:default; filter:grayscale(.5); }.spire-node.cleared::before{ content:'✓'; position:absolute; inset:-4px; display:grid; place-items:center; border:1px solid var(--green); border-radius:50%; color:var(--green); background:rgba(10,35,18,.72); font-size:16px; }.spire-node.skipped{ opacity:.14; filter:grayscale(1); cursor:default; }.spire-node.boss{ width:66px; height:66px; border-color:#e26856; color:#f07c6b; }.spire-node.boss .node-icon{ font-size:30px; }.spire-node.boss.available{ animation:bossNodePulse 1.35s ease-in-out infinite; }@keyframes bossNodePulse{ 50%{ box-shadow:0 0 0 6px rgba(216,65,55,.13),0 0 26px rgba(224,75,60,.52); } }
+.spire-player{ position:absolute; z-index:4; bottom:7px; left:50%; transform:translateX(-50%); padding:4px 8px; border:1px solid rgba(232,196,119,.45); border-radius:12px; color:var(--gold-bright); background:rgba(21,14,8,.94); box-shadow:0 3px 8px rgba(0,0,0,.4); font:8px 'JetBrains Mono'; white-space:nowrap; }
+@media(max-width:560px){ .arena.route-map-mode{min-height:475px;padding:10px}.spire-map{min-height:445px;padding:13px 8px 18px}.spire-node{width:48px;height:48px}.spire-node .node-icon{font-size:19px}.spire-row{gap:5px}.spire-rows{min-height:350px}.spire-map-legend{font-size:7px;gap:4px 7px} }
   .event-choice{ width:100%; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .event-choice button{ min-height:74px; padding:9px; background:var(--bg-panel-2); border:1px solid var(--line); color:var(--parchment); border-radius:3px; font-family:'Cinzel'; font-size:11px; cursor:pointer; }
   .event-choice button:hover{ border-color:var(--mana); box-shadow:0 0 12px rgba(63,127,168,.25); }
@@ -414,6 +430,31 @@
   .lb-row.me{ background:rgba(200,155,60,0.08); }
   .lb-row .lbstat{ font-family:'JetBrains Mono'; color:var(--parchment-dim); font-size:11px; }
   #lbStatus{ font-size:11px; color:var(--parchment-dim); text-align:center; padding:10px 0;}
+  .lb-intro{ margin:8px 0 10px; color:var(--parchment-dim); font-size:10px; text-align:center; letter-spacing:.3px; }
+  .lb-row{ position:relative; min-height:55px; gap:8px; padding:7px 7px; cursor:pointer; border:1px solid transparent; border-bottom-color:var(--line); transition:.18s ease; }
+  .lb-row:hover,.lb-row:focus-visible{ outline:none; transform:translateX(2px); border-color:rgba(232,196,119,.42); background:linear-gradient(90deg,rgba(200,155,60,.16),rgba(25,17,10,.08)); }
+  .lb-row .rank{ align-self:center; text-align:center; font-size:13px; }
+  .lb-crest{ width:34px; height:34px; display:grid; place-items:center; border:1px solid rgba(232,196,119,.35); border-radius:50%; background:radial-gradient(circle,rgba(200,155,60,.18),rgba(16,11,7,.9)); color:var(--gold-bright); font-size:17px; box-shadow:inset 0 0 10px rgba(200,155,60,.12); }
+  .lb-player{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
+  .lb-player strong{ color:var(--parchment); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lb-player small{ color:var(--parchment-dim); font:9px 'JetBrains Mono'; text-transform:uppercase; letter-spacing:.45px; }
+  .lb-player small b{ color:var(--gold-bright); font-weight:normal; }
+  .lb-power{ text-align:right; display:flex; flex-direction:column; gap:3px; color:var(--parchment-dim); font:9px 'JetBrains Mono'; white-space:nowrap; }
+  .lb-power b{ color:#e77e42; font-size:10px; font-weight:normal; }
+  .lb-view{ color:var(--gold); font:9px 'Cinzel'; letter-spacing:.5px; opacity:.72; }
+  .player-profile-backdrop{ position:fixed; inset:0; z-index:80; display:grid; place-items:center; padding:16px; background:rgba(5,3,2,.72); backdrop-filter:blur(4px); animation:fadeIn .18s ease; }
+  .player-profile-card{ position:relative; width:min(420px,100%); overflow:hidden; border:1px solid rgba(232,196,119,.58); border-radius:9px; background:linear-gradient(145deg,#261b10,#110c08 65%); box-shadow:0 20px 70px rgba(0,0,0,.7),inset 0 0 35px rgba(200,155,60,.08); }
+  .profile-close{ position:absolute; top:10px; right:10px; z-index:2; width:28px; height:28px; border:1px solid rgba(232,196,119,.4); border-radius:50%; background:#160e09; color:var(--parchment); cursor:pointer; }
+  .profile-banner{ min-height:148px; display:flex; align-items:flex-end; gap:14px; padding:18px 21px; background:radial-gradient(circle at 70% 20%,rgba(200,155,60,.18),transparent 42%),linear-gradient(135deg,#2a1b0d,#100b07); border-bottom:1px solid var(--line); }
+  .profile-avatar{ width:118px; height:132px; object-fit:contain; object-position:bottom; filter:drop-shadow(0 8px 13px rgba(0,0,0,.7)); }
+  .profile-identity{ padding-bottom:10px; }
+  .profile-identity small{ color:var(--gold); font:10px 'Cinzel'; letter-spacing:1px; }
+  .profile-identity h2{ margin:5px 0 4px; color:var(--parchment); font:20px 'Cinzel'; }
+  .profile-identity p{ margin:0; color:var(--parchment-dim); font:10px 'JetBrains Mono'; }
+  .profile-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:7px; padding:15px; }
+  .profile-stat{ padding:9px 6px; text-align:center; border:1px solid var(--line); border-radius:4px; background:rgba(0,0,0,.17); }
+  .profile-stat small{ display:block; color:var(--parchment-dim); font:8px 'Cinzel'; letter-spacing:.6px; }
+  .profile-stat b{ display:block; margin-top:4px; color:var(--gold-bright); font:14px 'JetBrains Mono'; }
 
   .stat-legend{ font-size:10.5px; color:var(--parchment-dim); line-height:1.7; margin:10px 0 6px; }
   .stat-legend b{ color:var(--parchment); }
@@ -537,11 +578,15 @@
     font-weight: 600;
     color: var(--parchment);
   }
-  .inv-item-stats {
+.inv-item-stats {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10.5px;
     color: var(--gold-bright);
   }
+.inv-rarity{ display:inline-flex; width:max-content; margin-top:2px; padding:2px 5px; border:1px solid var(--rarity-color); border-radius:9px; color:var(--rarity-color); background:color-mix(in srgb,var(--rarity-color) 10%,transparent); font:700 8px 'JetBrains Mono'; letter-spacing:.55px; text-transform:uppercase; }
+.inv-actions{ display:flex; flex-direction:column; gap:5px; align-items:stretch; margin-left:8px; }
+.delete-item-btn{ padding:4px 8px; border:1px solid rgba(210,74,68,.55); border-radius:3px; color:#e98a82; background:rgba(126,28,23,.18); font:700 9px 'Cinzel'; cursor:pointer; }
+.delete-item-btn:hover{ color:#fff0e8; border-color:#ef766b; background:rgba(150,31,25,.42); }
   .stats-detailed {
     background: var(--bg-panel-2);
     padding: 18px;
@@ -626,8 +671,16 @@
   .daily-toast-sub{ font-family:'JetBrains Mono'; color:var(--parchment-dim); font-size:11px; margin-top:4px; }
 
   /* ---- JEFES ---- */
-  .fighter.monster.boss .sprite-box{ transform:scale(1.22); filter:drop-shadow(0 0 10px var(--ember)) drop-shadow(0 0 4px var(--gold-bright)); }
-  .fighter.monster.boss .name{ color:var(--ember); text-shadow:0 0 6px rgba(232,98,44,0.6); }
+.fighter.monster.boss .sprite-box{ transform:scale(1.22); filter:drop-shadow(0 0 10px var(--ember)) drop-shadow(0 0 4px var(--gold-bright)); }
+.fighter.monster.boss .name{ color:var(--ember); text-shadow:0 0 6px rgba(232,98,44,0.6); }
+.arena.boss-phase-two{ box-shadow:inset 0 0 80px rgba(151,23,39,.42),0 0 26px rgba(218,57,56,.22); animation:bossPhasePulse 1.05s ease-in-out infinite; }
+.arena.boss-phase-two::before{ content:''; position:absolute; inset:0; z-index:2; pointer-events:none; background:radial-gradient(circle at 76% 53%,rgba(220,41,55,.38),transparent 35%); mix-blend-mode:screen; animation:bossPhaseVeil 1.15s ease-in-out infinite; }
+.fighter.monster.boss.phase-two .sprite-box{ transform:scale(1.34); filter:drop-shadow(0 0 17px #f33) drop-shadow(0 0 8px #9c1d44) brightness(1.18) saturate(1.5); animation:bossPhaseFloat .72s ease-in-out infinite alternate; }
+.fighter.monster.boss.phase-two .name{ color:#ff8b75; text-shadow:0 0 11px #e72d3b; }
+.fighter.monster.boss.phase-two .mini-bar{ border-color:#f04b55; box-shadow:0 0 12px rgba(240,75,85,.65); }
+@keyframes bossPhasePulse{ 50%{filter:brightness(1.11) saturate(1.2)} }
+@keyframes bossPhaseVeil{ 50%{opacity:.38} }
+@keyframes bossPhaseFloat{ to{transform:scale(1.39) translateY(-4px)} }
 
   /* ---- JUGOSIDAD DE COMBATE ---- */
   .arena.crit-shake{ animation:critShake .4s; }
@@ -764,6 +817,30 @@
   .class-fx.priest::before{ content:'✚'; color:#fff0a6; font-size:76px; text-align:center; text-shadow:0 0 24px #eccf7e; animation:magicFx .55s ease-out forwards; }
   .class-fx.assassin::before{ content:'✧ ✧'; color:#ef9bff; font-size:43px; letter-spacing:25px; text-shadow:0 0 18px #b968c2; animation:dashFx .45s ease-out forwards; }
   .class-fx.skill::before{ filter:brightness(1.5); transform:scale(1.35); }
+  .combat-vfx{ position:absolute; z-index:10; pointer-events:none; inset:-48%; display:grid; place-items:center; mix-blend-mode:screen; }
+  .combat-vfx img{ width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 0 12px currentColor); }
+  .combat-vfx.slash{ animation:vfxSlash .48s cubic-bezier(.15,.8,.25,1) forwards; }
+  .combat-vfx.slash.enemy-hit img{ filter:hue-rotate(315deg) saturate(1.35) drop-shadow(0 0 14px #ff4e43); }
+  .combat-vfx.arcane{ inset:-62%; animation:vfxArcane .76s ease-out forwards; }
+  .combat-vfx.heal{ inset:-62%; animation:vfxHeal .82s ease-out forwards; }
+  .combat-vfx.shield{ inset:-40%; animation:vfxShield .8s ease-out forwards; }
+  .combat-vfx.impact{ inset:-52%; animation:vfxImpact .42s cubic-bezier(.12,.72,.28,1) forwards; }
+  .combat-vfx.poison{ inset:-50%; animation:vfxPoison 1.05s ease-out forwards; }
+  .combat-vfx.critical{ transform:scale(1.35); filter:brightness(1.45) saturate(1.45); }
+  @keyframes vfxSlash{ 0%{opacity:0;transform:translate(-22%,18%) rotate(-25deg) scale(.42)} 20%{opacity:1} 72%{opacity:1;transform:translate(8%,-6%) rotate(8deg) scale(1.08)} 100%{opacity:0;transform:translate(24%,-18%) rotate(18deg) scale(1.25)} }
+  @keyframes vfxArcane{ 0%{opacity:0;transform:scale(.3) rotate(-45deg)} 25%{opacity:1} 100%{opacity:0;transform:scale(1.42) rotate(100deg)} }
+  @keyframes vfxHeal{ 0%{opacity:0;transform:translateY(14%) scale(.42)} 32%{opacity:1} 100%{opacity:0;transform:translateY(-25%) scale(1.12)} }
+  @keyframes vfxShield{ 0%{opacity:0;transform:scale(.38)} 25%{opacity:.88;transform:scale(1.08)} 62%{opacity:.6;transform:scale(.94)} 100%{opacity:0;transform:scale(1.2)} }
+  @keyframes vfxImpact{ 0%{opacity:0;transform:scale(.25) rotate(-35deg)} 26%{opacity:1;transform:scale(1.05) rotate(5deg)} 100%{opacity:0;transform:scale(1.42) rotate(22deg)} }
+  @keyframes vfxPoison{ 0%{opacity:0;transform:translateY(18%) scale(.35)} 30%{opacity:.82;transform:translateY(-2%) scale(1)} 100%{opacity:0;transform:translateY(-26%) scale(1.22)} }
+  .fighter.dodging .sprite-box{ animation:dodgeDash .46s ease-out; }
+  .fighter.dodging .sprite-box::after{ content:''; position:absolute; inset:15% -30%; background:linear-gradient(90deg,transparent,rgba(173,219,255,.55),transparent); filter:blur(8px); animation:dodgeGhost .46s ease-out forwards; }
+  @keyframes dodgeDash{ 0%,100%{transform:translateX(0)} 45%{transform:translateX(-22px) skewX(-10deg)} }
+  @keyframes dodgeGhost{ from{opacity:.85;transform:translateX(16px)} to{opacity:0;transform:translateX(-30px)} }
+  .arena.boss-arrival{ animation:bossArrival .75s cubic-bezier(.16,.8,.24,1); }
+  .arena.boss-arrival::after{ content:''; position:absolute; inset:0; pointer-events:none; background:radial-gradient(circle at 74% 54%,rgba(255,78,42,.56),transparent 32%); animation:bossGlow .72s ease-out forwards; }
+  @keyframes bossArrival{ 0%{transform:scale(.97);filter:brightness(.45)} 46%{transform:scale(1.012);filter:brightness(1.32)} 100%{transform:scale(1);filter:brightness(1)} }
+  @keyframes bossGlow{ from{opacity:1} to{opacity:0} }
   @keyframes slashFx{ 0%{opacity:0;transform:translateX(-25%) rotate(-38deg) scale(.5)} 30%{opacity:1} 100%{opacity:0;transform:translateX(55%) rotate(-8deg) scale(1.2)} }
   @keyframes arrowFx{ 0%{opacity:0;transform:translateX(-45%) scale(.7)} 25%{opacity:1} 100%{opacity:0;transform:translateX(180%) scale(1.1)} }
   @keyframes magicFx{ 0%{opacity:0;transform:scale(.35) rotate(0)} 35%{opacity:1} 100%{opacity:0;transform:scale(1.6) rotate(80deg)} }
@@ -827,7 +904,8 @@
   .character-doll{ min-height:370px; background:radial-gradient(ellipse at 50% 65%,rgba(232,196,119,.16),transparent 37%),linear-gradient(90deg,rgba(200,155,60,.11) 1px,transparent 1px),linear-gradient(0deg,rgba(200,155,60,.07) 1px,transparent 1px),linear-gradient(150deg,#251a10,#0c0907 74%); background-size:auto,20px 20px,20px 20px,auto; }
   .character-doll::before,.character-doll::after{ content:none; }
   .loadout-title{ position:absolute; top:13px; left:14px; right:14px; z-index:5; display:flex; align-items:center; gap:9px; padding:8px 10px; border:1px solid rgba(232,196,119,.28); border-radius:8px; background:linear-gradient(100deg,rgba(32,23,13,.96),rgba(20,14,9,.72)); box-shadow:0 5px 12px rgba(0,0,0,.25); }
-  .loadout-title > span{ display:grid; place-items:center; width:29px; height:29px; border:1px solid rgba(232,196,119,.48); border-radius:50%; color:var(--gold-bright); background:rgba(200,155,60,.11); font-size:15px; }
+.loadout-title > span{ display:grid; place-items:center; width:29px; height:29px; border:1px solid rgba(232,196,119,.48); border-radius:50%; color:var(--gold-bright); background:rgba(200,155,60,.11); font-size:15px; overflow:hidden; }
+.loadout-title > span .class-emblem{ width:28px; height:28px; object-fit:contain; }
   .loadout-title small,.loadout-title strong,.loadout-title em{ display:block; }
   .loadout-title small{ color:var(--parchment-dim); font:8px 'JetBrains Mono'; letter-spacing:1px; }
   .loadout-title strong{ margin:1px 0; color:var(--gold-bright); font:700 12px 'Cinzel'; letter-spacing:.8px; }
@@ -835,9 +913,19 @@
   .equipment-hero-art{ position:absolute; z-index:1; left:50%; bottom:15px; width:180px; height:282px; transform:translateX(-50%); object-fit:contain; filter:drop-shadow(0 0 14px rgba(232,196,119,.25)) drop-shadow(0 17px 13px rgba(0,0,0,.75)); animation:equipmentHeroIdle 3.6s ease-in-out infinite; }
   @keyframes equipmentHeroIdle{ 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-4px)} }
   .loadout-hint{ position:absolute; z-index:5; bottom:7px; left:14px; right:14px; padding:5px 7px; border:1px solid rgba(200,155,60,.18); border-radius:4px; background:rgba(10,7,5,.72); color:#aa9b81; font:8px 'JetBrains Mono'; text-align:center; }
-  .eq-slot{ z-index:4; background:linear-gradient(145deg,rgba(42,31,18,.97),rgba(13,9,6,.98)); }
+.eq-slot{ z-index:4; background:linear-gradient(145deg,rgba(42,31,18,.97),rgba(13,9,6,.98)); }
+.eq-slot .equipment-item-art{ display:block; width:100%; height:100%; padding:3px; object-fit:contain; border-radius:5px; }
+.shop-item-art{ width:34px; height:34px; margin:-7px 4px -7px -6px; object-fit:contain; vertical-align:middle; border-radius:5px; background:#16100b; }
+.inv-item-art{ width:38px; height:38px; margin-right:8px; object-fit:contain; border:1px solid rgba(200,155,60,.2); border-radius:5px; background:#16100b; }
   .eq-slot:not(.equipped){ filter:saturate(.75); }
   .eq-slot.equipped::before{ border-color:rgba(255,232,161,.48); }
+  /* El equipo equipado conserva la identidad visual de su rareza. */
+  .eq-slot.equipped{
+    border-color:var(--slot-rarity-color,var(--gold-bright));
+    background:linear-gradient(145deg,color-mix(in srgb,var(--slot-rarity-color,var(--gold-bright)) 28%,#261b10),rgba(18,13,8,.98));
+    box-shadow:inset 0 0 16px color-mix(in srgb,var(--slot-rarity-color,var(--gold-bright)) 30%,transparent),0 0 14px color-mix(in srgb,var(--slot-rarity-color,var(--gold-bright)) 45%,transparent);
+  }
+  .eq-slot.equipped::before{ border-color:color-mix(in srgb,var(--slot-rarity-color,var(--gold-bright)) 65%,transparent); }
   .slot-helmet{ top:92px; }.slot-chest{ top:174px; }.slot-weapon,.slot-shield{ top:174px; }.slot-gloves,.slot-ring{ top:254px; }.slot-boots{ bottom:32px; }
   .backpack-head{ display:flex; align-items:center; gap:9px; padding:9px 10px; border:1px solid rgba(200,155,60,.28); border-radius:7px; background:linear-gradient(125deg,rgba(71,49,20,.38),rgba(14,10,7,.62)); }
   .backpack-head > span{ color:var(--gold-bright); font-size:17px; text-shadow:0 0 9px rgba(232,196,119,.5); }
@@ -935,12 +1023,12 @@
     <div id="newCharacterForm">
       <div class="character-divider"><span>NUEVO PERSONAJE</span></div>
       <div class="class-picker" id="classPicker">
-        <button class="class-choice active" data-class="warrior"><span>⚔</span>Guerrero</button>
-        <button class="class-choice" data-class="archer"><span>🏹</span>Arquero</button>
-        <button class="class-choice" data-class="mage"><span>✦</span>Mago</button>
-        <button class="class-choice" data-class="priest"><span>✚</span>Sacerdote</button>
-        <button class="class-choice" data-class="assassin"><span>🗡</span>Asesino</button>
-        <button class="class-choice" data-class="tamer"><span>🪢</span>Domador</button>
+<button class="class-choice active" data-class="warrior"><img class="class-emblem" src="assets/images/class_warrior_emblem.png" alt="">Guerrero</button>
+<button class="class-choice" data-class="archer"><img class="class-emblem" src="assets/images/class_archer_emblem.png" alt="">Arquero</button>
+<button class="class-choice" data-class="mage"><img class="class-emblem" src="assets/images/class_mage_emblem.png" alt="">Mago</button>
+<button class="class-choice" data-class="priest"><img class="class-emblem" src="assets/images/class_priest_emblem.png" alt="">Sacerdote</button>
+<button class="class-choice" data-class="assassin"><img class="class-emblem" src="assets/images/class_assassin_emblem.png" alt="">Asesino</button>
+<button class="class-choice" data-class="tamer"><img class="class-emblem" src="assets/images/class_tamer_emblem.png" alt="">Domador</button>
       </div>
       <div id="classDescription" class="class-description"></div>
       <input id="nameInput" maxlength="16" placeholder="Nombre de guerrero">
@@ -1060,12 +1148,13 @@
 </div>
 
 <script>
-/* ================= AUDIO SYNTHESIZER (8-BIT SOUND EFFECTS & MUSIC) ================= */
+/* ================= AUDIO SYNTHESIZER (AMBIENT RPG MUSIC & SOUND EFFECTS) ================= */
 const Sound = {
   ctx: null,
   musicEnabled: false,
   musicTimer: null,
   melodyIndex: 0,
+  barIndex: 0,
   
   melody: [
     [196.00, 300], [220.00, 300], [261.63, 600], [220.00, 300], [261.63, 300], [293.66, 600],
@@ -1075,19 +1164,33 @@ const Sound = {
   ],
   scene: 'menu',
   musicGain: null,
+  sfxGain: null,
+  ambienceGain: null,
   tracks: {
-    menu: [[196,420],[246.94,210],[293.66,420],[329.63,420],[293.66,210],[246.94,420],[220,420],[0,210]],
-    hunt: [[220,210],[261.63,210],[293.66,210],[329.63,420],[293.66,210],[261.63,210],[220,420],[0,210]],
-    battle: [[146.83,160],[196,160],[220,160],[246.94,160],[220,160],[196,160],[174.61,160],[220,160]],
-    boss: [[110,190],[146.83,190],[164.81,190],[110,190],[130.81,190],[164.81,190],[196,380],[0,190]]
+    menu: [[196,520],[246.94,260],[293.66,520],[329.63,520],[293.66,260],[246.94,520],[220,520],[0,260]],
+    hunt: [[220,250],[261.63,250],[293.66,250],[329.63,500],[293.66,250],[261.63,250],[246.94,500],[0,250]],
+    battle: [[146.83,180],[196,180],[220,180],[246.94,180],[220,180],[196,180],[174.61,180],[220,180]],
+    boss: [[110,210],[146.83,210],[164.81,210],[110,210],[130.81,210],[164.81,210],[196,420],[0,210]],
+    bossPhase: [[73.42,150],[110,150],[146.83,150],[82.41,150],[123.47,150],[164.81,300],[196,150],[164.81,150]]
   },
 
   init() {
     if (!this.ctx) {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const master = this.ctx.createDynamicsCompressor();
+      master.threshold.value = -20;
+      master.knee.value = 16;
+      master.ratio.value = 8;
+      master.connect(this.ctx.destination);
       this.musicGain = this.ctx.createGain();
-      this.musicGain.gain.value = 0.54;
-      this.musicGain.connect(this.ctx.destination);
+      this.musicGain.gain.value = 0.34;
+      this.musicGain.connect(master);
+      this.ambienceGain = this.ctx.createGain();
+      this.ambienceGain.gain.value = 0.12;
+      this.ambienceGain.connect(master);
+      this.sfxGain = this.ctx.createGain();
+      this.sfxGain.gain.value = 0.55;
+      this.sfxGain.connect(master);
     }
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume();
@@ -1116,6 +1219,12 @@ const Sound = {
     if (!this.tracks[scene] || this.scene === scene) return;
     this.scene = scene;
     this.melodyIndex = 0;
+    this.barIndex = 0;
+    if(this.musicGain && this.ctx){
+      this.musicGain.gain.cancelScheduledValues(this.ctx.currentTime);
+      this.musicGain.gain.setValueAtTime(.05, this.ctx.currentTime);
+      this.musicGain.gain.linearRampToValueAtTime(.34, this.ctx.currentTime+.22);
+    }
     if (this.musicEnabled) {
       if (this.musicTimer) clearTimeout(this.musicTimer);
       this.playNextNote();
@@ -1126,7 +1235,7 @@ const Sound = {
   updateMusicControl() {
     const toggle = document.getElementById('musicToggle');
     if (!toggle) return;
-    const names = { menu:'Forja Eterna', hunt:'Expedición', battle:'Combate', boss:'Jefe' };
+    const names = { menu:'Forja Eterna', hunt:'Expedición', battle:'Combate', boss:'Jefe', bossPhase:'Jefe · Fase II' };
     toggle.classList.toggle('active', this.musicEnabled);
     toggle.dataset.audioLabel = this.musicEnabled ? `♫ ${names[this.scene] || 'Música'} · clic para silenciar` : '♫ Activar música y efectos';
     toggle.setAttribute('aria-pressed', String(this.musicEnabled));
@@ -1145,6 +1254,51 @@ const Sound = {
     osc.start(); osc.stop(this.ctx.currentTime+duration/1000);
   },
 
+  percussion(low=false) {
+    if(!this.ctx || !this.musicEnabled) return;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    const at = this.ctx.currentTime;
+    osc.frequency.setValueAtTime(low ? 82 : 130, at);
+    osc.frequency.exponentialRampToValueAtTime(35, at+.11);
+    gain.gain.setValueAtTime(.035, at);
+    gain.gain.exponentialRampToValueAtTime(.001, at+.13);
+    osc.connect(gain); gain.connect(this.musicGain);
+    osc.start(at); osc.stop(at+.14);
+  },
+
+  pad(root) {
+    if(!this.ctx || !this.musicEnabled || !root) return;
+    [1, 1.25, 1.5].forEach((ratio, index)=>{
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const at = this.ctx.currentTime;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(root * ratio, at);
+      gain.gain.setValueAtTime(.001, at);
+      gain.gain.linearRampToValueAtTime(.016/(index+1), at+.12);
+      gain.gain.exponentialRampToValueAtTime(.001, at+.78);
+      osc.connect(gain); gain.connect(this.ambienceGain);
+      osc.start(at); osc.stop(at+.82);
+    });
+  },
+
+  noise(duration=.09, volume=.04) {
+    if(!this.ctx) return;
+    const size = Math.ceil(this.ctx.sampleRate * duration);
+    const buffer = this.ctx.createBuffer(1, size, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<size;i++) data[i] = (Math.random()*2-1) * (1-i/size);
+    const source = this.ctx.createBufferSource();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+    filter.type = 'bandpass'; filter.frequency.value = 1450;
+    gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+    source.buffer = buffer; source.connect(filter); filter.connect(gain); gain.connect(this.sfxGain || this.ctx.destination);
+    source.start();
+  },
+
   playNextNote() {
     if (!this.musicEnabled) return;
 
@@ -1154,9 +1308,15 @@ const Sound = {
     const duration = note[1];
 
     if (freq > 0) {
-      this.musicTone(freq, duration, this.scene==='boss' ? 'sawtooth' : 'triangle', this.scene==='battle' ? .043 : .036);
-      if(this.melodyIndex%2===0) this.musicTone(freq/2, Math.min(duration*1.85,720), 'sine', .03);
-      if(this.scene==='battle' || this.scene==='boss') this.musicTone(this.melodyIndex%2 ? 72 : 58, 75, 'square', .018);
+      const tense = this.scene==='battle' || this.scene==='boss' || this.scene==='bossPhase';
+      this.musicTone(freq, duration, (this.scene==='boss' || this.scene==='bossPhase') ? 'sawtooth' : 'triangle', tense ? .039 : .032);
+      this.musicTone(freq*1.5, Math.max(90,duration*.48), 'sine', tense ? .012 : .017);
+      if(this.melodyIndex%2===0) this.musicTone(freq/2, Math.min(duration*1.8,760), 'sine', .021);
+      if(tense) this.percussion(this.melodyIndex%2===0);
+    }
+    if(this.melodyIndex%4===0){
+      const roots = {menu:98, hunt:110, battle:73.42, boss:55, bossPhase:46.25};
+      this.pad(roots[this.scene] || 98);
     }
 
     this.melodyIndex = (this.melodyIndex + 1) % track.length;
@@ -1165,6 +1325,7 @@ const Sound = {
 
   click() {
     this.init();
+    this.noise(.025, .012);
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.connect(gain);
@@ -1183,6 +1344,7 @@ const Sound = {
 
   hit() {
     this.init();
+    this.noise(.07, .08);
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.connect(gain);
@@ -1201,6 +1363,7 @@ const Sound = {
 
   crit() {
     this.init();
+    this.noise(.13, .13);
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.connect(gain);
@@ -1219,6 +1382,10 @@ const Sound = {
 
   skill() {
     this.init();
+    if(this.musicEnabled){
+      this.musicTone(523.25, 130, 'sine', .035);
+      this.musicTone(659.25, 190, 'triangle', .025);
+    }
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.connect(gain);
@@ -1237,6 +1404,7 @@ const Sound = {
 
   miss() {
     this.init();
+    this.noise(.045, .025);
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.connect(gain);
@@ -1432,6 +1600,24 @@ function makeMapNodes(depth){
   }
   return nodes;
 }
+function makeRoutePlan(startDepth){
+  const rows = [];
+  for(let depth=startDepth; depth<=startDepth+4; depth++){
+    rows.push(makeMapNodes(depth).map((node,index)=>({ ...node, id:`${depth}-${index}` })));
+    if(depth%5===0) break;
+  }
+  return rows;
+}
+function ensureRoutePlan(){
+  if(!runState) return;
+  if(!Array.isArray(runState.routePlan) || !runState.routePlan.length){
+    runState.routePlan = makeRoutePlan(runState.depth);
+    runState.routeFloor = 0;
+    runState.routeHistory = [];
+  }
+  runState.routeFloor = Math.max(0,Math.min(runState.routeFloor||0,runState.routePlan.length-1));
+  runState.mapNodes = runState.routePlan[runState.routeFloor];
+}
 // Escala de profundidad de la cacería roguelike: el primer combate es siempre un monstruo común y débil.
 function depthTierKey(depth){
   if(depth<=3) return 'facil';
@@ -1498,11 +1684,54 @@ const ITEM_RARITIES = {
   mythic:    { label:'M&iacute;tico',      chance:.025, price:4200, color:'#ff5d7a', glow:'rgba(240,65,101,.40)' },
   unique:    { label:'&Uacute;nico',     chance:.009, price:8500, color:'#f6ecad', glow:'rgba(246,236,173,.48)' }
 };
+function itemRarityMeta(item){
+  const normalized = String(item.rarityKey || item.rarity || 'common').toLowerCase();
+  const key = Object.keys(ITEM_RARITIES).find(entry=>normalized.includes(entry)) ||
+    (normalized.includes('legend') ? 'legendary' : normalized.includes('mit') ? 'mythic' : normalized.includes('epic') ? 'epic' : normalized.includes('raro') ? 'rare' : normalized.includes('poco') ? 'uncommon' : 'common');
+  const rarity = ITEM_RARITIES[key];
+  return { key, label:item.rarity || rarity.label, color:item.color || rarity.color, glow:item.glow || rarity.glow };
+}
+
+const CLASS_EQUIPMENT_ART = {
+  warrior: {
+    helmet:'assets/images/warrior_helmet_icon.png', chest:'assets/images/warrior_chest_icon.png', weapon:'assets/images/warrior_weapon_icon.png', shield:'assets/images/warrior_shield_icon.png', gloves:'assets/images/warrior_gloves_icon.png', boots:'assets/images/warrior_boots_icon.png', ring:'assets/images/warrior_ring_icon.png'
+  },
+  archer: {
+    helmet:'assets/images/archer_hood_icon.png',
+    chest:'assets/images/archer_vest_icon.png',
+    weapon:'assets/images/archer_bow_icon.png',
+    shield:'assets/images/archer_quiver_icon.png',
+    gloves:'assets/images/archer_gloves_icon.png',
+    boots:'assets/images/archer_boots_icon.png',
+    ring:'assets/images/archer_ring_icon.png'
+  },
+  mage: {
+    helmet:'assets/images/mage_helmet_icon.png', chest:'assets/images/mage_chest_icon.png', weapon:'assets/images/mage_weapon_icon.png', shield:'assets/images/mage_shield_icon.png', gloves:'assets/images/mage_gloves_icon.png', boots:'assets/images/mage_boots_icon.png', ring:'assets/images/mage_ring_icon.png'
+  },
+  priest: {
+    helmet:'assets/images/priest_helmet_icon.png', chest:'assets/images/priest_chest_icon.png', weapon:'assets/images/priest_weapon_icon.png', shield:'assets/images/priest_shield_icon.png', gloves:'assets/images/priest_gloves_icon.png', boots:'assets/images/priest_boots_icon.png', ring:'assets/images/priest_ring_icon.png'
+  },
+  assassin: {
+    helmet:'assets/images/assassin_helmet_icon.png', chest:'assets/images/assassin_chest_icon.png', weapon:'assets/images/assassin_weapon_icon.png', shield:'assets/images/assassin_shield_icon.png', gloves:'assets/images/assassin_gloves_icon.png', boots:'assets/images/assassin_boots_icon.png', ring:'assets/images/assassin_ring_icon.png'
+  },
+  tamer: {
+    helmet:'assets/images/tamer_helmet_icon.png', chest:'assets/images/tamer_chest_icon.png', weapon:'assets/images/tamer_weapon_icon.png', shield:'assets/images/tamer_shield_icon.png', gloves:'assets/images/tamer_gloves_icon.png', boots:'assets/images/tamer_boots_icon.png', ring:'assets/images/tamer_ring_icon.png'
+  }
+};
+function equipmentArtFor(item, slot){
+  const classKey = item && item.classOnly ? item.classOnly : state.characterClass;
+  return CLASS_EQUIPMENT_ART[classKey] && CLASS_EQUIPMENT_ART[classKey][slot];
+}
+function equipmentVisual(item, slot){
+  const art = equipmentArtFor(item,slot);
+  if(art) return `<img class="equipment-item-art" src="${art}" alt="">`;
+  return item ? item.icon : equipmentSlotMeta(slot).icon;
+}
 
 function classArmory(classOnly, pieces){
   return pieces.map(([id,type,name,rarity,icon,bonus])=>{
     const tier = ITEM_RARITIES[rarity];
-    return { id, type, name, icon, classOnly, rarity:tier.label, rarityKey:rarity, chance:tier.chance, price:tier.price, color:tier.color, glow:tier.glow, ...bonus };
+    return { id, type, name, icon, image:(CLASS_EQUIPMENT_ART[classOnly] || {})[type] || '', classOnly, rarity:tier.label, rarityKey:rarity, chance:tier.chance, price:tier.price, color:tier.color, glow:tier.glow, ...bonus };
   });
 }
 
@@ -1605,6 +1834,46 @@ const CLASSES = {
   assassin: { label:'Asesino', icon:'🗡', description:'+12% crítico, agilidad y golpes extra.', hp:0, mana:0, atk:3, def:0, crit:12, dodge:.035, speed:.10, skillMult:1.15, manaCost:.30 },
   tamer:    { label:'Domador', icon:'🪢', description:'+10 agilidad. Puede domar enemigos debilitados; más agilidad aumenta la captura.', hp:12, mana:10, atk:1, def:1, crit:2, dodge:.05, speed:.03, skillMult:1.08, manaCost:.27 }
 };
+
+const CLASS_EMBLEMS = {
+  warrior:'assets/images/class_warrior_emblem.png',
+  archer:'assets/images/class_archer_emblem.png',
+  mage:'assets/images/class_mage_emblem.png',
+  priest:'assets/images/class_priest_emblem.png',
+  assassin:'assets/images/class_assassin_emblem.png',
+  tamer:'assets/images/class_tamer_emblem.png'
+};
+function classEmblem(classId, variant='inline'){
+  const fallback = CLASSES[classId] || CLASSES.warrior;
+  const src = CLASS_EMBLEMS[classId] || CLASS_EMBLEMS.warrior;
+  return `<img class="class-emblem ${variant}" src="${src}" alt="${fallback.label}">`;
+}
+
+const CLASS_EQUIPMENT_SLOTS = {
+  warrior: {
+    helmet:{ icon:'🪖', label:'Yelmo' }, chest:{ icon:'🥋', label:'Coraza' }, weapon:{ icon:'⚔', label:'Espada' }, shield:{ icon:'🛡', label:'Escudo' }, gloves:{ icon:'🥊', label:'Guanteletes' }, ring:{ icon:'💍', label:'Sello' }, boots:{ icon:'🥾', label:'Grebas' }
+  },
+  archer: {
+    helmet:{ icon:'🏕', label:'Capucha' }, chest:{ icon:'🏹', label:'Chaleco' }, weapon:{ icon:'🏹', label:'Arco' }, shield:{ icon:'🎯', label:'Carcaj y Flechas' }, gloves:{ icon:'🧤', label:'Guantes de Tirador' }, ring:{ icon:'✨', label:'Aro de Estrella' }, boots:{ icon:'💨', label:'Botas del Viento' }
+  },
+  mage: {
+    helmet:{ icon:'🧙', label:'Sombrero de Mago' }, chest:{ icon:'🧥', label:'Túnica' }, weapon:{ icon:'🪄', label:'Báculo' }, shield:{ icon:'📖', label:'Libro de Runas' }, gloves:{ icon:'✨', label:'Guantes Arcanos' }, ring:{ icon:'🔮', label:'Orbe' }, boots:{ icon:'🌌', label:'Sandalias Astrales' }
+  },
+  priest: {
+    helmet:{ icon:'✦', label:'Velo Sagrado' }, chest:{ icon:'👘', label:'Vestiduras' }, weapon:{ icon:'✝', label:'Cetro de Aurora' }, shield:{ icon:'☀', label:'Relicario Solar' }, gloves:{ icon:'🙏', label:'Guantes de Oración' }, ring:{ icon:'🌟', label:'Halo' }, boots:{ icon:'👣', label:'Sandalias del Santuario' }
+  },
+  assassin: {
+    helmet:{ icon:'🎭', label:'Máscara' }, chest:{ icon:'🥷', label:'Cuero de Sombra' }, weapon:{ icon:'🗡', label:'Dagas Gemelas' }, shield:{ icon:'🌫', label:'Manto de Humo' }, gloves:{ icon:'🧤', label:'Guantes de Veneno' }, ring:{ icon:'👁', label:'Ojo de la Noche' }, boots:{ icon:'👣', label:'Botas Silenciosas' }
+  },
+  tamer: {
+    helmet:{ icon:'🤠', label:'Gorro de Cuidador' }, chest:{ icon:'🧥', label:'Chaleco de Pieles' }, weapon:{ icon:'🪢', label:'Látigo de Vínculo' }, shield:{ icon:'💠', label:'Amuleto de Captura' }, gloves:{ icon:'🐾', label:'Guantes de Bestia' }, ring:{ icon:'🐾', label:'Tótem de Manada' }, boots:{ icon:'🐺', label:'Botas de Rastreador' }
+  }
+};
+function equipmentSlotMeta(slot){
+  const set = CLASS_EQUIPMENT_SLOTS[state.characterClass] || CLASS_EQUIPMENT_SLOTS.warrior;
+  return set[slot] || { icon:'✦', label:slot };
+}
+function itemFitsCurrentClass(item){ return !!item && item.classOnly === state.characterClass; }
 let state = null;
 let activeCharacterId = null;
 let selectedClassId = 'warrior';
@@ -1703,6 +1972,7 @@ function defaultState(name, classId='warrior') {
     },
     shop: null,
     ownedItems: {},
+    materials: { essence: 0, bossCore: 0 },
     log: []
   };
 }
@@ -1763,20 +2033,31 @@ async function loadState(id){
   }catch(e){ console.warn('character load failed', e); }
   return null;
 }
+let saveWriteQueue = Promise.resolve();
+let saveRevision = 0;
 async function saveState(){
   if(!state || !activeCharacterId) return;
+  const revision = ++saveRevision;
+  const characterId = activeCharacterId;
+  const snapshot = JSON.stringify(state);
   updateSaveIndicator('saving');
-  try{
-    await writeStored(characterKey(activeCharacterId), JSON.stringify(state));
-    const roster = await loadRoster();
-    const summary = characterSummary({ ...state, id:activeCharacterId });
-    const index = roster.findIndex(character => character.id===activeCharacterId);
-    if(index >= 0) roster[index] = summary; else roster.push(summary);
-    await saveRoster(roster.slice(0,3));
-    updateSaveIndicator('saved');
-    setTimeout(()=>updateSaveIndicator('idle'), 1800);
-    syncLeaderboard();
-  }catch(error){ updateSaveIndicator('error'); }
+  saveWriteQueue = saveWriteQueue.catch(()=>{}).then(async()=>{
+    try{
+      const savedState = JSON.parse(snapshot);
+      await writeStored(characterKey(characterId), snapshot);
+      const roster = await loadRoster();
+      const summary = characterSummary({ ...savedState, id:characterId });
+      const index = roster.findIndex(character => character.id===characterId);
+      if(index >= 0) roster[index] = summary; else roster.push(summary);
+      await saveRoster(roster.slice(0,3));
+      if(revision === saveRevision){
+        updateSaveIndicator('saved');
+        setTimeout(()=>{ if(revision === saveRevision) updateSaveIndicator('idle'); }, 1800);
+      }
+      scheduleLeaderboardSync();
+    }catch(error){ if(revision === saveRevision) updateSaveIndicator('error'); }
+  });
+  return saveWriteQueue;
 }
 function updateSaveIndicator(status){
   const el = document.getElementById('saveIndicator');
@@ -1789,6 +2070,18 @@ function updateSaveIndicator(status){
 const SUPABASE_URL = 'https://oyavyaoklewafurcyinj.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_FEFV1g_M2x1L56fLAEBA7g_DGlq4s0J';
 const SUPABASE_SESSION_KEY = 'forja-eterna:supabase-session';
+let leaderboardEntries = [];
+let leaderboardSyncTimer = null;
+let leaderboardSyncInFlight = null;
+const LEADERBOARD_CLASSES = {
+  warrior:{label:'Guerrero',icon:'⚔',image:'assets/images/clase guerrero sprite.webp'}, archer:{label:'Arquero',icon:'🏹',image:'assets/images/clase arquero sprite.webp'}, mage:{label:'Mago',icon:'✦',image:'assets/images/clase mago sprite.webp'}, priest:{label:'Sacerdote',icon:'✚',image:'assets/images/clase sacerdote sprite.webp'}, assassin:{label:'Asesino',icon:'🗡',image:'assets/images/clase asesino sprite.webp'}, tamer:{label:'Domador',icon:'🪢',image:'assets/images/clase domador sprite.webp'}
+};
+function leaderboardClassInfo(key){ return LEADERBOARD_CLASSES[key] || {label:'Aventurero',icon:'✦',image:'assets/images/clase guerrero sprite.webp'}; }
+function leaderboardProfile(){ return { class_key:state.characterClass || 'warrior', attack:Math.round(atkDamage()), defense:Math.round(getEquipmentBonuses().def), crit_chance:Math.round(critChance()) }; }
+function scheduleLeaderboardSync(){
+  clearTimeout(leaderboardSyncTimer);
+  leaderboardSyncTimer = setTimeout(()=>{ leaderboardSyncTimer = null; syncLeaderboard(); }, 1400);
+}
 
 function supabaseHeaders(token){
   const headers = { apikey:SUPABASE_PUBLISHABLE_KEY, 'Content-Type':'application/json' };
@@ -1823,6 +2116,8 @@ async function getSupabaseSession(){
 
 async function syncLeaderboard(){
   if(!state || !state.name) return false;
+  if(leaderboardSyncInFlight) return leaderboardSyncInFlight;
+  leaderboardSyncInFlight = (async()=>{
   try{
     const session = await getSupabaseSession();
     const entry = {
@@ -1831,23 +2126,32 @@ async function syncLeaderboard(){
       level:state.level,
       resets:state.resets,
       power:Math.round(power()),
+      ...leaderboardProfile(),
       updated_at:new Date().toISOString()
     };
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?on_conflict=player_id`, {
+    let response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?on_conflict=player_id`, {
       method:'POST',
       headers:{ ...supabaseHeaders(session.access_token), Prefer:'resolution=merge-duplicates,return=minimal' },
       body:JSON.stringify(entry)
     });
+    if(!response.ok){
+      const { class_key, attack, defense, crit_chance, ...legacyEntry } = entry;
+      response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?on_conflict=player_id`, { method:'POST', headers:{ ...supabaseHeaders(session.access_token), Prefer:'resolution=merge-duplicates,return=minimal' }, body:JSON.stringify(legacyEntry) });
+    }
     if(!response.ok) throw new Error(`Ranking ${response.status}`);
     return true;
   }catch(e){ console.warn('No se pudo sincronizar el ranking global.', e); return false; }
+  })();
+  try { return await leaderboardSyncInFlight; }
+  finally { leaderboardSyncInFlight = null; }
 }
 async function fetchLeaderboard(){
   try{
     await syncLeaderboard();
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?select=name,level,resets,power,updated_at&order=resets.desc,level.desc,power.desc&limit=10`, {
+    let response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?select=name,level,resets,power,class_key,attack,defense,crit_chance,updated_at&order=resets.desc,level.desc,power.desc&limit=10`, {
       headers:supabaseHeaders(), cache:'no-store'
     });
+    if(!response.ok) response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?select=name,level,resets,power,updated_at&order=resets.desc,level.desc,power.desc&limit=10`, { headers:supabaseHeaders(), cache:'no-store' });
     if(!response.ok) throw new Error(`Ranking ${response.status}`);
     const entries = await response.json();
     renderLeaderboard(Array.isArray(entries) ? entries : []);
@@ -1866,6 +2170,25 @@ function renderLeaderboard(entries){
     </div>`).join('');
 }
 function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function openLeaderboardProfile(index){
+  const entry = leaderboardEntries[index]; if(!entry) return;
+  const hero = leaderboardClassInfo(entry.class_key);
+  document.getElementById('playerProfileBackdrop')?.remove();
+  const profile = document.createElement('div'); profile.id='playerProfileBackdrop'; profile.className='player-profile-backdrop';
+  profile.innerHTML = `<div class="player-profile-card" role="dialog" aria-modal="true" aria-label="Ficha pública de ${escapeHtml(entry.name)}"><button class="profile-close" type="button" aria-label="Cerrar">×</button><div class="profile-banner"><img class="profile-avatar" src="${hero.image}" alt="${hero.label}"><div class="profile-identity"><small>${hero.icon} AVENTURERO DEL RANKING</small><h2>${escapeHtml(entry.name)}</h2><p>${hero.label} · Nivel ${entry.level} · ${entry.resets} resets</p></div></div><div class="profile-stats"><div class="profile-stat"><small>PODER</small><b>⚡ ${Number(entry.power)||0}</b></div><div class="profile-stat"><small>ATAQUE</small><b>${entry.attack ?? '—'}</b></div><div class="profile-stat"><small>DEFENSA</small><b>${entry.defense ?? '—'}</b></div><div class="profile-stat"><small>CRÍTICO</small><b>${entry.crit_chance == null ? '—' : `${entry.crit_chance}%`}</b></div><div class="profile-stat"><small>NIVEL</small><b>${entry.level}</b></div><div class="profile-stat"><small>RESETS</small><b>${entry.resets}</b></div></div></div>`;
+  profile.addEventListener('click', event=>{ if(event.target===profile || event.target.closest('.profile-close')) profile.remove(); }); document.body.appendChild(profile);
+}
+function renderLeaderboard(entries){
+  const box = document.getElementById('lbTabContent');
+  if(!box) return;
+  if(!entries){ box.innerHTML = `<div id="lbStatus">No se pudo cargar el ranking global.</div>`; return; }
+  if(entries.length===0){ box.innerHTML = `<div id="lbStatus">Todavía no hay nadie en el ranking. ¡Sé el primero!</div>`; return; }
+  leaderboardEntries = entries;
+  box.innerHTML = `<div class="lb-intro">Elegí un aventurero para ver su ficha pública.</div>` + entries.map((e,i)=>{
+    const hero = leaderboardClassInfo(e.class_key);
+    return `<button class="lb-row ${e.name===state.name?'me':''}" type="button" onclick="openLeaderboardProfile(${i})" aria-label="Ver perfil de ${escapeHtml(e.name)}"><span class="rank">${i+1}</span><span class="lb-crest">${hero.icon}</span><span class="lb-player"><strong>${escapeHtml(e.name)}</strong><small><b>${hero.label}</b> · Nv. ${e.level} · ${e.resets} reset${Number(e.resets)===1?'':'s'}</small></span><span class="lb-power"><b>⚡ ${Number(e.power)||0}</b><span class="lb-view">VER FICHA ›</span></span></button>`;
+  }).join('');
+}
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
 /* ================= EQUIP BONUSES ================= */
@@ -1890,26 +2213,26 @@ function getEquipmentBonuses() {
 function expToNext(level){ return Math.floor(80 * Math.pow(level, 1.6)); }
 function currentClass(){ return CLASSES[state.characterClass] || CLASSES.warrior; }
 function baseStat(key){ return (state.stats[key]||0) + state.resets*2; }
-function maxHP(){ return 50 + baseStat('vida')*10 + currentClass().hp + getEquipmentBonuses().hp; }
-function maxMana(){ return 20 + baseStat('mana')*6 + currentClass().mana + getEquipmentBonuses().mana; }
+function maxHP(){ return 50 + baseStat('vida')*10 + currentClass().hp + getEquipmentBonuses().hp + runRelicValue('hp'); }
+function maxMana(){ return 20 + baseStat('mana')*6 + currentClass().mana + getEquipmentBonuses().mana + runRelicValue('mana'); }
 function atkDamage(){ 
   const eq = getEquipmentBonuses();
-  return 5 + baseStat('ataque')*2 + eq.atk + currentClass().atk; 
+  return (5 + baseStat('ataque')*2 + eq.atk + currentClass().atk) * (1+runRelicValue('atk')); 
 }
 function getDefense() {
   const eq = getEquipmentBonuses();
-  return (state.defense || 5) + eq.def + currentClass().def;
+  return (state.defense || 5) + eq.def + currentClass().def + runRelicValue('def');
 }
 function critChance(){ 
   const eq = getEquipmentBonuses();
-  return Math.min(0.85, (state.critRateStat + eq.crit + currentClass().crit) / 100); 
+  return Math.min(0.85, (state.critRateStat + eq.crit + currentClass().crit + runRelicValue('crit')) / 100); 
 }
 function critMultiplier() {
   const eq = getEquipmentBonuses();
-  return (150 + state.critDmgStat + eq.critDmg) / 100;
+  return (150 + state.critDmgStat + eq.critDmg) / 100 + runRelicValue('critDmg');
 }
 function dodgeChance(){ return Math.min(0.65, baseStat('agilidad')*0.004 + currentClass().dodge); }
-function extraTurnChance(){ return Math.min(0.7, baseStat('rapidez')*0.005 + currentClass().speed + getEquipmentBonuses().speed/100); }
+function extraTurnChance(){ return Math.min(0.7, baseStat('rapidez')*0.005 + currentClass().speed + getEquipmentBonuses().speed/100 + runRelicValue('extraTurn')); }
 
 function power(){ 
   const eq = getEquipmentBonuses();
@@ -1934,7 +2257,15 @@ function normalizeState(){
   state.robustness = Number(state.robustness) || 0;
   state.equipment = { ...fresh.equipment, ...(state.equipment || {}) };
   state.ownedEquipment = Array.isArray(state.ownedEquipment) ? state.ownedEquipment : [];
+  Object.keys(state.equipment).forEach(slot=>{
+    const item = state.equipment[slot];
+    if(item && !itemFitsCurrentClass(item)){
+      state.ownedEquipment.push(item);
+      state.equipment[slot] = null;
+    }
+  });
   state.ownedItems = state.ownedItems || {};
+  state.materials = { ...fresh.materials, ...(state.materials || {}) };
   state.log = Array.isArray(state.log) ? state.log : [];
   state.achievementsClaimed = state.achievementsClaimed || {};
   state.bestiary = state.bestiary || {};
@@ -1946,6 +2277,81 @@ function normalizeState(){
     state.missions[period].claimed = Array.isArray(state.missions[period].claimed) ? state.missions[period].claimed : [];
   });
   rollMissionReset();
+}
+
+const RUN_RELICS = [
+  { id:'ember_heart', icon:'🔥', name:'Corazon de Brasa', description:'+10% ataque durante esta expedicion', stat:'atk', value:.10 },
+  { id:'moon_vial', icon:'☾', name:'Vial Lunar', description:'+18 mana maxima durante esta expedicion', stat:'mana', value:18 },
+  { id:'iron_root', icon:'✦', name:'Raiz de Hierro', description:'+24 vida maxima durante esta expedicion', stat:'hp', value:24 },
+  { id:'hunter_eye', icon:'◉', name:'Ojo del Cazador', description:'+8% critico durante esta expedicion', stat:'crit', value:8 },
+  { id:'gilded_fang', icon:'✧', name:'Colmillo Dorado', description:'+25% oro obtenido durante esta expedicion', stat:'gold', value:.25 },
+  { id:'blood_quill', icon:'🩸', name:'Pluma Carmesi', description:'Sangrado dura 1 turno mas', stat:'bleedTurns', value:1 },
+  { id:'mana_sigil', icon:'✧', name:'Sello del Alba', description:'La primera habilidad de cada combate no cuesta mana', stat:'firstSkillFree', value:1 },
+  { id:'vampire_gem', icon:'♦', name:'Gema del Verdugo', description:'Tus criticos curan 3% de vida maxima', stat:'critHeal', value:.03 },
+  { id:'iron_oath', icon:'🛡', name:'Juramento de Acero', description:'+8 defensa durante esta expedicion', stat:'def', value:8, classOnly:'warrior' },
+  { id:'windstring', icon:'🏹', name:'Cuerda del Vendaval', description:'+14% probabilidad de golpe extra', stat:'extraTurn', value:.14, classOnly:'archer' },
+  { id:'arcane_focus', icon:'✦', name:'Foco Arcano', description:'+30% potencia de habilidad', stat:'skillPower', value:.30, classOnly:'mage' },
+  { id:'sun_chalice', icon:'✚', name:'Caliz Solar', description:'+20% a tus curaciones', stat:'healPower', value:.20, classOnly:'priest' },
+  { id:'night_fang', icon:'🗡', name:'Colmillo Nocturno', description:'+50% daño critico', stat:'critDmg', value:.50, classOnly:'assassin' },
+  { id:'pack_whistle', icon:'🪢', name:'Silbato de Manada', description:'El compañero del Domador ataca con mas frecuencia', stat:'companionRate', value:.30, classOnly:'tamer' }
+];
+function relicsForCurrentClass(){ return RUN_RELICS.filter(relic=>!relic.classOnly || relic.classOnly===state.characterClass); }
+function runRelicValue(stat){
+  if(!runState || runState.phase==='ended' || !Array.isArray(runState.relics)) return 0;
+  return runState.relics.filter(relic=>relic.stat===stat).reduce((sum,relic)=>sum+relic.value,0);
+}
+function grantRunRelic(){
+  if(!runState) return null;
+  const classRelics = relicsForCurrentClass();
+  const available = classRelics.filter(relic=>!runState.relics.some(owned=>owned.id===relic.id));
+  const relic = pick(available.length ? available : classRelics);
+  return addRunRelic(relic);
+}
+function addRunRelic(relic){
+  if(!runState || !relic) return null;
+  runState.relics.push({ ...relic });
+  if(relic.stat==='hp') runState.hp += relic.value;
+  if(relic.stat==='mana') runState.mana += relic.value;
+  syncRunResources();
+  addLog(`Reliquia obtenida: ${relic.name} - ${relic.description}.`, 'level');
+  return relic;
+}
+function makeRelicChoices(){
+  const classRelics = relicsForCurrentClass();
+  const available = classRelics.filter(relic=>!runState.relics.some(owned=>owned.id===relic.id));
+  const pool = [...(available.length>=3 ? available : classRelics)];
+  const choices = [];
+  while(choices.length<Math.min(3,pool.length)) choices.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+  return choices;
+}
+function awardRunLoot(monster){
+  if(!battle || !battle.isRun || !runState) return null;
+  const isBoss = monster.isBoss;
+  const isElite = runState.currentNode && runState.currentNode.type==='elite';
+  if(!isBoss && !isElite) return null;
+  const essence = isBoss ? 12 + runState.depth*2 : 4 + runState.depth;
+  state.materials.essence = (state.materials.essence||0) + essence;
+  if(isBoss) state.materials.bossCore = (state.materials.bossCore||0) + 1;
+
+  const rarityRank = { common:0, uncommon:1, rare:2, epic:3, legendary:4, mythic:5, unique:6 };
+  const minRank = isBoss ? 3 : 2;
+  const gearChance = isBoss ? .72 : .34;
+  let item = null;
+  if(Math.random()<gearChance){
+    const candidates = SHOP_EQUIPMENT_ITEMS.filter(entry=>entry.classOnly===state.characterClass && rarityRank[entry.rarityKey]>=minRank);
+    item = pick(candidates.length ? candidates : SHOP_EQUIPMENT_ITEMS.filter(entry=>entry.classOnly===state.characterClass));
+    if(item){
+      state.ownedEquipment.push({ ...item, foundInRun:true });
+      state.ownedItems[item.id] = (state.ownedItems[item.id]||0) + 1;
+      addLog(`Botin encontrado: ${item.name} (${item.rarity}).`, 'win');
+    }
+  }
+  const relic = (isBoss || Math.random()<.42) ? grantRunRelic() : null;
+  const parts = [`+${essence} esencia`];
+  if(isBoss) parts.push('+1 nucleo de jefe');
+  if(item) parts.push(item.name);
+  if(relic) parts.push(`${relic.icon} ${relic.name}`);
+  return { summary:parts.join(' · '), item, relic };
 }
 
 function addLog(text, cls){
@@ -2029,7 +2435,56 @@ function prepareMonster(monster){
   if(!monster.status) monster.status = { bleedTurns:0, bleedDamage:0, stunnedTurns:0 };
   if(monster.charging === undefined) monster.charging = false;
   if(monster.fury === undefined) monster.fury = false;
+  if(monster.phaseTwo === undefined) monster.phaseTwo = false;
+  if(monster.phaseAttackCounter === undefined) monster.phaseAttackCounter = 0;
   return monster;
+}
+
+function bossPhaseDetails(monster){
+  const phase = {
+    slime:    { label:'MAREA VIOLETA', hint:'El Slime se divide en golpes corrosivos', hits:2, mult:.76, poison:true },
+    wolf:     { label:'CACERÍA CARMESÍ', hint:'El Lobo Negro ataca dos veces con ojos rojos', hits:2, mult:.82 },
+    minotaur: { label:'EMBATE CARMESÍ', hint:'El Minotauro Rojo carga una embestida brutal', hits:1, mult:1.9 },
+    dragon:   { label:'ALIENTO CELESTE', hint:'El Dragón Blanco quema tu maná con hielo azul', hits:1, mult:1.35, manaBurn:.26 }
+  };
+  return phase[monster.visualType] || phase.slime;
+}
+function triggerBossPhaseTwo(){
+  if(!battle || !battle.monster.isBoss || battle.monster.phaseTwo || battle.monster.hp<=0 || battle.monster.hp>battle.monster.maxHp*.5) return false;
+  const monster = battle.monster;
+  monster.phaseTwo = true;
+  monster.dmg = Math.round(monster.dmg*1.18);
+  const details = bossPhaseDetails(monster);
+  battle.busy = true;
+  const arena = document.getElementById('arena');
+  const fighter = document.querySelector('.fighter.monster');
+  if(arena) arena.classList.add('boss-phase-two');
+  if(fighter) fighter.classList.add('phase-two');
+  Sound.setScene('bossPhase');
+  Sound.crit();
+  playCombatVfx('impact','monster','critical');
+  playCombatVfx('arcane','monster','critical');
+  burstSparks('#ef4755',22);
+  spawnFloatText('monster','FASE II','crit');
+  showFeedback(`☠ ${details.label}`, 'FASE II · '+details.hint, 'danger');
+  addLog(`${monster.name} entra en Fase II: ${details.label}.`, 'danger');
+  setTimeout(()=>{
+    if(!battle) return;
+    battle.busy = false;
+    syncBattleUi();
+    startMonsterTurn();
+  },900);
+  return true;
+}
+function bossPhaseAttack(monster){
+  const details = bossPhaseDetails(monster);
+  Sound.skill();
+  playCombatVfx('arcane','player','enemy-hit');
+  playCombatVfx('impact','player','enemy-hit');
+  burstSparks('#ec5b67',12);
+  spawnFloatText('monster',details.label,'crit');
+  showFeedback(`☠ ${details.label}`, details.hint, 'danger');
+  setTimeout(()=>resolveMonsterHits(details.hits,details),420);
 }
 
 function syncRunResources(){
@@ -2057,24 +2512,27 @@ function endBattle(result){
     state.bestiary[battle.monster.tier] = bestiaryEntry;
     const bossMult = isBoss ? 3 : 1;
     const exp = Math.floor(expToNext(state.level) * 0.09 * tier.reward * bossMult);
-    const gold = Math.floor((20 + state.level*2) * tier.reward * bossMult * (0.85+Math.random()*0.3));
+    let gold = Math.floor((20 + state.level*2) * tier.reward * bossMult * (0.85+Math.random()*0.3));
+    if(isRun) gold = Math.floor(gold * (1+runRelicValue('gold')));
     state.missions.day.hunts++;
     state.missions.week.wins++;
     gainExp(exp);
     gainGold(gold);
-    showFeedback(isBoss ? '☠ JEFE DERROTADO' : '✦ VICTORIA', `+${exp} exp · +${gold} oro`);
-    addLog(`${isBoss?'☠ ¡Jefe derrotado! ':'Venciste a '}${battle.monster.name} (${tier.label}) — +${exp} exp, +${gold} oro`, 'win');
-    if([5,10,20,35,50].includes(winStreak)){
-      const bonus = winStreak*20;
-      gainGold(bonus);
-      addLog(`🔥 Racha de ${winStreak} victorias seguidas — bono de +${bonus} oro`, 'level');
-    }
+    let runLoot = null;
     if(isRun){
       runState.hp = battle.playerHp;
       runState.mana = battle.playerMana;
       runState.monstersDefeated++;
       runState.maxDepth = Math.max(runState.maxDepth||0, runState.depth);
       state.maxHuntDepth = Math.max(state.maxHuntDepth||0, runState.depth);
+      runLoot = awardRunLoot(battle.monster);
+    }
+    showFeedback(isBoss ? '☠ JEFE DERROTADO' : '✦ VICTORIA', `+${exp} exp · +${gold} oro${runLoot ? ` · ${runLoot.summary}` : ''}`);
+    addLog(`${isBoss?'☠ ¡Jefe derrotado! ':'Venciste a '}${battle.monster.name} (${tier.label}) — +${exp} exp, +${gold} oro`, 'win');
+    if([5,10,20,35,50].includes(winStreak)){
+      const bonus = winStreak*20;
+      gainGold(bonus);
+      addLog(`🔥 Racha de ${winStreak} victorias seguidas — bono de +${bonus} oro`, 'level');
     }
   } else {
     Sound.defeat();
@@ -2147,6 +2605,31 @@ function burstSparks(color='var(--gold-bright)', amount=10){
   }
 }
 
+const COMBAT_VFX = {
+  slash:'assets/images/fx-slash.webp',
+  arcane:'assets/images/fx-arcane.webp',
+  heal:'assets/images/fx-heal.webp',
+  shield:'assets/images/fx-shield.webp',
+  impact:'assets/images/fx-impact.webp',
+  poison:'assets/images/fx-poison.webp'
+};
+function playCombatVfx(kind, side='monster', extra=''){
+  const fighter = document.querySelector(`.fighter.${side==='player' ? 'player' : 'monster'} .sprite-box`);
+  const source = COMBAT_VFX[kind];
+  if(!fighter || !source) return;
+  const effect = document.createElement('i');
+  effect.className = `combat-vfx ${kind} ${extra}`;
+  effect.innerHTML = `<img src="${source}" alt="">`;
+  fighter.appendChild(effect);
+  setTimeout(()=>effect.remove(), kind==='shield' ? 850 : 820);
+}
+function playDodge(side='player'){
+  const fighter = document.querySelector(`.fighter.${side==='player' ? 'player' : 'monster'}`);
+  if(!fighter) return;
+  fighter.classList.remove('dodging'); void fighter.offsetWidth; fighter.classList.add('dodging');
+  setTimeout(()=>fighter.classList.remove('dodging'),480);
+}
+
 const CLASS_MOVE_NAMES = {
   warrior:{ attack:'Corte de Acero', skill:'Embate del Juramento' },
   archer:{ attack:'Flecha Veloz', skill:'Disparo Lunar' },
@@ -2162,6 +2645,7 @@ function playClassAttackEffect(isSkill){
   const effect = document.createElement('i');
   effect.className = `class-fx ${state.characterClass || 'warrior'} ${isSkill?'skill':''}`;
   arena.appendChild(effect);
+  playCombatVfx(isSkill ? 'arcane' : 'slash', 'monster');
   setTimeout(()=>effect.remove(),650);
 }
 
@@ -2173,15 +2657,27 @@ function abilityDefinitions(){
   ];
 }
 
+function firstSkillIsFree(){
+  return !!(battle && battle.isRun && runRelicValue('firstSkillFree')>0 && !battle.playerStatus.firstSkillUsed);
+}
+function visibleSkillCost(baseCost){ return firstSkillIsFree() ? 0 : baseCost; }
+function spendSkillCost(baseCost){
+  const free = firstSkillIsFree();
+  if(free) battle.playerStatus.firstSkillUsed = true;
+  else battle.playerMana -= baseCost;
+  return free;
+}
+
 function renderAbilityButtons(box){
   if(!battle || !box) return;
   const cooldowns = battle.playerStatus.cooldowns;
   const html = abilityDefinitions().map(ability=>{
     const unlocked = state.level>=ability.level;
-    const cost = Math.round(battle.playerMaxMana*ability.cost);
+    const rawCost = Math.round(battle.playerMaxMana*ability.cost);
+    const cost = visibleSkillCost(rawCost);
     const cd = cooldowns[ability.key]||0;
     const ready = unlocked && !battle.busy && cd===0 && battle.playerMana>=cost;
-    const sub = !unlocked ? `Nivel ${ability.level}` : cd>0 ? `Recarga: ${cd}` : `${cost} maná`;
+    const sub = !unlocked ? `Nivel ${ability.level}` : cd>0 ? `Recarga: ${cd}` : cost===0 ? 'GRATIS · reliquia' : `${cost} maná`;
     return `<button class="ability-btn ${ready?'ready':''}" data-ability="${ability.key}" ${ready?'':'disabled'}><strong>${ability.icon} ${ability.label}</strong><small>${sub}</small></button>`;
   }).join('');
   box.insertAdjacentHTML('afterbegin', html);
@@ -2201,6 +2697,7 @@ function renderCombatStatus(){
   if(ms.bleedTurns>0) tags.push(`<span class="status-badge bleed">🩸 Sangrado ${ms.bleedTurns}</span>`);
   if(ms.stunnedTurns>0) tags.push(`<span class="status-badge stun">✦ Aturdido</span>`);
   if(battle.monster.fury) tags.push(`<span class="status-badge fury">🔥 Furia</span>`);
+  if(firstSkillIsFree()) tags.push(`<span class="status-badge shield">✧ Próxima habilidad gratis</span>`);
   box.innerHTML = tags.join('');
 }
 
@@ -2208,27 +2705,32 @@ function useAbility(key){
   if(!battle || battle.busy) return;
   const ability = abilityDefinitions().find(item=>item.key===key);
   if(!ability || state.level<ability.level || battle.playerStatus.cooldowns[key]>0) return;
-  const cost = Math.round(battle.playerMaxMana*ability.cost);
+  const rawCost = Math.round(battle.playerMaxMana*ability.cost);
+  const cost = visibleSkillCost(rawCost);
   if(battle.playerMana<cost) return;
   battle.busy = true;
-  battle.playerMana -= cost;
+  const usedFreeSkill = spendSkillCost(rawCost);
   battle.playerStatus.cooldowns[key] = ability.cooldown;
   Sound.skill();
   if(key==='heal'){
-    const heal = Math.round(battle.playerMaxHp*.30);
+    playCombatVfx('heal','player');
+    const heal = Math.round(battle.playerMaxHp*.30*(1+runRelicValue('healPower')));
     battle.playerHp = Math.min(battle.playerMaxHp,battle.playerHp+heal);
     spawnFloatText('player',`+${heal}`,'heal');
     showFeedback('✚ CURACIÓN',`+${heal} vida`,'mana');
   } else if(key==='shield'){
+    playCombatVfx('shield','player');
     battle.playerStatus.shieldTurns = 2;
     showFeedback('🛡 ESCUDO', 'Los próximos 2 golpes hacen menos daño', 'mana');
   } else {
+    playCombatVfx('slash','monster','critical');
+    playCombatVfx('poison','monster');
     const dmg = Math.max(1,Math.round(atkDamage()*.75));
     battle.monster.hp = Math.max(0,battle.monster.hp-dmg);
-    battle.monster.status.bleedTurns = 3;
+    battle.monster.status.bleedTurns = 3 + runRelicValue('bleedTurns');
     battle.monster.status.bleedDamage = Math.max(1,Math.round(atkDamage()*.28));
     spawnFloatText('monster',`🩸 -${dmg}`,'crit');
-    showFeedback('🩸 SANGRADO','3 turnos de hemorragia');
+    showFeedback('🩸 SANGRADO',`${battle.monster.status.bleedTurns} turnos de hemorragia${usedFreeSkill ? ' · sin coste' : ''}`);
   }
   syncBattleUi();
   if(battle.monster.hp<=0){ setTimeout(()=>endBattle('win'),350); return; }
@@ -2237,16 +2739,18 @@ function useAbility(key){
 
 function playerAttack(isSkill){
   if(!battle || battle.busy) return;
-  const cost = Math.round(battle.playerMaxMana*currentClass().manaCost);
+  const rawCost = Math.round(battle.playerMaxMana*currentClass().manaCost);
+  const cost = visibleSkillCost(rawCost);
   if(isSkill && battle.playerMana < cost) return;
   battle.busy = true;
   playClassAttackEffect(isSkill);
   if(isSkill) {
     Sound.skill();
-    battle.playerMana -= cost;
+    const usedFreeSkill = spendSkillCost(rawCost);
     if(Math.random()<.28) battle.monster.status.stunnedTurns = 1;
     flashArena('skill');
     burstSparks('var(--mana)', 8);
+    if(usedFreeSkill) showFeedback('✧ HABILIDAD GRATUITA','El Sello del Alba se consume este combate','mana');
   } else {
     Sound.hit();
     battle.playerMana = Math.min(battle.playerMaxMana, battle.playerMana + 3);
@@ -2254,7 +2758,7 @@ function playerAttack(isSkill){
   syncBattleUi();
 
   if(!isSkill && state.characterClass==='priest'){
-    const heal = Math.max(2, Math.round(battle.playerMaxHp*.045));
+    const heal = Math.max(2, Math.round(battle.playerMaxHp*.045*(1+runRelicValue('healPower'))));
     battle.playerHp = Math.min(battle.playerMaxHp, battle.playerHp + heal);
     spawnFloatText('player', `+${heal}`, 'heal');
     syncBattleUi();
@@ -2279,6 +2783,7 @@ function tryTameMonster(){
     const form = MONSTER_FORMS[battle.monster.tier] || MONSTER_FORMS.facil;
     state.companion = { name:form.name, tier:battle.monster.tier, image:form.image };
     battle.monster.hp = 0;
+    playCombatVfx('arcane','monster','critical');
     spawnFloatText('monster','¡DOMADO!','crit');
     showFeedback('COMPAÑERO CAPTURADO', `${form.name} luchará a tu lado`, 'reward');
     syncBattleUi();
@@ -2290,9 +2795,11 @@ function tryTameMonster(){
   }
 }
 function companionAssist(){
-  if(!battle || !state.companion || Math.random()>.46) return 0;
+  const chance = .46 + runRelicValue('companionRate');
+  if(!battle || !state.companion || Math.random()>chance) return 0;
   const damage = Math.max(2, Math.round(atkDamage()*.38 + state.level*.8));
   battle.monster.hp = Math.max(0, battle.monster.hp-damage);
+  playCombatVfx('slash','monster');
   Sound.reward();
   spawnFloatText('monster',`${state.companion.name} -${damage}`,'crit');
   return damage;
@@ -2307,6 +2814,8 @@ function runPlayerHits(totalHits, isSkill, doneCount){
     const isCrit = Math.random() < critChance();
     if (isCrit) {
       Sound.crit();
+      playCombatVfx('slash','monster','critical');
+      playCombatVfx('impact','monster','critical');
       burstSparks('var(--gold-bright)', 14);
       const arenaEl = document.getElementById('arena');
       arenaEl.classList.remove('crit-shake'); void arenaEl.offsetWidth; arenaEl.classList.add('crit-shake');
@@ -2314,11 +2823,16 @@ function runPlayerHits(totalHits, isSkill, doneCount){
     else if (doneCount > 0) Sound.hit();
 
     const comboMult = 1 + Math.min(0.5, winStreak*0.03);
-    let dmg = atkDamage() * (isSkill ? 2.3 * currentClass().skillMult : 1) * comboMult * (0.85+Math.random()*0.3);
+    let dmg = atkDamage() * (isSkill ? 2.3 * currentClass().skillMult * (1+runRelicValue('skillPower')) : 1) * comboMult * (0.85+Math.random()*0.3);
     if(isCrit) dmg *= critMultiplier();
     if(battle.monster.archetype && battle.monster.archetype.key==='guardian') dmg *= .72;
     dmg = Math.round(dmg);
     battle.monster.hp = Math.max(0, battle.monster.hp - dmg);
+    if(isCrit && runRelicValue('critHeal')>0){
+      const heal = Math.max(1,Math.round(battle.playerMaxHp*runRelicValue('critHeal')));
+      battle.playerHp = Math.min(battle.playerMaxHp,battle.playerHp+heal);
+      spawnFloatText('player',`+${heal}`,'heal');
+    }
     companionAssist();
     mf.classList.remove('hit'); void mf.offsetWidth; mf.classList.add('hit');
     const tag = isCrit ? '¡CRÍTICO! ' : (doneCount>0 ? `Golpe extra x${doneCount+1}! ` : '');
@@ -2339,6 +2853,7 @@ function runPlayerHits(totalHits, isSkill, doneCount){
       return;
     }
 
+    if(triggerBossPhaseTwo()) return;
     startMonsterTurn();
     return;
     setTimeout(()=>{
@@ -2419,7 +2934,8 @@ function startRun(){
     dice: [1,2,3,4,5], held: [false,false,false,false,false], rollsLeft: 0,
     comboRank: null, rewardPreview: null,
     retreated: false,
-    mapNodes: [], currentNode: {type:'fight'}
+    relics: [],
+    mapNodes: [], currentNode: {type:'fight'}, routePlan: [], routeFloor: 0, routeHistory: []
   };
   addLog('🩸 Comienza una nueva Cacería Roguelike. Un monstruo común aguarda en la profundidad 1.', 'level');
   startRunBattle();
@@ -2438,6 +2954,7 @@ function endMonsterTurn(){
     const poison = Math.max(1, Math.round(battle.playerMaxHp*.055));
     battle.playerHp = Math.max(0,battle.playerHp-poison);
     ps.poisonTurns--;
+    playCombatVfx('poison','player');
     spawnFloatText('player',`☣ -${poison}`,'miss');
   }
   Object.keys(ps.cooldowns).forEach(key=>{ if(ps.cooldowns[key]>0) ps.cooldowns[key]--; });
@@ -2451,7 +2968,7 @@ function endMonsterTurn(){
   }
 }
 
-function resolveMonsterHits(remaining){
+function resolveMonsterHits(remaining, special={}){
   if(!battle) return;
   const monster = battle.monster;
   const fighter = document.querySelector('.fighter.monster');
@@ -2463,25 +2980,36 @@ function resolveMonsterHits(remaining){
     const dodged = Math.random()<dodgeChance();
     if(dodged){
       Sound.miss();
+      playDodge('player');
       spawnFloatText('player','Esquivado','miss');
     } else {
       let mult = monster.fury ? 1.45 : 1;
       if(monster.charging){ mult *= 1.85; monster.charging=false; }
+      if(special.mult) mult *= special.mult;
       let damage = monster.dmg*(.85+Math.random()*.3)*mult;
-      if(battle.playerStatus.shieldTurns>0){ damage*=.48; battle.playerStatus.shieldTurns--; }
+      const shielded = battle.playerStatus.shieldTurns>0;
+      if(shielded){ damage*=.48; battle.playerStatus.shieldTurns--; }
       damage = Math.max(1,Math.round((damage-getDefense()*.4) * (1-damageReduction())));
       battle.playerHp = Math.max(0,battle.playerHp-damage);
       if(player){ player.classList.remove('hit'); void player.offsetWidth; player.classList.add('hit'); }
+      playCombatVfx(shielded ? 'shield' : 'impact','player',shielded ? '' : 'enemy-hit');
       spawnFloatText('player',`-${damage}`, '');
       Sound.hit();
-      if(monster.archetype.key==='venom' && Math.random()<.55){
+      if(special.manaBurn){
+        const burn = Math.max(1,Math.round(battle.playerMaxMana*special.manaBurn));
+        battle.playerMana = Math.max(0,battle.playerMana-burn);
+        playCombatVfx('arcane','player','enemy-hit');
+        spawnFloatText('player',`-${burn} maná`,'miss');
+      }
+      if((monster.archetype.key==='venom' && Math.random()<.55) || special.poison){
         battle.playerStatus.poisonTurns = Math.max(battle.playerStatus.poisonTurns,2);
+        playCombatVfx('poison','player');
         spawnFloatText('player','☣ Veneno','miss');
       }
     }
     syncBattleUi();
     if(battle.playerHp<=0){ endMonsterTurn(); return; }
-    if(remaining>1){ setTimeout(()=>resolveMonsterHits(remaining-1),220); }
+    if(remaining>1){ setTimeout(()=>resolveMonsterHits(remaining-1,special),220); }
     else endMonsterTurn();
   },260);
 }
@@ -2493,19 +3021,23 @@ function startMonsterTurn(){
   if(status.bleedTurns>0){
     monster.hp = Math.max(0,monster.hp-status.bleedDamage);
     status.bleedTurns--;
+    playCombatVfx('impact','monster');
     spawnFloatText('monster',`🩸 -${status.bleedDamage}`,'crit');
     syncBattleUi();
     if(monster.hp<=0){ setTimeout(()=>endBattle('win'),350); return; }
+    if(triggerBossPhaseTwo()) return;
   }
   if(!monster.fury && monster.hp<=monster.maxHp*.35){
     monster.fury=true;
     Sound.crit();
+    playCombatVfx('impact','monster','critical');
     spawnFloatText('monster','🔥 FURIA','crit');
     showFeedback('🔥 EL ENEMIGO ENTRA EN FURIA','Sus ataques hacen más daño','danger');
   }
   if(status.stunnedTurns>0){
     status.stunnedTurns--;
     Sound.miss();
+    playCombatVfx('arcane','monster');
     spawnFloatText('monster','✦ Aturdido','miss');
     setTimeout(endMonsterTurn,260);
     return;
@@ -2513,19 +3045,36 @@ function startMonsterTurn(){
   if(monster.archetype.key==='charger' && !monster.charging){
     monster.charging=true;
     Sound.skill();
+    playCombatVfx('impact','monster');
     spawnFloatText('monster','💥 Cargando','crit');
     showFeedback('💥 GOLPE CARGADO','Interrumpilo o preparate','danger');
     syncBattleUi();
     setTimeout(endMonsterTurn,380);
     return;
   }
+  if(monster.isBoss && monster.phaseTwo){
+    monster.phaseAttackCounter++;
+    if(monster.phaseAttackCounter%2===1){
+      bossPhaseAttack(monster);
+      return;
+    }
+  }
   const hits = monster.archetype.key==='swift' ? 2 : 1;
   resolveMonsterHits(hits);
 }
 
 function advanceToMap(){
-  runState.depth++;
-  runState.mapNodes = makeMapNodes(runState.depth);
+  const nextDepth = runState.depth + 1;
+  const beginsNewAct = !runState.routePlan || !runState.routePlan.length || nextDepth%5===1;
+  runState.depth = nextDepth;
+  if(beginsNewAct){
+    runState.routePlan = makeRoutePlan(nextDepth);
+    runState.routeFloor = 0;
+    runState.routeHistory = [];
+  } else {
+    runState.routeFloor = Math.min((runState.routeFloor||0)+1,runState.routePlan.length-1);
+  }
+  ensureRoutePlan();
   runState.currentNode = null;
   runState.phase = 'map';
   render();
@@ -2537,7 +3086,18 @@ function chooseMapNode(index){
   const node = runState.mapNodes[index];
   if(!node) return;
   Sound.click();
+  runState.routeHistory[runState.routeFloor] = { index, type:node.type };
+  runState.pendingNode = node;
+  runState.relicChoices = makeRelicChoices();
+  runState.phase = 'relic';
+  render();
+}
+function enterSelectedMapNode(){
+  const node = runState && runState.pendingNode;
+  if(!node) return;
   runState.currentNode = node;
+  runState.pendingNode = null;
+  runState.relicChoices = [];
   if(['fight','elite','boss'].includes(node.type)){
     startRunBattle();
     return;
@@ -2553,6 +3113,16 @@ function chooseMapNode(index){
   }
   runState.phase = node.type;
   render();
+}
+function chooseRunRelic(id){
+  if(!runState || runState.phase!=='relic') return;
+  const relic = (runState.relicChoices||[]).find(entry=>entry.id===id);
+  if(!relic) return;
+  Sound.reward();
+  addRunRelic(relic);
+  showFeedback(`${relic.icon} RELIQUIA ELEGIDA`, relic.name, 'reward');
+  enterSelectedMapNode();
+  saveState();
 }
 
 function chooseShrine(kind){
@@ -2710,6 +3280,8 @@ function renderRunStatusBar(){
   bar.innerHTML = `
     <span class="depth-badge">⛏ Profundidad ${runState.depth}${runState.monstersDefeated?` · ${runState.monstersDefeated} vencidos`:''}</span>
     <span class="biome-badge">${biome.icon} ${biome.label}</span>
+    <span class="biome-badge">✦ Reliquias ${runState.relics ? runState.relics.length : 0}</span>
+    <span class="biome-badge">◇ Esencia ${state.materials ? state.materials.essence : 0}</span>
     <div class="rs-res"><span>Vida</span><div class="rbar rs-hp"><div style="width:${hpPct}%"></div></div><span>${runState.hp}/${runState.maxHp}</span></div>
     <div class="rs-res"><span>Maná</span><div class="rbar rs-mp"><div style="width:${mpPct}%"></div></div><span>${runState.mana}/${runState.maxMana}</span></div>
   `;
@@ -2725,6 +3297,8 @@ function renderRunMode(){
   const biome = biomeForDepth(runState ? runState.depth : 1);
   BIOMES.forEach(entry=>arena.classList.remove(`biome-${entry.key}`));
   arena.classList.add(`biome-${biome.key}`);
+  arena.classList.toggle('route-map-mode', !!(runState && runState.phase==='map'));
+  arena.classList.toggle('boss-phase-two', !!(battle && battle.monster && battle.monster.phaseTwo));
   arena.classList.toggle('has-companion', !!(battle && state.characterClass==='tamer' && state.companion));
 
   if(!runState){
@@ -2741,6 +3315,28 @@ function renderRunMode(){
   }
 
   if(runState.phase==='map'){
+    ensureRoutePlan();
+    const act = Math.floor((runState.depth-1)/5)+1;
+    arena.innerHTML = `
+      <div class="spire-map">
+        <div class="spire-map-title"><span>✦ RUTA DE EXPEDICIÓN</span><small>ACTO ${act} · NODO ${runState.routeFloor+1}/${runState.routePlan.length}</small></div>
+        <div class="spire-map-legend"><span>⚔ Combate</span><span>✦ Élite</span><span>⌘ Tesoro</span><span>☥ Santuario</span><span>? Misterio</span><span>☠ Guardián</span></div>
+        <div class="spire-rows">${runState.routePlan.map((row,rowIndex)=>{
+          const rowState = rowIndex<runState.routeFloor ? 'past' : rowIndex===runState.routeFloor ? 'active' : 'future';
+          const chosen = (runState.routeHistory||[])[rowIndex];
+          return `<div class="spire-row ${row.length===1?'solo':''} ${rowState}">${row.map((node,index)=>{
+            const info = MAP_NODE_TYPES[node.type];
+            const stateClass = rowState==='active' ? 'available' : rowState==='future' ? 'locked' : (chosen && chosen.index===index ? 'cleared' : 'skipped');
+            const interactive = rowState==='active' ? `data-map-node="${index}"` : 'disabled';
+            return `<button class="spire-node ${node.type} ${stateClass}" ${interactive} title="${info.label} — ${info.hint}" style="--node-color:${info.color}"><span class="node-icon">${info.icon}</span><span class="node-name">${info.label}</span></button>`;
+          }).join('')}</div>`;
+        }).join('')}</div>
+        <span class="spire-player">◆ Vos estás aquí · Profundidad ${runState.depth}</span>
+      </div>`;
+    arena.querySelectorAll('[data-map-node]').forEach(node=>node.addEventListener('click',()=>chooseMapNode(+node.dataset.mapNode)));
+    box.innerHTML = `<div class="retreat-row" style="grid-column:1/-1;"><button class="retreat-btn" id="retreatBtn">Retirarse con el botín obtenido</button></div>`;
+    document.getElementById('retreatBtn').addEventListener('click', retreatRun);
+    return;
     arena.innerHTML = `
       <div class="bounty-intro" style="width:100%;">Profundidad ${runState.depth} — elegí tu próximo camino</div>
       <div class="route-map">
@@ -2752,6 +3348,16 @@ function renderRunMode(){
     arena.querySelectorAll('[data-map-node]').forEach(node=>node.addEventListener('click',()=>chooseMapNode(+node.dataset.mapNode)));
     box.innerHTML = `<div class="retreat-row" style="grid-column:1/-1;"><button class="retreat-btn" id="retreatBtn">Retirarse con el botín obtenido</button></div>`;
     document.getElementById('retreatBtn').addEventListener('click', retreatRun);
+    return;
+  }
+
+  if(runState.phase==='relic'){
+    arena.innerHTML = `
+      <div class="dice-stage"><div class="combo-label" style="color:var(--mana)">✧ Reliquia del camino</div>
+      <div class="bounty-intro">El sendero responde a tu voluntad. Elegí un poder solo para esta expedición.</div>
+      <div class="event-choice">${(runState.relicChoices||[]).map(relic=>`<button data-run-relic="${relic.id}"><b>${relic.icon} ${relic.name}</b><br><small>${relic.description}</small></button>`).join('')}</div></div>`;
+    arena.querySelectorAll('[data-run-relic]').forEach(button=>button.addEventListener('click',()=>chooseRunRelic(button.dataset.runRelic)));
+    box.innerHTML = '';
     return;
   }
 
@@ -3068,12 +3674,16 @@ function renderArena(fresh){
       </div>
       ${state.characterClass==='tamer' && state.companion ? `<div class="companion-fighter"><img src="${state.companion.image}" alt="${escapeHtml(state.companion.name)}"><b>${escapeHtml(state.companion.name)}</b><small>COMPAÑERO</small></div>` : ''}
       <div class="vs">VS</div>
-      <div class="fighter monster monster-${battle.monster.visualType || 'slime'} ${battle.monster.isBoss?'boss':''}">
+      <div class="fighter monster monster-${battle.monster.visualType || 'slime'} ${battle.monster.isBoss?'boss':''} ${battle.monster.phaseTwo?'phase-two':''}">
         <div class="name">${escapeHtml(battle.monster.name)}</div>
         <div class="mini-bar"><div id="arenaMonsterHp" style="width:100%"></div></div>
         <div class="sprite-box">${monsterArt(battle.monster)}</div>
       </div>
       <div class="ground"></div>`;
+    if(battle.monster.isBoss){
+      arena.classList.remove('boss-arrival'); void arena.offsetWidth; arena.classList.add('boss-arrival');
+      setTimeout(()=>arena.classList.remove('boss-arrival'),800);
+    }
   }
   renderArenaBars();
 }
@@ -3105,7 +3715,8 @@ function syncBattleUi(){
   if(mpFill) mpFill.style.width = `${Math.max(0, battle.playerMana / battle.playerMaxMana * 100)}%`;
   const attack = document.getElementById('attackBtn');
   const skill = document.getElementById('skillBtn');
-  const cost = Math.round(battle.playerMaxMana * currentClass().manaCost);
+  const rawCost = Math.round(battle.playerMaxMana * currentClass().manaCost);
+  const cost = visibleSkillCost(rawCost);
   if(attack) attack.disabled = battle.busy;
   if(skill) skill.disabled = battle.busy || battle.playerMana < cost;
   renderCombatStatus();
@@ -3115,13 +3726,14 @@ function renderActionButtons(){
   const box = document.getElementById('actionBtns');
   if(!box) return;
   if(battle){
-    const cost = Math.round(battle.playerMaxMana*currentClass().manaCost);
+    const rawCost = Math.round(battle.playerMaxMana*currentClass().manaCost);
+    const cost = visibleSkillCost(rawCost);
     const moves = classMoveNames();
     const canTame = state.characterClass==='tamer' && battle.isRun && !battle.monster.isBoss && battle.monster.hp<=battle.monster.maxHp*.5 && !battle.busy;
     const tameHint = state.characterClass==='tamer' ? (!battle.isRun ? 'Solo durante una expedición' : battle.monster.isBoss ? 'Los jefes no pueden domarse' : battle.monster.hp>battle.monster.maxHp*.5 ? 'Debilitá al enemigo al 50%' : `Domar (${Math.round(tamingChance())}% chance)`) : '';
     box.innerHTML = `
       <button id="attackBtn">${moves.attack}</button>
-      <button id="skillBtn" ${battle.playerMana<cost?'disabled':''}>${moves.skill} (${cost} maná)</button>
+      <button id="skillBtn" ${battle.playerMana<cost?'disabled':''}>${moves.skill} (${cost===0?'GRATIS ✧':cost+' maná'})</button>
       ${state.characterClass==='tamer' ? `<button id="tameBtn" class="ability-btn ${canTame?'ready':''}" ${canTame?'':'disabled'}>🪢 ${tameHint}</button>` : ''}
       ${state.companion ? `<div class="status-badge shield" style="grid-column:1/-1;justify-self:start;">✦ Compañero: ${state.companion.name}</div>` : ''}
       <div class="bar-label" style="grid-column:1/-1;margin-bottom:0;"><span>Tu vida</span><span>${battle.playerHp}/${battle.playerMaxHp}</span></div>
@@ -3281,30 +3893,40 @@ function renderHeroSubTab() {
   } else if (activeHeroTab === 'gear') {
     const eq = state.equipment;
     const style = battleClassStyle();
+    const slotMeta = key => equipmentSlotMeta(key);
+    const gearSlotMarkup = slot => {
+      const item = eq[slot];
+      const rarity = item ? itemRarityMeta(item) : null;
+      const rarityStyle = rarity ? `style="--slot-rarity-color:${rarity.color};--slot-rarity-glow:${rarity.glow}"` : '';
+      return `<div class="eq-slot slot-${slot} ${item ? 'equipped' : ''} ${rarity ? `rarity-${rarity.key}` : ''}" ${rarityStyle} data-slot="${slot}" title="${slotMeta(slot).label}">${equipmentVisual(item,slot)}</div>`;
+    };
     
     box.innerHTML = `
       <div class="equipment-tab">
         <div class="character-doll">
-          <div class="loadout-title"><span>${style.icon}</span><div><small>VESTIDURA ACTIVA</small><strong>${style.label}</strong><em>${style.weapon}</em></div></div>
+          <div class="loadout-title"><span>${classEmblem(state.characterClass)}</span><div><small>VESTIDURA ACTIVA</small><strong>${style.label}</strong><em>${style.weapon}</em></div></div>
           <img class="equipment-hero-art" src="${style.image}" alt="${style.label}">
           
-          <div class="eq-slot slot-helmet ${eq.helmet?'equipped':''}" data-slot="helmet" title="Casco">${eq.helmet ? eq.helmet.icon : '🪖'}</div>
-          <div class="eq-slot slot-chest ${eq.chest?'equipped':''}" data-slot="chest" title="Pechera">${eq.chest ? eq.chest.icon : '👕'}</div>
-          <div class="eq-slot slot-weapon ${eq.weapon?'equipped':''}" data-slot="weapon" title="Arma principal">${eq.weapon ? eq.weapon.icon : '⚔️'}</div>
-          <div class="eq-slot slot-shield ${eq.shield?'equipped':''}" data-slot="shield" title="Escudo">${eq.shield ? eq.shield.icon : '🛡️'}</div>
-          <div class="eq-slot slot-gloves ${eq.gloves?'equipped':''}" data-slot="gloves" title="Guantes">${eq.gloves ? eq.gloves.icon : '🧤'}</div>
-          <div class="eq-slot slot-ring ${eq.ring?'equipped':''}" data-slot="ring" title="Anillo">${eq.ring ? eq.ring.icon : '💍'}</div>
-          <div class="eq-slot slot-boots ${eq.boots?'equipped':''}" data-slot="boots" title="Botas">${eq.boots ? eq.boots.icon : '🥾'}</div>
+          ${gearSlotMarkup('helmet')}
+          ${gearSlotMarkup('chest')}
+          ${gearSlotMarkup('weapon')}
+          ${gearSlotMarkup('shield')}
+          ${gearSlotMarkup('gloves')}
+          ${gearSlotMarkup('ring')}
+          ${gearSlotMarkup('boots')}
           <div class="loadout-hint">Tocá una pieza equipada para devolverla a la mochila</div>
         </div>
 
         <div class="inventory-list">
           <div class="backpack-head"><span>◈</span><div><small>INVENTARIO DEL VIAJERO</small><h4>Tu Mochila</h4></div><b>${state.ownedEquipment.length}</b></div>
           ${state.ownedEquipment.length === 0 ? '<div style="color: var(--parchment-dim); font-size: 11.5px; padding-top: 10px; font-style: italic;">Mochila vacía.</div>' : ''}
-          ${state.ownedEquipment.map((item, idx) => `
-            <div class="inv-item">
-              <div class="inv-item-info">
+          ${state.ownedEquipment.map((item, idx) => {
+            const rarity = itemRarityMeta(item);
+            return `
+            <div class="inv-item rarity-${rarity.key}" style="--rarity-color:${rarity.color};--rarity-glow:${rarity.glow};border-left-color:${rarity.color}">
+              ${item.image ? `<img class="inv-item-art" src="${item.image}" alt="">` : ''}<div class="inv-item-info">
                 <span class="inv-item-name">${item.name}</span>
+                <span class="inv-rarity" style="--rarity-color:${rarity.color}">${rarity.label}</span>
                 <span class="inv-item-stats">
                   ${item.bonusAtk ? `+${item.bonusAtk} Atk ` : ''}
                   ${item.bonusDef ? `+${item.bonusDef} Def ` : ''}
@@ -3315,9 +3937,9 @@ function renderHeroSubTab() {
                   ${item.bonusSpeed ? `+${item.bonusSpeed}% Rapidez` : ''}
                 </span>
               </div>
-              <button class="claim-btn ready" style="padding: 4px 10px; width:auto; font-size:10px; font-family:'Cinzel';" onclick="equipItemFromInventory(${idx})">Equipar</button>
+              <div class="inv-actions"><button class="claim-btn ready" style="padding: 4px 10px; width:auto; font-size:10px; font-family:'Cinzel';" onclick="equipItemFromInventory(${idx})">Equipar</button><button class="delete-item-btn" onclick="deleteItemFromInventory(${idx})">Eliminar</button></div>
             </div>
-          `).join('')}
+          `}).join('')}
         </div>
       </div>
     `;
@@ -3399,7 +4021,7 @@ function renderGuildSubTab() {
         return `
         <div class="shop-item rarity-${it.rarityKey||'common'} ${stock?'':'locked'}" style="--rarity-color:${it.color};--rarity-glow:${it.glow||'transparent'}">
           <div class="shop-top">
-            <span class="iname" style="color:${it.color}">${it.icon} ${it.name}</span>
+            <span class="iname" style="color:${it.color}">${it.image ? `<img class="shop-item-art" src="${it.image}" alt="">` : it.icon} ${it.name}</span>
             <span class="irarity" style="color:${it.color}">${it.rarity}</span>
           </div>
           <div class="shop-stat">${statString} &nbsp;·&nbsp; ${it.price} oro</div>
@@ -3518,7 +4140,7 @@ function ensureShop(){
 function buyItem(id){
   ensureShop();
   const item = SHOP_EQUIPMENT_ITEMS.find(i=>i.id===id);
-  if(!item || !state.shop.inStock[id] || state.gold < item.price) return;
+  if(!item || !itemFitsCurrentClass(item) || !state.shop.inStock[id] || state.gold < item.price) return;
   Sound.click();
   
   state.gold -= item.price;
@@ -3538,6 +4160,10 @@ window.equipItemFromInventory = function(index) {
   }
   Sound.click();
   const item = state.ownedEquipment[index];
+  if(!item || !itemFitsCurrentClass(item)){
+    showFeedback('EQUIPO INCOMPATIBLE', 'Esta pieza no pertenece a la clase actual', 'danger');
+    return;
+  }
   const slot = item.type;
 
   if (state.equipment[slot]) {
@@ -3548,6 +4174,26 @@ window.equipItemFromInventory = function(index) {
   state.ownedEquipment.splice(index, 1);
 
   addLog(`Te equipaste: ${item.name}`, 'level');
+  saveState();
+  render();
+}
+
+window.deleteItemFromInventory = function(index) {
+  if (battle) {
+    showFeedback('MOCHILA BLOQUEADA', 'No podés eliminar objetos durante una cacería', 'danger');
+    return;
+  }
+  const item = state.ownedEquipment[index];
+  if(!item) return;
+  if(!confirm(`¿Eliminar ${item.name}? Esta pieza se perderá para siempre.`)) return;
+  state.ownedEquipment.splice(index,1);
+  if(item.id && state.ownedItems && state.ownedItems[item.id]){
+    state.ownedItems[item.id]--;
+    if(state.ownedItems[item.id] <= 0) delete state.ownedItems[item.id];
+  }
+  Sound.click();
+  addLog(`Eliminaste ${item.name} de la mochila.`, 'lose');
+  showFeedback('OBJETO ELIMINADO', item.name, 'danger');
   saveState();
   render();
 }
@@ -3613,7 +4259,7 @@ function renderCharacterGate(roster){
   list.innerHTML = roster.map(character => `
     <div class="character-card">
       <button class="character-select" data-character="${character.id}">
-        <span class="char-icon">⚔</span>
+        <span class="char-icon"></span>
         <span><span class="char-name">${escapeHtml(character.name)}</span><span class="char-meta">Nivel ${character.level} · ${character.resets || 0} resets</span></span>
         <span class="char-play">JUGAR ›</span>
       </button>
@@ -3624,7 +4270,7 @@ function renderCharacterGate(roster){
     const heroClass = CLASSES[character.characterClass] || CLASSES.warrior;
     const icon = button.querySelector('.char-icon');
     const meta = button.querySelector('.char-meta');
-    if(icon) icon.textContent = heroClass.icon;
+    if(icon) icon.innerHTML = classEmblem(character.characterClass);
     if(meta) meta.textContent = `${heroClass.label} · Nivel ${character.level} · ${character.resets || 0} resets`;
     button.addEventListener('click', () => activateCharacter(button.dataset.character));
   });
@@ -3648,7 +4294,7 @@ function renderCharacterGate(roster){
 
 function syncMusicScene(){
   if(!state){ Sound.setScene('menu'); return; }
-  if(battle){ Sound.setScene(battle.monster && battle.monster.isBoss ? 'boss' : 'battle'); return; }
+  if(battle){ Sound.setScene(battle.monster && battle.monster.isBoss ? (battle.monster.phaseTwo ? 'bossPhase' : 'boss') : 'battle'); return; }
   const huntOpen = document.getElementById('secHunt')?.classList.contains('active');
   Sound.setScene(huntOpen ? 'hunt' : 'menu');
 }
