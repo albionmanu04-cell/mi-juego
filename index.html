@@ -448,6 +448,7 @@
   #startRunBtn, #newRunBtn{ background:linear-gradient(180deg, var(--ember), var(--ember-dim)); color:#1a0f08; border:none; box-shadow:0 3px 0 #5c2811; }
   #rerollBtn{ background:linear-gradient(180deg, var(--mana), #234a63); color:#0c1a24; border:none; box-shadow:0 3px 0 #16303f; }
   #stayBtn{ background:linear-gradient(180deg, var(--gold), #a87c2b); color:#1a1206; border:none; box-shadow:0 3px 0 #6b4e18; }
+  #rerollBtn small, #stayBtn small{ display:block; margin-top:3px; font-weight:400; }
 
   /* ---- Modo Roguelike (Cacería) ---- */
   .hunt-mode-toggle{ display:flex; gap:8px; margin-bottom:14px; }
@@ -569,7 +570,7 @@
 
   .dice-stage{ display:flex; flex-direction:column; align-items:center; gap:12px; height:100%; justify-content:center; }
   .dice-help{ width:min(100%,600px); display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; padding:8px 10px; border:1px solid #4d3719; border-radius:3px; background:rgba(34,24,12,.7); }
-  .dice-help b{ color:var(--gold-bright); font:10px 'Cinzel'; letter-spacing:.7px; }.dice-help span{ color:var(--parchment-dim); font:9px 'JetBrains Mono'; line-height:1.4; }.dice-help .dice-multiplier{ padding:5px 8px; border:1px solid var(--gold); border-radius:2px; color:var(--gold-bright); font:700 11px 'JetBrains Mono'; white-space:nowrap; }
+  .dice-help b{ display:block; color:var(--gold-bright); font:10px 'Cinzel'; letter-spacing:.7px; }.dice-help span{ display:block; margin-top:3px; color:var(--parchment-dim); font:9px 'JetBrains Mono'; line-height:1.4; }.dice-help .dice-multiplier{ padding:5px 8px; border:1px solid var(--gold); border-radius:2px; color:var(--gold-bright); font:700 11px 'JetBrains Mono'; white-space:nowrap; }
   .dice-tier-tag{ font-family:'Cinzel'; letter-spacing:1.5px; font-size:11px; text-transform:uppercase; padding:4px 12px; border-radius:10px; border:1px solid; }
   .dice-row{ display:flex; gap:10px; }
   .die{
@@ -5194,7 +5195,7 @@ function renderRunMode(){
   arena.classList.add(`biome-${biome.key}`);
   arena.classList.toggle('route-map-mode', !!(runState && runState.phase==='map'));
   arena.classList.toggle('bounty-selection-mode', !!(runState && runState.phase==='bounty'));
-  arena.classList.toggle('reward-selection-mode', !!(runState && (runState.phase==='reward' || runState.phase==='dice')));
+  arena.classList.toggle('reward-selection-mode', !!(runState && (runState.phase==='reward' || runState.phase==='dice' || runState.phase==='idle')));
   arena.classList.toggle('boss-phase-two', !!(battle && battle.monster && battle.monster.phaseTwo));
   arena.classList.toggle('has-companion', !!(battle && state.characterClass==='tamer' && state.companion));
 
