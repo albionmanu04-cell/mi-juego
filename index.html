@@ -483,6 +483,7 @@
   #secHunt .arena{ border-color:rgba(200,155,60,.42); border-radius:7px; box-shadow:inset 0 0 0 1px rgba(0,0,0,.72),inset 0 0 48px rgba(0,0,0,.46),0 14px 26px rgba(0,0,0,.34); }
   #secHunt .arena-idle{ position:relative; color:#d2bd8d; text-align:center; }.arena-idle::before{ content:'✦'; display:grid; place-items:center; width:44px; height:44px; border:1px solid rgba(232,196,119,.42); border-radius:50%; color:var(--gold-bright); background:radial-gradient(circle,rgba(170,111,27,.22),rgba(22,14,8,.2)); font-size:19px; box-shadow:0 0 22px rgba(228,178,67,.18); }.arena-idle::after{ content:'La senda espera a un nuevo aventurero'; color:#9f9077; font:8px 'JetBrains Mono'; letter-spacing:.7px; }
   #secHunt .action-btns{ position:relative; padding:10px; margin-top:1px; border:1px solid rgba(200,155,60,.2); border-radius:7px; background:linear-gradient(145deg,rgba(54,35,18,.38),rgba(10,8,6,.42)); }.action-btns button{ min-height:58px; overflow:hidden; }.action-btns button:not(:disabled)::before{ content:'✦'; margin-right:6px; opacity:.78; }.action-btns button:hover{ box-shadow:0 0 0 1px rgba(255,235,180,.11) inset,0 8px 17px rgba(0,0,0,.28); }
+  #secHunt .hunt-ready-panel{ grid-column:1/-1; display:grid; justify-items:center; gap:7px; padding:12px; border:1px solid rgba(232,196,119,.25); border-radius:5px; background:radial-gradient(circle at 50% 0,rgba(174,119,35,.17),transparent 68%),rgba(18,12,7,.6); color:var(--gold-bright); text-align:center; }.hunt-ready-panel b{ font:700 12px 'Cinzel'; letter-spacing:1.2px; }.hunt-ready-panel small{ color:#c4ad7f; font:9px 'JetBrains Mono'; }.hunt-ready-panel button{ width:min(320px,100%); min-height:43px!important; padding:9px!important; background:linear-gradient(145deg,#d3a03b,#785013)!important; color:#211406!important; border-color:#efca70!important; }
   #secHunt .hunt-progress-panel{ border-color:rgba(200,155,60,.3); border-radius:7px; background:radial-gradient(ellipse at 82% 0%,rgba(142,86,27,.22),transparent 44%),linear-gradient(145deg,rgba(48,32,17,.72),rgba(14,10,7,.82)); box-shadow:inset 0 1px rgba(255,229,166,.06); }.hunt-relic-list{ border-left-color:var(--gold)!important; background:linear-gradient(90deg,rgba(112,71,19,.2),transparent)!important; }.hunt-relic-list b{ color:#f0c878!important; }
   .hunt-log-panel{ overflow:hidden; border-color:rgba(200,155,60,.4)!important; background:radial-gradient(ellipse at 70% 0%,rgba(117,69,20,.16),transparent 40%),linear-gradient(150deg,rgba(36,25,14,.99),rgba(13,9,6,.99))!important; box-shadow:inset 0 1px rgba(255,229,166,.06),0 14px 28px rgba(0,0,0,.3)!important; }.hunt-log-panel::before{ content:''; position:absolute; top:0; left:18%; right:18%; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); box-shadow:0 0 11px rgba(229,177,69,.32); }.hunt-log-panel h3{ display:flex; align-items:center; gap:7px; color:#f0ca76!important; }.hunt-log-panel h3::before{ content:'◈'; color:var(--gold-bright); text-shadow:0 0 10px rgba(232,196,119,.5); }.hunt-log-panel h3 small{ margin-left:auto; padding:4px 7px; border:1px solid rgba(226,126,54,.45); border-radius:12px; color:#ff9a58!important; background:rgba(89,34,13,.25); font-size:8px!important; }.hunt-log-note{ padding-bottom:8px; border-bottom:1px solid rgba(200,155,60,.15); }
   #secHunt .hunt-log-panel #log{ border-color:rgba(200,155,60,.3); border-radius:6px; background:linear-gradient(145deg,rgba(10,8,6,.82),rgba(27,17,10,.94)); }.hunt-log-panel .log-line{ position:relative; border-radius:3px; }.hunt-log-panel .log-line:hover{ background-color:rgba(232,196,119,.055); }
@@ -2906,6 +2907,7 @@ let activeHuntTab = 'combat';
 let activeProfileView = 'home';
 let activeOptionsView = 'home';
 let battle = null;
+let battleSequence = 0;
 let winStreak = 0;
 let huntMode = 'run'; // 'run' (roguelike) | 'free' (cacería clásica)
 let runState = null;
@@ -3342,11 +3344,18 @@ function runStatBonus(key){
   return Math.max(0, Number((runState.tempStats||{})[key]) || 0);
 }
 function baseStat(key){ return finiteNumber(state.stats[key]) + finiteNumber(state.resets)*2 + runStatBonus(key); }
+// Curva suave de final de juego: el héroe sigue creciendo, pero los puntos
+// extremos ya no multiplican el daño de forma descontrolada.
+function softCap(value, threshold, overflowScale){
+  const safe = Math.max(0, finiteNumber(value, 0));
+  return safe <= threshold ? safe : threshold + (safe-threshold) * overflowScale;
+}
 function maxHP(){ return 50 + baseStat('vida')*10 + currentClass().hp + getEquipmentBonuses().hp + runRelicValue('hp'); }
 function maxMana(){ return 20 + baseStat('mana')*6 + currentClass().mana + getEquipmentBonuses().mana + runRelicValue('mana'); }
 function atkDamage(){ 
   const eq = getEquipmentBonuses();
-  return (5 + baseStat('ataque')*2 + eq.atk + currentClass().atk) * (1+runRelicValue('atk')); 
+  const investedAttack = softCap(baseStat('ataque'), 35, .55);
+  return (5 + investedAttack*2 + eq.atk + currentClass().atk) * (1+runRelicValue('atk')); 
 }
 function getDefense() {
   const eq = getEquipmentBonuses();
@@ -3354,14 +3363,14 @@ function getDefense() {
 }
 function critChance(){ 
   const eq = getEquipmentBonuses();
-  return Math.min(0.85, (finiteNumber(state.critRateStat, 5) + eq.crit + currentClass().crit + runRelicValue('crit')) / 100); 
+  return Math.min(0.75, (finiteNumber(state.critRateStat, 5) + eq.crit + currentClass().crit + runRelicValue('crit')) / 100); 
 }
 function critMultiplier() {
   const eq = getEquipmentBonuses();
-  return (150 + finiteNumber(state.critDmgStat, 50) + eq.critDmg) / 100 + runRelicValue('critDmg');
+  return Math.min(3.2, (150 + finiteNumber(state.critDmgStat, 50) + eq.critDmg) / 100 + runRelicValue('critDmg'));
 }
-function dodgeChance(){ return Math.min(0.65, baseStat('agilidad')*0.004 + currentClass().dodge); }
-function extraTurnChance(){ return Math.min(0.7, baseStat('rapidez')*0.005 + currentClass().speed + getEquipmentBonuses().speed/100 + runRelicValue('extraTurn')); }
+function dodgeChance(){ return Math.min(0.55, baseStat('agilidad')*0.004 + currentClass().dodge); }
+function extraTurnChance(){ return Math.min(0.5, baseStat('rapidez')*0.005 + currentClass().speed + getEquipmentBonuses().speed/100 + runRelicValue('extraTurn')); }
 
 function power(){ 
   const eq = getEquipmentBonuses();
@@ -3383,7 +3392,7 @@ function rollMissionReset(){
   if(m.weekKeyVal !== weekKey()){ m.weekKeyVal = weekKey(); m.week = { wins:0, resets:0, claimed:[false,false] }; }
   if(m.monthKeyVal !== monthKey()){ m.monthKeyVal = monthKey(); m.month = { resets:0, goldEarned:0, claimed:[false,false] }; }
 }
-function damageReduction(){ return Math.min(.6, (state.robustness||0) * .01); }
+function damageReduction(){ return Math.min(.5, (state.robustness||0) * .01); }
 // El análisis tiene un techo natural de 100%; el bono de botín sigue creciendo por cada punto.
 function perceptionChance(){ return Math.min(100, 18 + (state.perception||0) * 7); }
 function perceptionLootBonus(){ return (state.perception||0) * .025; }
@@ -3771,7 +3780,7 @@ function makeMonster(tier, biomeKey=''){
 function startBattle(){
   if(battle || huntMode!=='free') return;
   Sound.click();
-  battle = { monster: prepareMonster(makeMonster(selectedTier)), playerHp: maxHP(), playerMaxHp: maxHP(), playerMana: maxMana(), playerMaxMana: maxMana(), tier: selectedTier, busy:false, playerStatus:newPlayerStatus() };
+  battle = { id:++battleSequence, monster: prepareMonster(makeMonster(selectedTier)), playerHp: maxHP(), playerMaxHp: maxHP(), playerMana: maxMana(), playerMaxMana: maxMana(), tier: selectedTier, busy:false, playerStatus:newPlayerStatus() };
   renderArena(true);
   renderActionButtons();
   announceMonsterAnalysis();
@@ -3779,12 +3788,13 @@ function startBattle(){
 }
 
 function startRunBattle(){
-  if(battle || !runState) return;
+  if(battle || !runState || runState.phase==='ended') return;
   Sound.click();
   const monster = prepareMonster(makeRunMonster(runState.depth, runState.currentNode ? runState.currentNode.type : 'fight'));
   syncRunResources();
   const maxHp = runState.maxHp, maxMp = runState.maxMana;
   battle = {
+    id:++battleSequence,
     monster, playerHp: runState.hp, playerMaxHp: maxHp, playerMana: runState.mana, playerMaxMana: maxMp,
     tier: depthTierKey(runState.depth), busy:false, isRun:true, playerStatus:newPlayerStatus(), healingUsed:false, masteryClaims:{}
   };
@@ -3795,6 +3805,10 @@ function startRunBattle(){
   scheduleRunCheckpoint();
   render();
 }
+
+// Cada animación diferida conserva la batalla que la originó. Si esa pelea
+// terminó, sus callbacks no pueden afectar ni ensuciar la siguiente.
+function isCurrentBattle(reference){ return !!reference && battle===reference && !reference.ended; }
 
 function announceMonsterAnalysis(){
   if(!battle || !battle.monster.analyzed) return;
@@ -3893,15 +3907,18 @@ function triggerBossPhaseTwo(){
   spawnFloatText('monster','FASE II','crit');
   showFeedback(`☠ ${details.label}`, 'FASE II · '+details.hint, 'danger');
   addLog(`${monster.name} entra en Fase II: ${details.label}.`, 'danger');
+  const phaseBattle = battle;
   setTimeout(()=>{
-    if(!battle) return;
-    battle.busy = false;
+    if(!isCurrentBattle(phaseBattle)) return;
+    phaseBattle.busy = false;
     syncBattleUi();
-    startMonsterTurn();
+    startMonsterTurn(phaseBattle);
   },900);
   return true;
 }
 function bossPhaseAttack(monster){
+  const phaseBattle = battle;
+  if(!isCurrentBattle(phaseBattle) || phaseBattle.monster!==monster) return;
   const details = bossPhaseDetails(monster);
   Sound.bossPhase();
   showCombatWarning(`☠ ${details.label}`, details.hint, true);
@@ -3910,7 +3927,7 @@ function bossPhaseAttack(monster){
   burstSparks('#ec5b67',12);
   spawnFloatText('monster',details.label,'crit');
   showFeedback(`☠ ${details.label}`, details.hint, 'danger');
-  setTimeout(()=>resolveMonsterHits(details.hits,details),420);
+  setTimeout(()=>resolveMonsterHits(details.hits,details,phaseBattle),420);
 }
 
 function syncRunResources(){
@@ -3932,10 +3949,11 @@ function endBattle(result){
     setTimeout(()=>endBattle('resolve-win'),720);
     return;
   }
+  const resolvedBattle = battle;
   const victory = result==='resolve-win';
-  const tier = TIERS[battle.tier];
-  const isBoss = battle.monster.isBoss;
-  const isRun = !!battle.isRun;
+  const tier = TIERS[resolvedBattle.tier];
+  const isBoss = resolvedBattle.monster.isBoss;
+  const isRun = !!resolvedBattle.isRun;
   if(victory){
     flashArena('reward');
     burstSparks(isBoss ? 'var(--ember)' : 'var(--gold-bright)', isBoss ? 18 : 10);
@@ -3987,6 +4005,7 @@ function endBattle(result){
       addLog(`${battle.monster.name} te derrotó — perdiste ${loss} de oro`, 'lose');
     }
   }
+  resolvedBattle.ended = true;
   battle = null;
   rollMissionReset();
   if(isRun){
@@ -4206,6 +4225,7 @@ function classAbilityCost(){ return Math.round(battle.playerMaxMana*classAbility
 
 function useClassAbility(){
   if(!battle || battle.busy || battle.playerStatus.classCooldown>0) return;
+  const abilityBattle = battle;
   const ability = classAbility();
   const cost = classAbilityCost();
   if(battle.playerMana<cost) return;
@@ -4255,8 +4275,8 @@ function useClassAbility(){
   addLog(`${currentClass().label} usa ${ability.label}${cost?` · -${cost} maná`:''}.`, 'combat');
   syncBattleUi();
   renderActionButtons();
-  if(monster.hp<=0){ setTimeout(()=>endBattle('win'),380); return; }
-  startMonsterTurn();
+  if(monster.hp<=0){ setTimeout(()=>{ if(isCurrentBattle(abilityBattle)) endBattle('win'); },380); return; }
+  startMonsterTurn(abilityBattle);
 }
 
 function firstSkillIsFree(){
@@ -4320,6 +4340,7 @@ function renderCombatStatus(){
 
 function useAbility(key){
   if(!battle || battle.busy) return;
+  const abilityBattle = battle;
   const ability = abilityDefinitions().find(item=>item.key===key);
   if(!ability || state.level<ability.level || battle.playerStatus.cooldowns[key]>0) return;
   const rawCost = Math.round(battle.playerMaxMana*ability.cost);
@@ -4352,8 +4373,8 @@ function useAbility(key){
     showFeedback('🩸 SANGRADO',`${battle.monster.status.bleedTurns} turnos de hemorragia${usedFreeSkill ? ' · sin coste' : ''}`);
   }
   syncBattleUi();
-  if(battle.monster.hp<=0){ setTimeout(()=>endBattle('win'),350); return; }
-  startMonsterTurn();
+  if(battle.monster.hp<=0){ setTimeout(()=>{ if(isCurrentBattle(abilityBattle)) endBattle('win'); },350); return; }
+  startMonsterTurn(abilityBattle);
 }
 
 function playerAttack(isSkill){
@@ -4396,6 +4417,7 @@ function tamingChance(){
 }
 function tryTameMonster(){
   if(!battle || !battle.isRun || battle.busy || state.characterClass!=='tamer' || battle.monster.isBoss) return;
+  const tameBattle = battle;
   if(battle.monster.hp > battle.monster.maxHp*.5) return;
   battle.busy = true;
   const chance = tamingChance();
@@ -4409,11 +4431,11 @@ function tryTameMonster(){
     spawnFloatText('monster','¡DOMADO!','crit');
     showFeedback('COMPAÑERO CAPTURADO', `${companionName} luchará a tu lado`, 'reward');
     syncBattleUi();
-    setTimeout(()=>endBattle('win'),420);
+    setTimeout(()=>{ if(isCurrentBattle(tameBattle)) endBattle('win'); },420);
   } else {
     spawnFloatText('monster','Se resistió','miss');
     showFeedback('CAPTURA FALLIDA', `${Math.round(chance)}% de posibilidad`, 'danger');
-    setTimeout(()=>startMonsterTurn(),340);
+    setTimeout(()=>startMonsterTurn(tameBattle),340);
   }
 }
 function companionAssist(force=false){
@@ -4431,12 +4453,14 @@ function companionAssist(force=false){
   return damage;
 }
 
-function runPlayerHits(totalHits, isSkill, doneCount){
+function runPlayerHits(totalHits, isSkill, doneCount, reference=battle){
+  if(!isCurrentBattle(reference)) return;
   const pf = document.querySelector('.fighter.player');
   const mf = document.querySelector('.fighter.monster');
-  pf.classList.add('attacking');
+  if(pf) pf.classList.add('attacking');
 
   setTimeout(()=>{
+    if(!isCurrentBattle(reference)) return;
     const isCrit = Math.random() < critChance();
     if (isCrit) {
       Sound.crit();
@@ -4482,18 +4506,18 @@ function runPlayerHits(totalHits, isSkill, doneCount){
     if(battle.monster.hp <= 0){
       mf.classList.add('dead');
       battle.busy = false;
-      setTimeout(()=>endBattle('win'), 500);
+      setTimeout(()=>{ if(isCurrentBattle(reference)) endBattle('win'); }, 500);
       return;
     }
 
     doneCount++;
     if(doneCount < totalHits){
-      setTimeout(()=>runPlayerHits(totalHits, isSkill, doneCount), 240);
+      setTimeout(()=>runPlayerHits(totalHits, isSkill, doneCount, reference), 240);
       return;
     }
 
     if(triggerBossPhaseTwo()) return;
-    startMonsterTurn();
+    startMonsterTurn(reference);
     return;
     setTimeout(()=>{
       mf.classList.add('attacking');
@@ -4592,12 +4616,12 @@ function advanceToBounty(){
   runState.chosenBounty = null;
 }
 
-function endMonsterTurn(){
-  if(!battle) return;
-  const ps = battle.playerStatus;
+function endMonsterTurn(reference=battle){
+  if(!isCurrentBattle(reference)) return;
+  const ps = reference.playerStatus;
   if(ps.poisonTurns>0){
-    const poison = Math.max(1, Math.round(battle.playerMaxHp*.055));
-    battle.playerHp = Math.max(0,battle.playerHp-poison);
+    const poison = Math.max(1, Math.round(reference.playerMaxHp*.055));
+    reference.playerHp = Math.max(0,reference.playerHp-poison);
     ps.poisonTurns--;
     playCombatVfx('poison','player');
     Sound.poison();
@@ -4606,24 +4630,24 @@ function endMonsterTurn(){
   Object.keys(ps.cooldowns).forEach(key=>{ if(ps.cooldowns[key]>0) ps.cooldowns[key]--; });
   if(ps.classCooldown>0) ps.classCooldown--;
   if(ps.companionBoostTurns>0) ps.companionBoostTurns--;
-  battle.busy = false;
+  reference.busy = false;
   syncBattleUi();
   renderActionButtons();
-  if(battle.playerHp<=0){
+  if(reference.playerHp<=0){
     const fighter = document.querySelector('.fighter.player');
     if(fighter) fighter.classList.add('dead');
-    setTimeout(()=>endBattle('lose'),450);
+    setTimeout(()=>{ if(isCurrentBattle(reference)) endBattle('lose'); },450);
   }
 }
 
-function resolveMonsterHits(remaining, special={}){
-  if(!battle) return;
-  const monster = battle.monster;
+function resolveMonsterHits(remaining, special={}, reference=battle){
+  if(!isCurrentBattle(reference)) return;
+  const monster = reference.monster;
   const fighter = document.querySelector('.fighter.monster');
   const player = document.querySelector('.fighter.player');
   if(fighter) fighter.classList.add('attacking');
   setTimeout(()=>{
-    if(!battle) return;
+    if(!isCurrentBattle(reference)) return;
     if(fighter) fighter.classList.remove('attacking');
     const strongAttack = !!monster.charging || finiteNumber(special.mult,0)>=1.45;
     const dodged = Math.random()<dodgeChance();
@@ -4636,37 +4660,37 @@ function resolveMonsterHits(remaining, special={}){
       if(strongAttack) awardCombatMastery('dodge', monster);
     } else {
       let mult = monster.affinityFury ? 1.40 : (monster.fury ? 1.45 : 1);
-      if(monster.affinityFury && battle.playerStatus.stance==='defensive') mult *= .70;
+      if(monster.affinityFury && reference.playerStatus.stance==='defensive') mult *= .70;
       if(monster.charging){ mult *= 1.85; monster.charging=false; }
       if(special.mult) mult *= special.mult;
       let damage = monster.dmg*(.85+Math.random()*.3)*mult*combatStance().taken;
-      const shielded = battle.playerStatus.shieldTurns>0;
-      if(shielded){ damage*=.48; battle.playerStatus.shieldTurns--; }
+      const shielded = reference.playerStatus.shieldTurns>0;
+      if(shielded){ damage*=.48; reference.playerStatus.shieldTurns--; }
       damage = Math.max(1,Math.round((damage-getDefense()*.4) * (1-damageReduction())));
-      battle.playerHp = Math.max(0,battle.playerHp-damage);
+      reference.playerHp = Math.max(0,reference.playerHp-damage);
       if(player){ player.classList.remove('hit'); void player.offsetWidth; player.classList.add('hit'); }
       playCombatVfx(shielded ? 'shield' : 'impact','player',shielded ? '' : 'enemy-hit');
       spawnFloatText('player',`-${damage}`, '');
       Sound.enemyAttack(monster, shielded);
       addLog(`${monster.name} te golpea por ${damage} de daño${shielded?' · daño bloqueado':''}.`, 'enemy');
       if(special.manaBurn){
-        const burn = Math.max(1,Math.round(battle.playerMaxMana*special.manaBurn));
-        battle.playerMana = Math.max(0,battle.playerMana-burn);
+        const burn = Math.max(1,Math.round(reference.playerMaxMana*special.manaBurn));
+        reference.playerMana = Math.max(0,reference.playerMana-burn);
         playCombatVfx('arcane','player','enemy-hit');
         spawnFloatText('player',`-${burn} maná`,'miss');
       }
       const affinityVenom = monsterAffinity(monster)?.key==='venomous';
       const venomHit = (monster.archetype.key==='venom' && Math.random()<.55) || special.poison || affinityVenom;
       if(venomHit && !shielded){
-        battle.playerStatus.poisonTurns = Math.max(battle.playerStatus.poisonTurns,2);
+        reference.playerStatus.poisonTurns = Math.max(reference.playerStatus.poisonTurns,2);
         playCombatVfx('poison','player');
         spawnFloatText('player','☣ Veneno','miss');
       } else if(affinityVenom && shielded){
         addLog(`🛡 El escudo bloquea la toxina de ${monster.name}.`, 'combat');
       }
-      if(battle.playerStatus.counterReady>0){
+      if(reference.playerStatus.counterReady>0){
         const counter = Math.max(1,Math.round(atkDamage()*.72));
-        battle.playerStatus.counterReady = 0;
+        reference.playerStatus.counterReady = 0;
         monster.hp = Math.max(0,monster.hp-counter);
         recordRunDamage(counter);
         playCombatVfx('slash','monster','critical');
@@ -4676,16 +4700,16 @@ function resolveMonsterHits(remaining, special={}){
       }
     }
     syncBattleUi();
-    if(monster.hp<=0){ setTimeout(()=>endBattle('win'),350); return; }
-    if(battle.playerHp<=0){ endMonsterTurn(); return; }
-    if(remaining>1){ setTimeout(()=>resolveMonsterHits(remaining-1,special),220); }
-    else endMonsterTurn();
+    if(monster.hp<=0){ setTimeout(()=>{ if(isCurrentBattle(reference)) endBattle('win'); },350); return; }
+    if(reference.playerHp<=0){ endMonsterTurn(reference); return; }
+    if(remaining>1){ setTimeout(()=>resolveMonsterHits(remaining-1,special,reference),220); }
+    else endMonsterTurn(reference);
   },260);
 }
 
-function startMonsterTurn(){
-  if(!battle) return;
-  const monster = battle.monster;
+function startMonsterTurn(reference=battle){
+  if(!isCurrentBattle(reference)) return;
+  const monster = reference.monster;
   const status = monster.status;
   if(status.bleedTurns>0){
     monster.hp = Math.max(0,monster.hp-status.bleedDamage);
@@ -4694,7 +4718,7 @@ function startMonsterTurn(){
     playCombatVfx('impact','monster');
     spawnFloatText('monster',`🩸 -${status.bleedDamage}`,'crit');
     syncBattleUi();
-    if(monster.hp<=0){ setTimeout(()=>endBattle('win'),350); return; }
+    if(monster.hp<=0){ setTimeout(()=>{ if(isCurrentBattle(reference)) endBattle('win'); },350); return; }
     if(triggerBossPhaseTwo()) return;
   }
   if(monsterAffinity(monster)?.key==='furious' && !monster.affinityFury && monster.hp<=monster.maxHp*.5){
@@ -4716,7 +4740,7 @@ function startMonsterTurn(){
     Sound.miss();
     playCombatVfx('arcane','monster');
     spawnFloatText('monster','✦ Aturdido','miss');
-    setTimeout(endMonsterTurn,260);
+    setTimeout(()=>endMonsterTurn(reference),260);
     return;
   }
   if(monster.archetype.key==='charger' && !monster.charging){
@@ -4727,7 +4751,7 @@ function startMonsterTurn(){
     showCombatWarning('⚠ GOLPE DEVASTADOR','Usá Defensa, Escudo o rompé su carga');
     showFeedback('💥 GOLPE CARGADO','Interrumpilo o preparate','danger');
     syncBattleUi();
-    setTimeout(endMonsterTurn,380);
+    setTimeout(()=>endMonsterTurn(reference),380);
     return;
   }
   if(monster.isBoss && monster.phaseTwo){
@@ -4738,7 +4762,7 @@ function startMonsterTurn(){
     }
   }
   const hits = monster.archetype.key==='swift' ? 2 : 1;
-  resolveMonsterHits(hits);
+  resolveMonsterHits(hits,{},reference);
 }
 
 function advanceToMap(){
@@ -5096,6 +5120,7 @@ function retreatRun(){
 }
 
 function finishRun(retreated, completed=false){
+  if(battle){ battle.ended = true; battle = null; }
   const lostCompanion = state.companion;
   if(completed){
     state.campaignWins=(state.campaignWins||0)+1;
@@ -5114,6 +5139,7 @@ function finishRun(retreated, completed=false){
   state.companion = null;
   if(lostCompanion) showFeedback(retreated ? 'VÍNCULO FINALIZADO' : 'COMPAÑERO PERDIDO', retreated ? `${lostCompanion.name} vuelve a su hábitat` : `${lostCompanion.name} escapó al caer la expedición`, retreated ? 'mana' : 'danger');
   render();
+  saveState();
 }
 
 /* ---- Renderizado del modo roguelike ---- */
@@ -5390,8 +5416,8 @@ function renderSealRings(){
 
 const ALLOCATION_STATS = [
   { key:'ataque', group:'Combate', icon:'⚔', label:'Ataque', description:'Aumenta el daño base de todos tus golpes.', value:()=>baseStat('ataque'), add:1 },
-  { key:'critRate', group:'Combate', icon:'✹', label:'Prob. critica', description:'Posibilidad de convertir un golpe en crítico.', value:()=>Math.round(critChance()*100)+'%', add:1, critical:true },
-  { key:'critDmg', group:'Combate', icon:'◎', label:'Daño critico', description:'Potencia adicional de los golpes críticos.', value:()=>Math.round(critMultiplier()*100)+'%', add:5, critical:true },
+  { key:'critRate', group:'Combate', icon:'✹', label:'Prob. critica', description:'Posibilidad de convertir un golpe en crítico. Máximo efectivo: 75%.', value:()=>Math.round(critChance()*100)+'%', add:1, critical:true },
+  { key:'critDmg', group:'Combate', icon:'◎', label:'Daño critico', description:'Potencia adicional de los golpes críticos. Máximo efectivo: 320%.', value:()=>Math.round(critMultiplier()*100)+'%', add:5, critical:true },
   { key:'vida', group:'Supervivencia', icon:'♥', label:'Vida', description:'Aumenta tu vida máxima durante la expedición.', value:()=>maxHP(), add:1 },
   { key:'mana', group:'Supervivencia', icon:'✦', label:'Mana', description:'Aumenta el mana disponible para habilidades.', value:()=>maxMana(), add:1 },
   { key:'robustez', group:'Supervivencia', icon:'⬡', label:'Robustez', description:'Reduce porcentualmente todo el daño recibido.', value:()=>Math.round(damageReduction()*100)+'%', add:1 },
@@ -5674,6 +5700,18 @@ function updateCombatTension(){
 function renderActionButtons(){
   const box = document.getElementById('actionBtns');
   if(!box) return;
+  // El mapa, la pantalla de recompensa y el cierre de la expedición no son
+  // combates: ocultamos acciones antiguas para no dar la impresión de que se
+  // puede atacar sin un enemigo delante.
+  if(huntMode==='run' && (!runState || runState.phase==='ended')){
+    box.innerHTML = `<div class="hunt-ready-panel"><b>✦ LA SENDA ESTÁ LISTA</b><small>Iniciá una expedición para elegir tu primer camino.</small><button id="beginRunBtn">COMENZAR EXPEDICIÓN</button></div>`;
+    document.getElementById('beginRunBtn').addEventListener('click', ()=>startRun());
+    return;
+  }
+  if(huntMode==='run' && !battle){
+    box.innerHTML = '';
+    return;
+  }
   if(battle){
     const rawCost = Math.round(battle.playerMaxMana*currentClass().manaCost);
     const cost = visibleSkillCost(rawCost);
@@ -5919,7 +5957,7 @@ function renderHeroSubTab() {
         <div class="stat-row-detail">
           <span class="label">Daño Crítico:</span>
           <span class="val">
-            ${150 + state.critDmgStat + eq.critDmg}%
+            ${Math.round(critMultiplier()*100)}%
           </span>
         </div>
         <div class="stat-row-detail">
