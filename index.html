@@ -539,6 +539,7 @@
 
   .bounty-intro{ text-align:center; color:var(--gold-bright); font-family:'Cinzel'; font-size:13px; letter-spacing:1px; margin-bottom:12px; }
   .arena.bounty-selection-mode{ height:auto; min-height:260px; display:block; padding:14px 20px; }
+  .arena.reward-selection-mode{ height:auto; min-height:260px; padding:14px 20px; }
   .bounty-guide{ width:100%; max-width:660px; margin:0 auto 10px; padding:8px 11px; border:1px solid #4a371c; border-left:3px solid var(--gold); border-radius:3px; background:linear-gradient(90deg,rgba(101,69,20,.28),rgba(22,17,11,.78)); text-align:center; }
   .bounty-guide b{ display:block; color:var(--gold-bright); font:700 11px 'Cinzel'; letter-spacing:1px; }
   .bounty-guide span{ display:block; margin-top:4px; color:var(--parchment-dim); font:10px 'JetBrains Mono'; line-height:1.5; }
@@ -5193,6 +5194,7 @@ function renderRunMode(){
   arena.classList.add(`biome-${biome.key}`);
   arena.classList.toggle('route-map-mode', !!(runState && runState.phase==='map'));
   arena.classList.toggle('bounty-selection-mode', !!(runState && runState.phase==='bounty'));
+  arena.classList.toggle('reward-selection-mode', !!(runState && (runState.phase==='reward' || runState.phase==='dice')));
   arena.classList.toggle('boss-phase-two', !!(battle && battle.monster && battle.monster.phaseTwo));
   arena.classList.toggle('has-companion', !!(battle && state.characterClass==='tamer' && state.companion));
 
