@@ -33,8 +33,6 @@ const FISH_COLORS = { common:'#9fb4c7', uncommon:'#7fd1a5', rare:'#5aa9ff', epic
 // para estar pescando en el momento justo, no solo en la zona justa.
 const EVENT_FISH = { id:'kraken', key:'mythic', label:'Kraken Juvenil', icon:'🐙', essence:30, gold:520, scale:15, sizeMin:14, sizeMax:46 };
 const EVENT_FISH_CHANCE = 0.08; // chance por picada normal, solo en zonas habilitadas y con la condición activa
-
-/* ================= REQUISITOS Y CONDICIONES GENERALES ================= */
 function eventFishActive(){ return isNightTime() && currentWeather().key==='rain'; }
 
 // Recompensa única por completar el dex (atrapar las 5 especies al menos una
@@ -56,7 +54,6 @@ const FISH_ZONES = [
   { key:'depths', label:'Abismo',        icon:'🌑', rodReq:4, allowedKeys:['rare','epic','legendary'],            desc:'Las Aguas Profundas. Reservadas para cañas avanzadas — ahí nadan los más grandes.', eventEligible:true },
   { key:'sea',    label:'Mar Abierto',   icon:'⛵', rodReq:5, allowedKeys:['epic','legendary'],                   desc:'El Mar Abierto. Más allá del Abismo — solo una caña perfeccionada aguanta esta corriente. En noches de tormenta, algo más grande ronda por acá.', eventEligible:true },
 ];
-/* ================= ZONAS Y CLIMA ================= */
 function zoneDef(key){ return FISH_ZONES.find(z=>z.key===key) || FISH_ZONES[0]; }
 // Detalle ambiental por zona: cada una tiene su propia combinación de
 // burbujas y peces-sombra de fondo para que la escena se sienta viva incluso
@@ -174,7 +171,6 @@ function conditionsBadgeHTML(zoneKey){
   return `<div class="fish-conditions-row">${badges.join('')}</div>`;
 }
 
-/* ================= CEBOS Y CAÑA ================= */
 function buyBait(key){
   if(!state || fishingLocked() || fishCast) return;
   const bait = baitDef(key);
@@ -227,7 +223,6 @@ function upgradeRod(){
   saveState();
   renderFishing();
 }
-/* ================= LANZAR Y ENGANCHAR (casteo y mordida) ================= */
 function isCurrentFishCast(ref){ return !!ref && fishCast===ref && !ref.ended; }
 
 /* ---- Fase 1: lanzamiento con medidor de potencia (mantener y soltar) ---- */
@@ -330,11 +325,6 @@ function rollHookedFish(ref){
   const baseQuality = Math.max(0, Math.min(1, 0.32 + (rodLvl-1)*0.07 + (bait?bait.qualityBonus:0) + masteryBonus + nightBonus));
   return rollFish(baseQuality, pool);
 }
-/**
- * Sortea qué pez sale, sesgando la probabilidad hacia rarezas mejores según
- * `qualityNormalized` (0-1, viene de qué tan bien se hizo el minijuego de la
- * barra) y el nivel de caña. No confirma la captura: eso lo hace resolveCatch().
- */
 function rollFish(qualityNormalized, pool){
   pool = pool || FISH_TABLE;
   const rodLvl = (state.fishing && state.fishing.rodLevel) || 1;
@@ -375,7 +365,6 @@ function hookFish(){
   animateFishBar();
   renderFishing();
 }
-/* ================= MINIJUEGO DE TIRAR (barra de reel) ================= */
 function setReelHeld(held){
   if(!fishCast || fishCast.phase!=='reeling') return;
   fishCast.isHeld = held;
@@ -479,18 +468,12 @@ function burstFishSparks(container, color='#f7d07b', amount=10){
     setTimeout(()=>spark.remove(),700);
   }
 }
-/* ================= RESULTADO Y RENDERIZADO ================= */
 function fishRatingLabel(q){
   if(q>=0.85) return 'CAPTURA PERFECTA';
   if(q>=0.6) return 'BUENA PESCA';
   if(q>=0.35) return 'A LAS APURADAS';
   return 'POR LOS PELOS';
 }
-/**
- * Cierra el minijuego de pesca cuando termina la fase de reelar: calcula la
- * calidad final de la barra de tensión, decide el pez con rollFish/rollHookedFish,
- * y aplica recompensas (state.fishing, materiales, logros de bestiario de pesca).
- */
 function resolveCatch(){
   if(!fishCast || fishCast.phase!=='reeling') return;
   if(fishNeedleFrame){ cancelAnimationFrame(fishNeedleFrame); fishNeedleFrame=null; }
@@ -594,13 +577,6 @@ function renderFishing(){
     if(side) side.innerHTML = '';
   }
 }
-/**
- * Dibuja toda la pantalla de pesca según `fishCast?.phase` (idle, lanzando,
- * cargando/esperando picada, minijuego de reel, resultado). Se llama
- * "Unsafe" porque no atrapa errores: la envuelve `renderFishing()` (arriba)
- * con try/catch para que un error acá no rompa el render general del juego.
- * Si agregás una fase nueva a `fishCast.phase`, hay que agregar su bloque acá.
- */
 function renderFishingUnsafe(){
   const content = document.getElementById('fishingContent');
   const side = document.getElementById('fishingSide');

@@ -47,7 +47,6 @@ let forgeAutoMissTimer = null;
 const FORGE_HIT_COUNT = 4;
 const FORGE_ZONE_COUNT = 7;
 
-/* ================= MEJORA DE EQUIPO (+1, +2...) ================= */
 function clearForgeTimers(){
   if(forgeNeedleFrame){ cancelAnimationFrame(forgeNeedleFrame); forgeNeedleFrame=null; }
   if(forgeAutoMissTimer){ clearTimeout(forgeAutoMissTimer); forgeAutoMissTimer=null; }
@@ -72,7 +71,8 @@ function forgeBlueprints(){
   return FORGE_EXCLUSIVE_ITEMS.filter(item=>item.classOnly===state.characterClass);
 }
 function forgeCost(item){
-  return { essence:28, bossCore:2, gold:Math.max(650, Math.round(item.price*.18)) };
+  // Una pieza ancestral debe requerir varias expediciones con guardianes.
+  return { essence:60, bossCore:4, gold:Math.max(1500, Math.round(item.price*.40)) };
 }
 const ENHANCE_MAX = 13;
 const ENHANCE_BREAK_START = 8;
@@ -85,12 +85,6 @@ function enhanceBreakChance(next){
   return Math.min(0.35, 0.06 + (next-ENHANCE_BREAK_START)*0.045);
 }
 function enhancementLabel(item){ return item.enhanceLevel ? ` +${item.enhanceLevel}` : ''; }
-/**
- * Intenta mejorar (+1) la pieza de equipo en `state.ownedEquipment[index]`.
- * Cobra materiales/oro según enhancementCost(), y tiene chance de ROMPER la
- * pieza para siempre (enhanceBreakChance) en vez de mejorarla — ver el bloque
- * de `breakChance` más abajo para esa rama.
- */
 function enhanceEquipment(index){
   if(isForgeLocked()) return;
   const item=state.ownedEquipment[index];
@@ -132,7 +126,6 @@ function forgeItemStats(item){
   if(item.bonusSpeed) entries.push(`+${item.bonusSpeed}% Rapidez`);
   return entries.join(' · ') || 'Pieza excepcional';
 }
-/* ================= RITUAL DE RUNAS (minijuego de precisión) ================= */
 function isForgeLocked(){ return !!(battle || (runState && runState.phase!=='ended')); }
 function beginRunicForge(id){
   if(isForgeLocked()){ showFeedback('HERRERÍA CERRADA','Terminá la cacería antes de forjar.','danger'); return; }
@@ -208,12 +201,6 @@ function applyForgeOutcome(item,outcome){
   crafted.bonusCritDmg=(crafted.bonusCritDmg||0)+(outcome.critDmg||0);
   return crafted;
 }
-/**
- * Finaliza el ritual de runas para el blueprint `id`: usa la calidad
- * acumulada en `forgeRitual` (de strikeRune) para decidir el outcome final
- * vía forgeOutcome()/applyForgeOutcome(), y agrega la pieza única resultante
- * a state.ownedEquipment.
- */
 function craftUniqueItem(id){
   if(!forgeRitual || forgeRitual.itemId!==id) return;
   if(isForgeLocked()){ forgeRitual=null; return; }
@@ -258,7 +245,6 @@ function dismantleForgeItem(index){
   saveState();
   renderForge();
 }
-/* ================= RENDERIZADO DE HERRERÍA ================= */
 function renderRunicForge(item){
   const hits = forgeRitual.hits || [];
   const markers = Array.from({length:FORGE_HIT_COUNT},(_,index)=>{

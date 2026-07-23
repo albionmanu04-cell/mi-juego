@@ -80,11 +80,6 @@ const MONSTER_SPAWN_WEIGHTS = [
   { tier:'dificil', weight:20 },
   { tier:'elite', weight:5 }
 ];
-/**
- * Sortea el tier de dificultad ('facil'|'normal'|'dificil'|'elite') de un
- * monstruo según la profundidad de la expedición roguelike. A mayor `depth`,
- * las tablas de peso favorecen tiers más duros. Usado por makeRunMonster().
- */
 function rollMonsterTier(depth=1){
   // A medida que baja la expedición, los enemigos propios de cada región aparecen con más frecuencia.
   const weights = depth>=29 ? [
@@ -271,13 +266,6 @@ function depthTierKey(depth){
   if(depth<=10) return 'dificil';
   return 'elite';
 }
-/**
- * Genera el monstruo de un nodo de combate dentro de una expedición
- * roguelike: combina el bioma de esa profundidad (biomeForDepth), el tier
- * (rollMonsterTier) y si el nodo es de jefe/élite (`nodeType`) para armar
- * las stats finales. Es la contraparte de makeMonster() (combat.js), que se
- * usa en el modo de cacería clásica en vez del roguelike.
- */
 function makeRunMonster(depth, nodeType='fight'){
   const biome = biomeForDepth(depth);
   const actBoss = nodeType==='boss' ? ACT_BOSS_FORMS[biome.key] : null;
@@ -287,18 +275,10 @@ function makeRunMonster(depth, nodeType='fight'){
   // Curva fija de Cacería. Sólo profundidad, rango y tipo de encuentro deciden
   // sus estadísticas: subir nivel, equiparse o hacer resets jamás fortalece al rival.
   const tierScale = { facil:.78, normal:1, dificil:1.30, elite:1.68 }[tierKey] || 1;
-  // Refuerzo adicional por Acto (cada bloque de 5 niveles de profundidad, el
-  // mismo "ACTO N" que se muestra en el mapa de la expedición): además de la
-  // curva continua por profundidad de abajo, cada Acto completo suma un 16%
-  // extra de vida y 9% extra de daño, para que la dificultad se note al pasar
-  // de región en vez de sentirse siempre igual de fácil.
-  const act = Math.floor((depth-1)/5)+1;
-  const actHpScale = 1 + (act-1)*.16;
-  const actDamageScale = 1 + (act-1)*.09;
   const depthHp = 35 + depth*14 + depth*depth*1.45;
   const depthDamage = 4 + depth*1.25 + depth*depth*.018;
-  const hpTarget = depthHp*tierScale*actHpScale*(.95+Math.random()*.10);
-  const damageTarget = depthDamage*(.90+tierScale*.10)*actDamageScale*(.96+Math.random()*.08);
+  const hpTarget = depthHp*tierScale*(.95+Math.random()*.10);
+  const damageTarget = depthDamage*(.90+tierScale*.10)*(.96+Math.random()*.08);
   const ascension = runAscension(depth, !!(runState && runState.abyss));
   const ascensionHp = 1 + ascension*.24;
   const ascensionDamage = 1 + ascension*.11;
@@ -345,7 +325,6 @@ function makeRunMonster(depth, nodeType='fight'){
 }
 
 const SHOP_ROTATION_MS = 4 * 60 * 1000;
-/* ================= ARMERÍA Y RAREZA DE ÍTEMS ================= */
 
 const LEGACY_SHOP_EQUIPMENT_ITEMS = [
   { id: 'bronze_helm', type: 'helmet', name: 'Casco de Bronce', price: 100, bonusDef: 5, icon: '🪖', rarity:'Común', chance: 0.9, color:'var(--steel)' },
@@ -763,10 +742,6 @@ function equipmentSlotMeta(slot){
 function itemFitsCurrentClass(item){
   return !!item && (!item.classOnly || item.classOnly === state.characterClass) && (!item.subclassOnly || item.subclassOnly === state.subclass);
 }
-/* ================= VARIABLES GLOBALES MUTABLES DEL JUEGO =================
-   Declaradas acá pero usadas y modificadas en casi todos los demás archivos.
-   Ver MAPA-PARA-IA.md sección 3 para el detalle de state/battle/runState/fishCast.
-   ================================================================= */
 let state = null;
 let activeCharacterId = null;
 let selectedClassId = 'warrior';
