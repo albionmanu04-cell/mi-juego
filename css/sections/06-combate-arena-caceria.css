@@ -143,14 +143,20 @@
   .hunt-flow-step{ display:flex; align-items:center; gap:7px; min-width:0; padding:6px 7px; border-radius:4px; color:#aa9b83; font:9px 'JetBrains Mono'; }
   .hunt-flow-step i{ display:grid; place-items:center; flex:0 0 19px; width:19px; height:19px; border:1px solid rgba(226,176,70,.4); border-radius:50%; color:#efd084; background:rgba(111,69,17,.23); font:700 9px 'Cinzel'; font-style:normal; }.hunt-flow-step b{ display:block; color:#d9bb77; font:700 9px 'Cinzel'; letter-spacing:.5px; }.hunt-flow-step small{ display:block; overflow:hidden; color:#847861; font:8px 'JetBrains Mono'; white-space:nowrap; text-overflow:ellipsis; }
   @media(max-width:620px){ .hunt-flow{grid-template-columns:1fr}.hunt-flow-step{padding:5px 7px}.hunt-flow-step small{white-space:normal} }
-  .hunt-subtabs{ display:grid; grid-template-columns:repeat(2,1fr); gap:7px; margin:13px 0; padding:6px; border:1px solid var(--line); border-radius:4px; background:#120f0b; }
-  .hunt-subtab{ min-height:42px; border:1px solid transparent; border-radius:3px; background:transparent; color:var(--parchment-dim); font-family:'Cinzel'; font-size:10px; font-weight:700; letter-spacing:.8px; cursor:pointer; transition:.18s ease; }
-  .hunt-subtab:hover{ color:var(--gold-bright); background:rgba(183,132,37,.08); }
-  .hunt-subtab.active{ color:var(--gold-bright); border-color:var(--gold); background:linear-gradient(180deg,#392914,#21180e); box-shadow:inset 0 0 12px rgba(220,163,46,.09),0 0 11px rgba(196,142,32,.12); }
-  .hunt-subtab .hunt-tab-icon{ display:block; margin-bottom:2px; font-size:13px; }
-  #secHunt .hunt-subtabs{ position:relative; gap:8px; padding:5px; border-color:rgba(200,155,60,.28); border-radius:7px; background:linear-gradient(145deg,rgba(48,32,16,.74),rgba(11,8,6,.84)); box-shadow:inset 0 1px rgba(255,229,166,.045); }
-  #secHunt .hunt-subtab{ position:relative; min-height:49px; border-radius:5px; }.hunt-subtab.active::after{ content:''; position:absolute; bottom:5px; left:24%; right:24%; height:1px; background:var(--gold-bright); box-shadow:0 0 8px var(--gold); }
-  @media(max-width:540px){ .hunt-subtab{ font-size:8.5px; } }
+  .hunt-subtabs{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin:14px 0; padding:6px; border:1px solid rgba(200,155,60,.28); border-radius:9px; background:linear-gradient(145deg,rgba(48,32,16,.74),rgba(11,8,6,.86)); box-shadow:inset 0 2px 6px rgba(0,0,0,.5),inset 0 1px rgba(255,229,166,.045); }
+  .hunt-subtab{ position:relative; display:flex; align-items:center; justify-content:center; gap:9px; min-height:52px; overflow:hidden; border:1px solid transparent; border-radius:6px; background:rgba(0,0,0,.2); color:var(--parchment-dim); font-family:'Cinzel'; font-size:11px; font-weight:700; letter-spacing:1px; cursor:pointer; transition:.22s ease; }
+  .hunt-subtab::before{ content:''; position:absolute; inset:0; background:linear-gradient(120deg,transparent 30%,rgba(255,238,190,.1) 50%,transparent 70%); transform:translateX(-120%); transition:transform .5s ease; }
+  .hunt-subtab:hover{ color:var(--gold-bright); background:rgba(183,132,37,.12); transform:translateY(-1px); }
+  .hunt-subtab:hover::before{ transform:translateX(120%); }
+  .hunt-subtab .hunt-tab-icon{ position:relative; z-index:1; display:grid; place-items:center; flex:0 0 26px; width:26px; height:26px; border:1px solid currentColor; border-radius:50%; font-size:13px; opacity:.5; transition:.22s ease; }
+  .hunt-subtab .hunt-tab-label{ position:relative; z-index:1; }
+  .hunt-subtab:hover .hunt-tab-icon{ opacity:.85; }
+  .hunt-subtab.active{ color:var(--gold-bright); border-color:var(--gold); background:linear-gradient(180deg,#3d2c15,#20170d); box-shadow:inset 0 0 14px rgba(220,163,46,.12),0 4px 10px rgba(0,0,0,.35),0 0 14px rgba(196,142,32,.16); }
+  .hunt-subtab.active .hunt-tab-icon{ opacity:1; background:radial-gradient(circle,rgba(232,196,119,.25),transparent 70%); animation:huntTabPulse 2.6s ease-in-out infinite; }
+  .hunt-subtab.active::after{ content:''; position:absolute; bottom:0; left:18%; right:18%; height:2px; border-radius:2px; background:linear-gradient(90deg,transparent,var(--gold-bright),transparent); box-shadow:0 0 8px var(--gold); }
+  @keyframes huntTabPulse{ 0%,100%{box-shadow:0 0 9px rgba(232,196,119,.4);} 50%{box-shadow:0 0 15px rgba(232,196,119,.65);} }
+  @media(max-width:540px){ .hunt-subtab{ font-size:9.5px; gap:6px; min-height:46px; } .hunt-subtab .hunt-tab-icon{ flex:0 0 21px; width:21px; height:21px; font-size:11px; } }
+  @media (prefers-reduced-motion: reduce){ .hunt-subtab.active .hunt-tab-icon{ animation:none; } .hunt-subtab::before{ display:none; } }
 
   #secHunt .arena{ border-color:rgba(200,155,60,.42); border-radius:7px; box-shadow:inset 0 0 0 1px rgba(0,0,0,.72),inset 0 0 48px rgba(0,0,0,.46),0 14px 26px rgba(0,0,0,.34); }
   #secHunt .arena-idle{ position:relative; color:#d2bd8d; text-align:center; }.arena-idle::before{ content:'✦'; display:grid; place-items:center; width:44px; height:44px; border:1px solid rgba(232,196,119,.42); border-radius:50%; color:var(--gold-bright); background:radial-gradient(circle,rgba(170,111,27,.22),rgba(22,14,8,.2)); font-size:19px; box-shadow:0 0 22px rgba(228,178,67,.18); }.arena-idle::after{ content:'La senda espera a un nuevo aventurero'; color:#9f9077; font:8px 'JetBrains Mono'; letter-spacing:.7px; }
