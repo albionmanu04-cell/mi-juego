@@ -170,7 +170,7 @@ function makeScenarioEvent(){
 }
 
 /* ================= ROGUELIKE HUNT MODE ================= */
-// Escala de rareza de la tirada de 5 dados (estilo Generala), de la más común a la más difícil.
+// Escala de rareza de la tirada de 6 dados (estilo Generala), de la más común a la más difícil.
 const DICE_COMBOS = [
   { rank:0, label:'Nada',       color:'var(--parchment-dim)' },
   { rank:1, label:'Un Par',     color:'var(--parchment)' },
@@ -186,13 +186,15 @@ function evaluateDiceCombo(dice){
   dice.forEach(d=>counts[d]=(counts[d]||0)+1);
   const countVals = Object.values(counts).sort((a,b)=>b-a);
   const uniqueSorted = Object.keys(counts).map(Number).sort((a,b)=>a-b);
-  const isStraight = uniqueSorted.length===5 && (uniqueSorted[4]-uniqueSorted[0]===4);
-  if(countVals[0]===5) return 7;
+  // Con 6 dados alcanza con que aparezcan 5 valores consecutivos entre los
+  // tirados (el sexto dado sobrante no importa) para que cuente como escalera.
+  const isStraight = [1,2].some(start=>[start,start+1,start+2,start+3,start+4].every(v=>uniqueSorted.includes(v)));
+  if(countVals[0]>=5) return 7;
   if(countVals[0]===4) return 6;
-  if(countVals[0]===3 && countVals[1]===2) return 5;
+  if(countVals[0]===3 && countVals[1]>=2) return 5;
   if(isStraight) return 4;
   if(countVals[0]===3) return 3;
-  if(countVals[0]===2 && countVals[1]===2) return 2;
+  if(countVals.filter(c=>c>=2).length>=2) return 2;
   if(countVals[0]===2) return 1;
   return 0;
 }
@@ -200,9 +202,14 @@ function evaluateDiceCombo(dice){
 // "estadísticamente difícil" hay que tirar para cobrar bien: Fácil tiene un piso decente,
 // Difícil paga casi nada con una tirada mala pero mucho con Full/Póker/Generala.
 const BOUNTY_TIERS = {
-  facil:   { key:'facil',   label:'Fácil',   icon:'🟢', needLabel:'Seguro · premio menor', goal:'Buscá: Par o mejor', risk:'Recompensa segura, pero moderada.', mult:[0.55,0.85,1.15,1.5,1.9,2.3,2.8,3.4] },
-  medio:   { key:'medio',   label:'Medio',   icon:'🟡', needLabel:'Riesgo medio · buen premio', goal:'Buscá: Trío o mejor', risk:'Una tirada baja paga poco; el Trío cambia la run.', mult:[0.15,0.4,0.75,1.3,2.1,3.1,4.4,6.2] },
-  dificil: { key:'dificil', label:'Difícil', icon:'🔴', needLabel:'Alto riesgo · gran premio', goal:'Buscá: Full o mejor', risk:'Alto riesgo: sin una gran combinación casi no cobrás.', mult:[0,0.08,0.2,0.55,1.2,2.7,5.4,9.5] },
+  // Multiplicadores reescalados tras pasar de 5 a 6 dados: con un dado extra,
+  // Full/Póker/Generala salen bastante más seguido (simulado con la
+  // estrategia de conservar el grupo más repetido en cada tirada), así que
+  // se bajaron los multiplicadores para que el pago promedio de cada tier
+  // quede igual que antes con 5 dados, en vez de inflarse solo.
+  facil:   { key:'facil',   label:'Fácil',   icon:'🟢', needLabel:'Seguro · premio menor', goal:'Buscá: Par o mejor', risk:'Recompensa segura, pero moderada.', mult:[0.46,0.72,0.97,1.27,1.60,1.94,2.36,2.87] },
+  medio:   { key:'medio',   label:'Medio',   icon:'🟡', needLabel:'Riesgo medio · buen premio', goal:'Buscá: Trío o mejor', risk:'Una tirada baja paga poco; el Trío cambia la run.', mult:[0.11,0.30,0.56,0.97,1.57,2.32,3.30,4.65] },
+  dificil: { key:'dificil', label:'Difícil', icon:'🔴', needLabel:'Alto riesgo · gran premio', goal:'Buscá: Full o mejor', risk:'Alto riesgo: sin una gran combinación casi no cobrás.', mult:[0,0.05,0.13,0.36,0.79,1.79,3.58,6.29] },
 };
 function bountyTierClass(key){ return 'tier-'+key; }
 const MAP_NODE_TYPES = {

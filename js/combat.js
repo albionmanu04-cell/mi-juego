@@ -2058,15 +2058,15 @@ function chooseBounty(key){
   if(!runState || runState.phase!=='bounty') return;
   Sound.click();
   runState.chosenBounty = key;
-  runState.dice = rollFive();
-  runState.held = [false,false,false,false,false];
+  runState.dice = rollDiceSet();
+  runState.held = [false,false,false,false,false,false];
   runState.rollsLeft = 2;
   runState.comboRank = evaluateDiceCombo(runState.dice);
   runState.phase = 'dice';
   render();
 }
 
-function rollFive(){ return [1,2,3,4,5].map(()=>1+Math.floor(Math.random()*6)); }
+function rollDiceSet(){ return [1,2,3,4,5,6].map(()=>1+Math.floor(Math.random()*6)); }
 
 function toggleHold(i){
   if(!runState || runState.phase!=='dice' || runState.rollsLeft<=0) return;
@@ -2387,7 +2387,7 @@ function renderRunMode(){
 
   if(runState.phase==='bounty'){
     arena.innerHTML = `
-      <div class="bounty-guide"><b>Contrato de cacería</b><span>Elegí una dificultad · tirá 5 dados · guardá los que te sirvan · cobrá según la combinación.</span></div>
+      <div class="bounty-guide"><b>Contrato de cacería</b><span>Elegí una dificultad · tirá 6 dados · guardá los que te sirvan · cobrá según la combinación.</span></div>
       <div class="bounty-intro" style="width:100%;">Elegí tu riesgo</div>
       <div class="bounty-grid" style="width:100%;">
         ${Object.values(BOUNTY_TIERS).map(t=>`
