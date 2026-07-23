@@ -2446,10 +2446,10 @@ function renderRunMode(){
         <div class="combo-label" style="color:${combo.color}">Resultado: ${combo.label}</div>
         <div class="bounty-intro" style="margin:0;">Elegí tu recompensa</div>
         <div class="reward-grid" style="width:100%;">
-          <div class="reward-card" data-reward="heal"><span class="r-icon">💚</span><div class="r-label">Curarse</div><div class="r-val">+${r.heal} vida</div></div>
-          <div class="reward-card" data-reward="stat"><span class="r-icon">✨</span><div class="r-label">Mejora de expedición</div><div class="r-val">+${r.statPoints} pts · temporal</div></div>
-          <div class="reward-card" data-reward="gold"><span class="r-icon">💰</span><div class="r-label">Oro</div><div class="r-val">+${r.gold}</div></div>
-          <div class="reward-card" data-reward="mana"><span class="r-icon">💧</span><div class="r-label">Recuperar maná</div><div class="r-val">+${r.mana} maná</div></div>
+          <div class="reward-card reward-heal" data-reward="heal"><i class="r-accent"></i><span class="r-icon">💚</span><div class="r-label">Curarse</div><div class="r-val">+${r.heal} vida</div><div class="r-note">Recuperación instantánea</div></div>
+          <div class="reward-card reward-stat" data-reward="stat"><i class="r-accent"></i><span class="r-icon">✨</span><div class="r-label">Mejora de expedición</div><div class="r-val">+${r.statPoints} pts · temporal</div><div class="r-note">Atributo al azar · dura la cacería</div></div>
+          <div class="reward-card reward-gold" data-reward="gold"><i class="r-accent"></i><span class="r-icon">💰</span><div class="r-label">Oro</div><div class="r-val">+${r.gold}</div><div class="r-note">Se cobra al salir de la cacería</div></div>
+          <div class="reward-card reward-mana" data-reward="mana"><i class="r-accent"></i><span class="r-icon">💧</span><div class="r-label">Recuperar maná</div><div class="r-val">+${r.mana} maná</div><div class="r-note">Recuperación instantánea</div></div>
         </div>
       </div>`;
     arena.querySelectorAll('.reward-card').forEach(card=>{
