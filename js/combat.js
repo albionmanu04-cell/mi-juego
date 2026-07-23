@@ -650,7 +650,7 @@ function endBattle(result){
     if(isBoss) bestiaryEntry.boss = true;
     state.bestiary[bestiaryKey] = bestiaryEntry;
     const bossMult = isBoss ? 3 : 1;
-    const exp = Math.floor(expToNext(state.level) * 0.09 * tier.reward * bossMult);
+    const exp = Math.floor(expToNext(state.level) * 0.055 * tier.reward * bossMult);
     let gold = Math.floor((20 + state.level*2) * tier.reward * bossMult * (0.85+Math.random()*0.3));
     if(isRun) gold = Math.max(1, Math.floor(gold * RUN_ECONOMY.victoryGold * (1+runRelicValue('gold'))));
     state.missions.day.hunts++;
@@ -1492,7 +1492,7 @@ function runPlayerHits(totalHits, isSkill, doneCount, reference=battle){
 
 function doTrain(){
   Sound.click();
-  const exp = Math.floor(expToNext(state.level) * 0.025);
+  const exp = Math.floor(expToNext(state.level) * 0.0125);
   showFeedback('⚒ ENTRENAMIENTO', `+${exp} exp`, 'mana');
   gainExp(exp);
   addLog(`Entrenamiento — +${exp} exp`, '');
@@ -2220,7 +2220,7 @@ function renderRunStatusBar(){
   const biome = biomeForDepth(runState.depth);
   const nodeInfo = MAP_NODE_TYPES[(runState.currentNode && runState.currentNode.type) || 'fight'] || MAP_NODE_TYPES.fight;
   const untilBoss = 5 - ((runState.depth - 1) % 5);
-  const estimatedExp = Math.max(5, Math.round((7 + state.level * 2) * (1 + runState.depth * .11)));
+  const estimatedExp = Math.max(3, Math.round((7 + state.level * 2) * (1 + runState.depth * .11) * .6));
   const estimatedGold = Math.max(1, Math.round((11 + state.level * 3) * (1 + runState.depth * .13) * RUN_ECONOMY.victoryGold));
   const dangerLabel = nodeInfo.label || 'Combate';
   const weekly = activeWeeklyTrial();

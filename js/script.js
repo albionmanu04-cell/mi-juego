@@ -699,7 +699,9 @@ function safePositiveInt(value, fallback=1){
   return Math.max(1, Math.round(finiteNumber(value, fallback)));
 }
 function expToNext(level){
-  const base = 80 * Math.pow(level, 1.6);
+  // El comienzo conserva ritmo, pero cada nivel avanzado requiere un compromiso
+  // mayor para que llegar al renacer sea una meta de largo plazo.
+  const base = 105 * Math.pow(level, 1.68);
   const resetDiscount = Math.min(0.5, finiteNumber(state.resets) * 0.04);
   return Math.floor(base * (1 - resetDiscount));
 }
