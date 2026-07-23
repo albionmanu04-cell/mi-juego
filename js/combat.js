@@ -40,6 +40,22 @@ const RUN_ECONOMY = {
   eliteRelicChance: .08,
   bossTrophyChance: .55
 };
+
+// El Guardián no debe adelantar la progresión al inicio. La chance de objeto
+// crece con la profundidad y la rareza máxima se habilita por tramos.
+function guardianGearProgress(depth){
+  const safeDepth = Math.max(1, Math.floor(finiteNumber(depth, 1)));
+  const chance = Math.min(.45, .01 + Math.max(0, safeDepth-1) * .004);
+  const maxRank = safeDepth < 15 ? 2 : safeDepth < 30 ? 3 : safeDepth < 50 ? 4 : safeDepth < 75 ? 5 : 6;
+  return { chance, maxRank };
+}
+
+function eliteGearProgress(depth){
+  const safeDepth = Math.max(1, Math.floor(finiteNumber(depth, 1)));
+  const chance = Math.min(.24, .004 + Math.max(0, safeDepth-1) * .002);
+  const maxRank = safeDepth < 15 ? 2 : safeDepth < 30 ? 3 : safeDepth < 50 ? 4 : safeDepth < 75 ? 5 : 6;
+  return { chance, maxRank };
+}
 function emptyRunTelemetry(){
   return {
     maxDamage: 0,
@@ -231,19 +247,28 @@ function awardRunLoot(monster){
   if(guildMarks && typeof marketMarks==='function') marketMarks(guildMarks);
 
   const rarityRank = { common:0, uncommon:1, rare:2, epic:3, legendary:4, mythic:5, unique:6 };
-  // Los combates comunes ahora pueden dejar objetos comunes/poco comunes; Élites y Jefes siguen
-  // reservados para lo raro en adelante.
-  const minRank = isBoss ? 3 : isElite ? 2 : 0;
+  // Guardianes y élites dan equipo de forma progresiva: al inicio apenas hay
+  // chances y las rarezas superiores se desbloquean con la profundidad.
+  const guardianProgress = isBoss ? guardianGearProgress(runState.depth) : null;
+  const eliteProgress = isElite ? eliteGearProgress(runState.depth) : null;
+  const minRank = isBoss ? 0 : isElite ? 2 : 0;
+  const maxRank = isBoss ? guardianProgress.maxRank : isElite ? eliteProgress.maxRank : 6;
   // La probabilidad final no puede superar 100%, pero Percepción no tiene límite de bonificación.
   const perceptionBonus = Math.min(.12, perceptionLootBonus());
   const gearChance = isCommonFight
     ? Math.min(.06, RUN_ECONOMY.commonGearChance + perceptionBonus*.35)
-    : Math.min(.32, (isBoss ? RUN_ECONOMY.bossGearChance : RUN_ECONOMY.eliteGearChance) + perceptionBonus + (weekly.key==='hunter' && isBoss ? .04 : 0));
+    : isBoss
+      ? Math.min(.45, guardianProgress.chance + Math.min(.04, perceptionBonus*.20) + (weekly.key==='hunter' ? .02 : 0))
+      : Math.min(.24, eliteProgress.chance + Math.min(.025, perceptionBonus*.16) + (weekly.key==='hunter' ? .01 : 0));
   let item = null;
   if(Math.random()<gearChance){
     const activeSetId = state.subclass ? `subclass-${state.characterClass}-${state.subclass}` : `class-${state.characterClass}`;
-    const specialist = SHOP_EQUIPMENT_ITEMS.filter(entry=>entry.setId===activeSetId && rarityRank[entry.rarityKey]>=minRank);
-    const traveler = UNIVERSAL_EQUIPMENT_ITEMS.filter(entry=>rarityRank[entry.rarityKey]>=minRank);
+    const inDropRange = entry => {
+      const rank = rarityRank[entry.rarityKey];
+      return rank>=minRank && rank<=maxRank;
+    };
+    const specialist = SHOP_EQUIPMENT_ITEMS.filter(entry=>entry.setId===activeSetId && inDropRange(entry));
+    const traveler = UNIVERSAL_EQUIPMENT_ITEMS.filter(inDropRange);
     const candidates = (!isBoss && !isElite && Math.random()<.22) ? traveler : specialist;
     item = pick(candidates.length ? candidates : (specialist.length ? specialist : traveler));
     if(item){
