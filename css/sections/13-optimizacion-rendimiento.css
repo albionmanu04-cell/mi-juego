@@ -1,0 +1,31 @@
+/* ================================================================
+   13-OPTIMIZACION-RENDIMIENTO.CSS — Reglas de optimización de rendimiento (will-change, contain, etc.).
+   Parte de game.css original, líneas 1996-2020. Orden de carga:
+   ver comentario en index.html.
+   ================================================================ */
+
+  /* ---- OPTIMIZACIÓN DE RENDIMIENTO ----
+     Promueve a su propia capa GPU los elementos con animaciones infinitas
+     que se muestran de forma permanente (anillo de nivel, aura del sello,
+     ícono de oro, arte de clase, sheen de stats, pips pendientes). Medido con
+     Chrome DevTools: sin esto, cada uno fuerza un repintado de página completa
+     en cada frame (~60/seg) aunque solo anime transform/opacity. Con el hint
+     el navegador cachea una textura y solo recompone, bajando el trabajo de
+     la CPU/hilo principal de forma notable, sobre todo en gama baja/mobile.
+     No se aplica a animaciones de box-shadow/filter (iconEmberPulse,
+     addBtnBreathe, btnReadyPulse, pointsBannerPulse, musicPulse) porque esas
+     necesitan repintar sí o sí — el hint no ayuda ahí y sólo gastaría memoria
+     de más (por eso tampoco se agrega will-change de forma global).
+  */
+  .seal-ring-tick,
+  .seal-wrap::before,
+  .gold-coin-icon,
+  .gate-class-art,
+  .profile-portrait img,
+  .stat-card.invested::before,
+  .stat-pips i.pending{
+    will-change: transform;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  }

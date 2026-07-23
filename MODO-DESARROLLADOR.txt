@@ -1,0 +1,19 @@
+MODO DESARROLLADOR · FORJA ETERNA
+
+1. Abrí index.html directamente desde la carpeta del juego.
+2. En la pantalla de acceso aparecerá “ENTRAR COMO DESARROLLADOR”.
+3. Entrá, creá o elegí un personaje local y utilizá el panel inferior derecho.
+
+El panel permite:
+- sumar 1 o 5 niveles;
+- sumar 1.000 de oro;
+- sumar 25 puntos de estadística;
+- restaurar vida y maná;
+- guardar inmediatamente la prueba.
+
+SEGURIDAD
+- El botón sólo existe al ejecutar el juego mediante file://, localhost o 127.0.0.1.
+- Nunca aparece en forja-eterna.vercel.app ni en otro dominio público.
+- Los personajes de prueba usan un guardado separado.
+- El modo desarrollador no sincroniza la nube ni publica datos en el ranking.
+

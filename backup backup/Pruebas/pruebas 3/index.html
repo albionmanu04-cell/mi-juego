@@ -670,8 +670,11 @@
   .arena .ground{ position:absolute; bottom:0; left:0; right:0; height:14px; background:linear-gradient(180deg, #241a10, #150f0a); border-top:1px solid var(--line);}
   .fighter{ position:relative; width:110px; display:flex; flex-direction:column; align-items:center; }
   .fighter .name{ font-family:'Cinzel'; font-size:10.5px; letter-spacing:1px; color:var(--parchment-dim); margin-bottom:4px; }
-  .fighter .mini-bar{ width:100px; height:6px; background:var(--bg-deep); border:1px solid var(--line); border-radius:2px; overflow:hidden; margin-bottom:6px;}
-  .fighter .mini-bar > div{ height:100%; transition:width .3s ease; }
+  .fighter .mini-bar{ width:100px; height:6px; background:var(--bg-deep); border:1px solid var(--line); border-radius:2px; overflow:hidden; margin-bottom:6px; position:relative;}
+  .fighter .mini-bar > div{ position:absolute; inset:0; height:100%; transition:width .3s ease; z-index:1; }
+  .fighter .mini-bar > div.mini-bar-ghost{ transition:width .6s cubic-bezier(.3,.7,.4,1) .15s; z-index:0; background:#fff3c4; }
+  .fighter.player .mini-bar > div.mini-bar-ghost{ background:#ff9d8a; }
+  .fighter.monster .mini-bar > div.mini-bar-ghost{ background:#ffd48a; }
   .break-meter{ width:104px; margin:-2px 0 6px; display:flex; align-items:center; gap:4px; color:#b7a17a; font:700 7px 'JetBrains Mono'; letter-spacing:.3px; }
   .break-meter .break-track{ flex:1; height:5px; overflow:hidden; border:1px solid #4d3a20; border-radius:8px; background:#120e09; }
   .break-meter .break-fill{ height:100%; width:0; background:linear-gradient(90deg,#83512d,#e2ad4e,#ffe29a); box-shadow:0 0 7px rgba(239,187,79,.55); transition:width .22s ease; }
@@ -695,6 +698,8 @@
   .sprite-box svg{ width:100%; height:100%; overflow:visible; }
 
   #playerArmGroup{ transform-box:fill-box; transform-origin:100% 30%; transition:transform .12s ease; }
+  .fighter.player .sprite-box{ transition:transform .12s ease; }
+  .fighter.player.attacking .sprite-box{ transform:translateX(12px) scale(1.05); }
   .fighter.player.attacking #playerArmGroup{ transform:rotate(-55deg); }
   .fighter.player.hit .sprite-box{ animation:shakeL .35s; }
   .fighter.player.dead .sprite-box{ opacity:0.3; filter:grayscale(1); }
@@ -710,13 +715,17 @@
   .vs{ font-family:'Cinzel Decorative'; color:var(--line); font-size:22px; align-self:center; margin-bottom:30px; }
 
   .dmg-float{
-    position:absolute; top:20%; font-family:'JetBrains Mono'; font-weight:700; font-size:15px;
-    color:var(--parchment); pointer-events:none; animation:floatUp .85s ease-out forwards; z-index:5;
+    position:absolute; top:20%; font-family:'JetBrains Mono'; font-weight:800; font-size:17px;
+    color:var(--parchment); pointer-events:none; z-index:5;
+    text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 2px 6px rgba(0,0,0,.55);
+    animation:floatUp 1.05s cubic-bezier(.15,.75,.25,1) forwards;
   }
-  .dmg-float.crit{ color:var(--gold-bright); font-size:18px; }
+  .dmg-float.crit{ color:var(--gold-bright); font-size:21px; }
+  .dmg-float.big{ font-size:23px; }
+  .dmg-float.big.crit{ font-size:26px; }
   .dmg-float.heal{ color:var(--green); }
-  .dmg-float.miss{ color:var(--parchment-dim); font-style:italic; font-size:12px; }
-  @keyframes floatUp{ 0%{ transform:translateY(0); opacity:1;} 100%{ transform:translateY(-38px); opacity:0;} }
+  .dmg-float.miss{ color:var(--parchment-dim); font-style:italic; font-size:12px; text-shadow:0 2px 4px rgba(0,0,0,.5); }
+  @keyframes floatUp{ 0%{ transform:scale(.5) translateY(6px) rotate(var(--jitter-rot,0deg)); opacity:0;} 20%{ transform:scale(1.15) translateY(-4px) rotate(var(--jitter-rot,0deg)); opacity:1;} 40%{ transform:scale(1) translateY(-10px) rotate(var(--jitter-rot,0deg)); opacity:1;} 100%{ transform:translateY(-44px) rotate(var(--jitter-rot,0deg)); opacity:0;} }
 
   .arena-idle{
     display:flex; align-items:center; justify-content:center; height:100%; flex-direction:column; gap:10px;
@@ -912,6 +921,13 @@
   .log-line.reset{ color:var(--ember); border-left-color:var(--ember); }
   .log-line.combat{ color:#b9d8e8; border-left-color:#3c8eb8; background:linear-gradient(90deg,rgba(45,112,150,.12),transparent 55%); }
   .log-line.enemy{ color:#ee9a7d; border-left-color:#c14c39; background:linear-gradient(90deg,rgba(159,49,30,.13),transparent 55%); }
+  .log-line.crit{ color:var(--gold-bright); font-weight:600; border-left-color:var(--gold-bright); background:linear-gradient(90deg,rgba(232,196,119,.22),transparent 60%); text-shadow:0 0 8px rgba(232,196,119,.4); }
+  /* El suceso más reciente entra con una pequeña animación y un destello de su propio color */
+  .log-line:last-child{ animation:logReveal .3s cubic-bezier(.2,.85,.3,1.3), logGlowFade 1s ease-out; }
+  @keyframes logReveal{ from{ opacity:0; transform:translateX(-10px); } to{ opacity:1; transform:translateX(0); } }
+  @keyframes logGlowFade{ from{ box-shadow:0 0 0 1px currentColor inset, 0 0 12px currentColor; } to{ box-shadow:0 0 0 0 transparent inset, 0 0 0 transparent; } }
+  .log-line.crit:last-child{ animation:logReveal .3s cubic-bezier(.2,.85,.3,1.3), critGlowFade 1.3s ease-out; }
+  @keyframes critGlowFade{ 0%{ box-shadow:0 0 0 1px rgba(232,196,119,.9) inset, 0 0 18px rgba(232,196,119,.6); } 100%{ box-shadow:0 0 0 0 transparent inset, 0 0 0 transparent; } }
   .hunt-log-panel{ position:sticky; top:16px; padding:15px!important; }
   .hunt-log-panel h3{ margin-bottom:10px!important; font-size:11px!important; }
   .hunt-log-note{ margin:0 0 9px; color:var(--parchment-dim); font:9px 'JetBrains Mono'; line-height:1.45; }
@@ -1302,6 +1318,11 @@
   .arena.last-stand:not(.boss-phase-two){ box-shadow:inset 0 0 72px rgba(185,35,36,.42),0 0 22px rgba(195,53,42,.2); animation:lastStandPulse 1.15s ease-in-out infinite; }
   .arena.last-stand::after{ content:''; position:absolute; z-index:5; inset:0; pointer-events:none; background:radial-gradient(circle at 76% 54%,rgba(236,60,49,.25),transparent 34%),linear-gradient(90deg,transparent,rgba(157,24,28,.15),transparent); mix-blend-mode:screen; animation:lastStandVeil 1.15s ease-in-out infinite; }
   .arena.last-stand .fighter.monster .sprite-box{ filter:drop-shadow(0 0 15px #e44a43) brightness(1.15) saturate(1.25); }
+  .arena.player-danger{ box-shadow:inset 0 0 0 2px rgba(220,30,30,.5),inset 0 0 85px rgba(160,10,10,.55); animation:playerDangerPulse .85s ease-in-out infinite; }
+  @keyframes playerDangerPulse{
+    0%,100%{ box-shadow:inset 0 0 0 2px rgba(220,30,30,.35),inset 0 0 55px rgba(160,10,10,.3); }
+    50%{ box-shadow:inset 0 0 0 3px rgba(255,45,45,.75),inset 0 0 110px rgba(200,15,15,.65); }
+  }
   .combat-warning{ position:absolute; z-index:30; left:50%; top:14px; width:min(78%,390px); transform:translateX(-50%); padding:8px 12px; border:1px solid #d85b47; border-radius:4px; text-align:center; background:linear-gradient(90deg,rgba(70,15,14,.95),rgba(117,36,25,.95),rgba(70,15,14,.95)); box-shadow:0 0 20px rgba(222,63,45,.45),inset 0 1px rgba(255,225,180,.18); color:#ffe1ba; font:700 10px 'Cinzel'; letter-spacing:1px; animation:warningDrop .7s cubic-bezier(.16,.8,.25,1) both; }
   .combat-warning small{ display:block; margin-top:3px; color:#f4ab8a; font:9px 'JetBrains Mono'; letter-spacing:0; }.combat-warning.boss{ border-color:#f2b056; background:linear-gradient(90deg,rgba(82,21,14,.96),rgba(137,46,21,.96),rgba(82,21,14,.96)); }
   @keyframes warningDrop{ 0%{opacity:0;transform:translate(-50%,-15px) scale(.88)} 20%,72%{opacity:1;transform:translate(-50%,0) scale(1)} 100%{opacity:0;transform:translate(-50%,-4px) scale(.97)} }
@@ -1314,9 +1335,32 @@
   /* ---- JUGOSIDAD DE COMBATE ---- */
   .arena.crit-shake{ animation:critShake .4s; }
   @keyframes critShake{
-    0%,100%{ transform:translateX(0); } 20%{ transform:translateX(-6px) rotate(-.5deg); }
+    0%,100%{ transform:translateX(0) scale(1); } 15%{ transform:translateX(-6px) rotate(-.5deg) scale(1.018); } 20%{ transform:translateX(-6px) rotate(-.5deg); }
     40%{ transform:translateX(6px) rotate(.5deg); } 60%{ transform:translateX(-4px); } 80%{ transform:translateX(4px); }
   }
+  .arena.hit-shake{ animation:hitShake .26s; }
+  @keyframes hitShake{
+    0%,100%{ transform:translateX(0) scale(1); } 20%{ transform:scale(1.01); } 30%{ transform:translateX(-3px); } 60%{ transform:translateX(3px); }
+  }
+  .arena.mega-shake{ animation:megaShake .46s; }
+  @keyframes megaShake{
+    0%,100%{ transform:translateX(0) scale(1); } 10%{ transform:translateX(-9px) rotate(-.7deg) scale(1.03); } 25%{ transform:translateX(8px) rotate(.6deg); }
+    40%{ transform:translateX(-7px) rotate(-.5deg); } 55%{ transform:translateX(6px); } 70%{ transform:translateX(-4px); } 85%{ transform:translateX(3px); }
+  }
+  .fighter.hit .sprite-box::after{
+    content:''; position:absolute; inset:-6px; z-index:2; border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle, rgba(255,255,255,.75), transparent 70%);
+    animation:impactFlash .28s ease-out forwards;
+  }
+  @keyframes impactFlash{ 0%{ opacity:.9; } 100%{ opacity:0; } }
+  .combo-badge{
+    position:absolute; top:6px; left:50%; transform:translateX(-50%) scale(.7); z-index:6; pointer-events:none;
+    font-family:'Cinzel'; font-weight:700; font-size:13px; letter-spacing:1.5px; color:var(--gold-bright);
+    text-shadow:0 0 10px rgba(232,196,119,.7),0 2px 4px rgba(0,0,0,.6);
+    animation:comboBadgeIn .45s cubic-bezier(.2,.9,.25,1.3) forwards, comboBadgeOut .35s ease-in 950ms forwards;
+  }
+  @keyframes comboBadgeIn{ 0%{ opacity:0; transform:translateX(-50%) scale(.6); } 100%{ opacity:1; transform:translateX(-50%) scale(1); } }
+  @keyframes comboBadgeOut{ to{ opacity:0; transform:translateX(-50%) scale(.85) translateY(-6px); } }
   .streak-tag{ color:var(--ember); }
 
   /* ---- CONTROL DE MÚSICA FLOTANTE ---- */
@@ -1384,8 +1428,8 @@
   .arena.reward-flash{ animation:rewardFlash .6s ease-out; }
   @keyframes skillFlash{ 0%{box-shadow:inset 0 0 0 rgba(63,127,168,0)} 40%{box-shadow:inset 0 0 70px rgba(63,127,168,.48)} 100%{box-shadow:inset 0 0 0 rgba(63,127,168,0)} }
   @keyframes rewardFlash{ 0%{filter:brightness(1)} 35%{filter:brightness(1.5) sepia(.15)} 100%{filter:brightness(1)} }
-  .dmg-float.crit{ text-shadow:0 0 10px rgba(232,196,119,.9); animation:critFloat 1s cubic-bezier(.15,.75,.25,1) forwards; }
-  @keyframes critFloat{ 0%{transform:scale(.55);opacity:0} 18%{transform:scale(1.28);opacity:1} 100%{transform:translateY(-48px) scale(1);opacity:0} }
+  .dmg-float.crit{ text-shadow:0 0 12px rgba(232,196,119,.95),-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000; animation:critFloat 1.1s cubic-bezier(.15,.75,.25,1) forwards; }
+  @keyframes critFloat{ 0%{transform:scale(.5) rotate(var(--jitter-rot,0deg));opacity:0} 16%{transform:scale(1.4) rotate(var(--jitter-rot,0deg));opacity:1} 34%{transform:scale(1.05) rotate(var(--jitter-rot,0deg));opacity:1} 100%{transform:translateY(-52px) scale(1) rotate(var(--jitter-rot,0deg));opacity:0} }
   .feedback-toast{ position:fixed; left:50%; bottom:28px; transform:translate(-50%,20px) scale(.92); opacity:0; pointer-events:none; z-index:250; min-width:180px; padding:10px 16px; text-align:center; font-family:'Cinzel'; font-size:12px; letter-spacing:1px; color:var(--parchment); background:linear-gradient(135deg,rgba(42,32,19,.96),rgba(25,18,11,.96)); border:1px solid var(--gold); border-radius:4px; box-shadow:0 10px 28px rgba(0,0,0,.58),0 0 20px rgba(200,155,60,.25); transition:opacity .2s ease,transform .28s cubic-bezier(.2,.9,.25,1.2); }
   .feedback-toast.show{ opacity:1; transform:translate(-50%,0) scale(1); }
 
@@ -1912,6 +1956,32 @@
   #nameGate .class-choice{ min-height:72px; font-size:7px; }
   #nameGate .class-choice .class-emblem{ width:36px; height:36px; }
 }
+
+  /* ---- OPTIMIZACIÓN DE RENDIMIENTO ----
+     Promueve a su propia capa GPU los elementos con animaciones infinitas
+     que se muestran de forma permanente (anillo de nivel, aura del sello,
+     ícono de oro, arte de clase, sheen de stats, pips pendientes). Medido con
+     Chrome DevTools: sin esto, cada uno fuerza un repintado de página completa
+     en cada frame (~60/seg) aunque solo anime transform/opacity. Con el hint
+     el navegador cachea una textura y solo recompone, bajando el trabajo de
+     la CPU/hilo principal de forma notable, sobre todo en gama baja/mobile.
+     No se aplica a animaciones de box-shadow/filter (iconEmberPulse,
+     addBtnBreathe, btnReadyPulse, pointsBannerPulse, musicPulse) porque esas
+     necesitan repintar sí o sí — el hint no ayuda ahí y sólo gastaría memoria
+     de más (por eso tampoco se agrega will-change de forma global).
+  */
+  .seal-ring-tick,
+  .seal-wrap::before,
+  .gold-coin-icon,
+  .gate-class-art,
+  .profile-portrait img,
+  .stat-card.invested::before,
+  .stat-pips i.pending{
+    will-change: transform;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  }
 </style>
 </head>
 <body>
@@ -1950,12 +2020,12 @@
     <div id="newCharacterForm">
       <div class="character-divider"><span>NUEVO PERSONAJE</span></div>
       <div class="class-picker" id="classPicker">
-<button class="class-choice active" data-class="warrior"><img class="class-emblem" src="assets/images/class_warrior_emblem_v2.png" alt="">Guerrero</button>
-<button class="class-choice" data-class="archer"><img class="class-emblem" src="assets/images/class_archer_emblem_v2.png" alt="">Arquero</button>
-<button class="class-choice" data-class="mage"><img class="class-emblem" src="assets/images/class_mage_emblem_v2.png" alt="">Mago</button>
-<button class="class-choice" data-class="priest"><img class="class-emblem" src="assets/images/class_priest_emblem_v2.png" alt="">Sacerdote</button>
-<button class="class-choice" data-class="assassin"><img class="class-emblem" src="assets/images/class_assassin_emblem_v2.png" alt="">Asesino</button>
-<button class="class-choice" data-class="tamer"><img class="class-emblem" src="assets/images/class_tamer_emblem_v2.png" alt="">Domador</button>
+<button class="class-choice active" data-class="warrior"><img class="class-emblem" src="assets/images/class_warrior_emblem_v2.png" alt="" decoding="async">Guerrero</button>
+<button class="class-choice" data-class="archer"><img class="class-emblem" src="assets/images/class_archer_emblem_v2.png" alt="" decoding="async">Arquero</button>
+<button class="class-choice" data-class="mage"><img class="class-emblem" src="assets/images/class_mage_emblem_v2.png" alt="" decoding="async">Mago</button>
+<button class="class-choice" data-class="priest"><img class="class-emblem" src="assets/images/class_priest_emblem_v2.png" alt="" decoding="async">Sacerdote</button>
+<button class="class-choice" data-class="assassin"><img class="class-emblem" src="assets/images/class_assassin_emblem_v2.png" alt="" decoding="async">Asesino</button>
+<button class="class-choice" data-class="tamer"><img class="class-emblem" src="assets/images/class_tamer_emblem_v2.png" alt="" decoding="async">Domador</button>
       </div>
       <div id="classDescription" class="class-description"></div>
       <input id="nameInput" maxlength="16" placeholder="Nombre de guerrero">
@@ -2137,6 +2207,7 @@
 
 <script>
 /* ================= AUDIO SYNTHESIZER (AMBIENT RPG MUSIC & SOUND EFFECTS) ================= */
+const MENU_MUSIC_SRC = "assets/music/Inicio_menus_2.mp3";
 const Sound = {
   ctx: null,
   musicEnabled: false,
@@ -2154,9 +2225,10 @@ const Sound = {
   musicGain: null,
   sfxGain: null,
   ambienceGain: null,
+  menuAudioEl: null,
   tracks: {
     menu: [[196,520],[246.94,260],[293.66,520],[329.63,520],[293.66,260],[246.94,520],[220,520],[0,260]],
-    hunt: [[220,250],[261.63,250],[293.66,250],[329.63,500],[293.66,250],[261.63,250],[246.94,500],[0,250]],
+    hunt: [[220,260],[261.63,260],[293.66,220],[329.63,260],[349.23,420],[329.63,200],[293.66,260],[261.63,260],[246.94,260],[220,440],[261.63,260],[293.66,260],[329.63,260],[392.00,460],[349.23,220],[329.63,260],[293.66,260],[261.63,260],[220,520],[0,300]],
     battle: [[146.83,180],[196,180],[220,180],[246.94,180],[220,180],[196,180],[174.61,180],[220,180]],
     boss: [[110,210],[146.83,210],[164.81,210],[110,210],[130.81,210],[164.81,210],[196,420],[0,210]],
     bossPhase: [[73.42,150],[110,150],[146.83,150],[82.41,150],[123.47,150],[164.81,300],[196,150],[164.81,150]],
@@ -2167,19 +2239,27 @@ const Sound = {
     if (!this.ctx) {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       const master = this.ctx.createDynamicsCompressor();
-      master.threshold.value = -20;
-      master.knee.value = 16;
+      master.threshold.value = -18;
+      master.knee.value = 20;
       master.ratio.value = 8;
       master.connect(this.ctx.destination);
       this.musicGain = this.ctx.createGain();
-      this.musicGain.gain.value = 0.34;
+      this.musicGain.gain.value = 1.4;
       this.musicGain.connect(master);
       this.ambienceGain = this.ctx.createGain();
-      this.ambienceGain.gain.value = 0.12;
+      this.ambienceGain.gain.value = 0.7;
       this.ambienceGain.connect(master);
       this.sfxGain = this.ctx.createGain();
-      this.sfxGain.gain.value = 0.55;
+      this.sfxGain.gain.value = 2.0;
       this.sfxGain.connect(master);
+
+      this.menuAudioEl = new Audio(MENU_MUSIC_SRC);
+      this.menuAudioEl.loop = true;
+      this.menuAudioEl.volume = 1;
+      this.menuAudioEl.addEventListener('error', () => {
+        const err = this.menuAudioEl.error;
+        console.warn('No se pudo cargar la música del menú (' + MENU_MUSIC_SRC + '). Código de error:', err && err.code);
+      });
     }
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume();
@@ -2192,9 +2272,26 @@ const Sound = {
     const settings = (typeof state !== 'undefined' && state && state.settings) ? state.settings : {};
     const music = settings.musicEnabled === false ? 0 : (Number(settings.musicVolume ?? 55) / 100);
     const sfx = settings.sfxEnabled === false ? 0 : (Number(settings.sfxVolume ?? 70) / 100);
-    if(this.musicGain) this.musicGain.gain.setTargetAtTime(.34 * music, this.ctx.currentTime, .04);
-    if(this.ambienceGain) this.ambienceGain.gain.setTargetAtTime(.12 * music, this.ctx.currentTime, .04);
-    if(this.sfxGain) this.sfxGain.gain.setTargetAtTime(.55 * sfx, this.ctx.currentTime, .04);
+    if(this.musicGain) this.musicGain.gain.setTargetAtTime(1.4 * music, this.ctx.currentTime, .04);
+    if(this.ambienceGain) this.ambienceGain.gain.setTargetAtTime(.7 * music, this.ctx.currentTime, .04);
+    if(this.sfxGain) this.sfxGain.gain.setTargetAtTime(2.0 * sfx, this.ctx.currentTime, .04);
+    if(this.menuAudioEl) this.menuAudioEl.volume = Math.max(0, Math.min(1, music));
+  },
+
+  syncMenuAudio() {
+    if (!this.menuAudioEl) return;
+    const settings = (typeof state !== 'undefined' && state && state.settings) ? state.settings : {};
+    const musicOn = settings.musicEnabled !== false;
+    const vol = Math.max(0, Math.min(1, Number(settings.musicVolume ?? 55) / 100));
+    this.menuAudioEl.volume = vol;
+    if (this.musicEnabled && musicOn && this.scene === 'menu') {
+      if (this.menuAudioEl.paused) {
+        this.menuAudioEl.currentTime = 0;
+        this.menuAudioEl.play().catch(err => console.warn('No se pudo reproducir la música del menú:', err));
+      }
+    } else if (!this.menuAudioEl.paused) {
+      this.menuAudioEl.pause();
+    }
   },
 
   toggleMusic() {
@@ -2206,13 +2303,18 @@ const Sound = {
     
     if (this.musicEnabled) {
       icon.innerHTML = `<path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>`;
-      this.playNextNote();
+      if (this.scene === 'menu' && this.menuAudioEl) {
+        this.syncMenuAudio();
+      } else {
+        this.playNextNote();
+      }
     } else {
       icon.innerHTML = `<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM19 12c0 3.28-2 6.09-4.88 7.25l1.09 1.09C19 18.74 21 15.6 21 12c0-3.6-2-6.74-5.79-8.34l-1.09 1.09C17 5.91 19 8.72 19 12zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>`;
       if (this.musicTimer) {
         clearTimeout(this.musicTimer);
         this.musicTimer = null;
       }
+      this.syncMenuAudio();
     }
     this.updateMusicControl();
   },
@@ -2224,14 +2326,21 @@ const Sound = {
     this.barIndex = 0;
     if(this.musicGain && this.ctx){
       const settings = (typeof state !== 'undefined' && state && state.settings) ? state.settings : {};
-      const targetVolume = settings.musicEnabled === false ? 0 : .34 * (Number(settings.musicVolume ?? 55) / 100);
+      const targetVolume = settings.musicEnabled === false ? 0 : 1.4 * (Number(settings.musicVolume ?? 55) / 100);
       this.musicGain.gain.cancelScheduledValues(this.ctx.currentTime);
       this.musicGain.gain.setValueAtTime(.05, this.ctx.currentTime);
       this.musicGain.gain.linearRampToValueAtTime(targetVolume, this.ctx.currentTime+.22);
     }
     if (this.musicEnabled) {
       if (this.musicTimer) clearTimeout(this.musicTimer);
-      this.playNextNote();
+      if (scene === 'menu' && this.menuAudioEl) {
+        this.syncMenuAudio();
+      } else {
+        this.syncMenuAudio();
+        this.playNextNote();
+      }
+    } else {
+      this.syncMenuAudio();
     }
     this.updateMusicControl();
   },
@@ -2390,9 +2499,21 @@ const Sound = {
     [440,554.37,659.25].forEach((freq,index)=>this.sfxTone(freq,.24,'sine',.05,freq*1.28,index*.045));
   },
 
+  mana() {
+    this.init();
+    [349.23,415.30,523.25].forEach((freq,index)=>this.sfxTone(freq,.26,'triangle',.045,freq*1.42,index*.05));
+    this.noise(.09,.02,3800,'highpass');
+  },
+
   shield() {
     this.init();
     this.sfxTone(180,.13,'triangle',.07,430); this.noise(.07,.032,1800,'bandpass');
+  },
+
+  dangerPulse() {
+    this.init();
+    this.sfxTone(220,.24,'sawtooth',.09,130);
+    this.sfxTone(160,.3,'sawtooth',.07,90,130);
   },
 
   poison() {
@@ -2402,6 +2523,7 @@ const Sound = {
 
   playNextNote() {
     if (!this.musicEnabled) return;
+    if (this.scene === 'menu' && this.menuAudioEl) return;
 
     const track = this.tracks[this.scene] || this.melody;
     const note = track[this.melodyIndex];
@@ -2527,6 +2649,64 @@ const Sound = {
     this.init();
     [261.63,329.63,392,523.25,659.25].forEach((freq,index)=>this.sfxTone(freq,.28,'triangle',.075,freq*1.1,index*.09));
     this.sfxTone(130.81,.42,'sine',.045,196,.02);
+  },
+
+  heroBorn() {
+    this.init();
+    if(!this.ctx) return;
+    const at = this.ctx.currentTime;
+    // Soplo mágico ascendente que anuncia el momento
+    const osc = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(55, at);
+    filter.type = 'bandpass'; filter.Q.value = 0.9;
+    filter.frequency.setValueAtTime(180, at);
+    filter.frequency.exponentialRampToValueAtTime(3400, at+.4);
+    gain.gain.setValueAtTime(.0001, at);
+    gain.gain.linearRampToValueAtTime(.055, at+.14);
+    gain.gain.exponentialRampToValueAtTime(.0001, at+.42);
+    osc.connect(filter); filter.connect(gain); gain.connect(this.sfxGain || this.ctx.destination);
+    osc.start(at); osc.stop(at+.45);
+    // Arpegio ascendente con brillo (el "gancho" pegadizo del jingle)
+    [392.00,493.88,587.33,783.99,987.77].forEach((freq,index)=>{
+      const d = .3 + index*.08;
+      this.sfxTone(freq,.3,'triangle',.075,freq*1.15,d);
+      this.sfxTone(freq*2,.16,'sine',.02,0,d+.02);
+    });
+    // Acorde de llegada + campana + golpe grave
+    const land = .78;
+    [392,493.88,587.33].forEach(freq=>this.sfxTone(freq,.55,'sine',.05,freq*1.05,land));
+    this.sfxTone(1567.98,.62,'sine',.045,1975.53,land+.04);
+    this.sfxTone(65,.4,'sine',.09,40,land);
+    // Estela de destellos (polvo de hada)
+    for(let i=0;i<6;i++){
+      const freq = 1300+Math.random()*1300;
+      this.sfxTone(freq,.16,'sine',.017,freq*1.3,land+.28+i*.075);
+    }
+  },
+
+  levelUp() {
+    this.init();
+    this.percussion(true);
+    [261.63,329.63,392,523.25,659.25,783.99].forEach((freq,index)=>this.sfxTone(freq,.24,'triangle',.07,freq*1.15,index*.075));
+    setTimeout(()=>{
+      this.sfxTone(1046.5,.5,'sine',.05,1318.5,0);
+      this.sfxTone(1568,.42,'sine',.03,1760,.03);
+    }, 470);
+  },
+
+  bigCatch(record=false) {
+    this.init();
+    this.noise(.22,.06,900,'bandpass');
+    [392,493.88,587.33,783.99].forEach((freq,index)=>this.sfxTone(freq,.26,'sine',.06,freq*1.2,index*.06));
+    if(record){
+      setTimeout(()=>{
+        this.sfxTone(1046.5,.4,'sine',.04,1318.5,0);
+        this.noise(.14,.03,3200,'highpass');
+      }, 260);
+    }
   },
 
   defeat() {
@@ -2930,7 +3110,7 @@ function equipmentArtFor(item, slot){
 }
 function equipmentVisual(item, slot){
   const art = equipmentArtFor(item,slot);
-  if(art) return `<img class="equipment-item-art" src="${art}" alt="">`;
+  if(art) return `<img class="equipment-item-art" src="${art}" alt="" decoding="async">`;
   return item ? item.icon : equipmentSlotMeta(slot).icon;
 }
 
@@ -3186,6 +3366,7 @@ function craftUniqueItem(id){
   state.ownedItems[item.id] = (state.ownedItems[item.id]||0)+1;
   forgeRitual=null;
   Sound.reward();
+  if(outcome.key==='perfect') setTimeout(()=>Sound.bigCatch(true), 160);
   burstSparks(outcome.key==='perfect' ? '#f8e09b' : outcome.key==='refined' ? '#cf8cff' : (item.color || 'var(--gold-bright)'), 22);
   addLog(`⚒ Forjaste ${item.name}: ${outcome.label}.`, 'level');
   showFeedback(`⚒ ${outcome.label.toUpperCase()}`,`${item.name} · ${outcome.description}`,'reward');
@@ -3222,7 +3403,7 @@ function renderRunicForge(item){
   return `<div class="runic-forge">
     <h4>✦ FORJA RÚNICA ✦</h4>
     <p>Tres golpes deciden el grabado final. El centro violeta es perfecto; el oro refina la pieza.</p>
-    <div class="runic-item-preview">${item.image?`<img src="${item.image}" alt="">`:`<span style="font-size:28px">${item.icon}</span>`}<div>${escapeHtml(item.name)}<span>${equipmentSlotMeta(item.type).label} · pieza ancestral</span></div></div>
+    <div class="runic-item-preview">${item.image?`<img src="${item.image}" alt="" decoding="async">`:`<span style="font-size:28px">${item.icon}</span>`}<div>${escapeHtml(item.name)}<span>${equipmentSlotMeta(item.type).label} · pieza ancestral</span></div></div>
     <div class="rune-meter" aria-label="Medidor de precisión"><i class="rune-needle" id="runeNeedle"></i></div>
     <div class="rune-hits">${markers}</div>
     <div class="rune-result" id="runeResult">${forgeRitual.result}</div>
@@ -3255,7 +3436,7 @@ function renderForge(){
     <div class="forge-blueprints">${blueprints.map(item=>{
       const cost=forgeCost(item), owned=(state.ownedItems[item.id]||0)>0;
       const enough=(materials.essence||0)>=cost.essence && (materials.bossCore||0)>=cost.bossCore && state.gold>=cost.gold;
-      return `<div class="forge-card ${owned?'owned':''}"><div class="forge-card-head">${item.image?`<img src="${item.image}" alt="">`:`<span>${item.icon}</span>`}<div><b>${escapeHtml(item.name)}</b><small>${equipmentSlotMeta(item.type).label} · Ancestral</small></div></div><div class="forge-stats">${forgeItemStats(item)}</div><div class="forge-cost">◇ ${cost.essence} · ◈ ${cost.bossCore} · ◉ ${cost.gold}</div><button data-craft-item="${item.id}" ${owned||!enough||locked?'disabled':''}>${owned?'YA FORJADO':locked?'CACERÍA ACTIVA':enough?'INICIAR FORJA RÚNICA':'FALTAN MATERIALES'}</button></div>`;
+      return `<div class="forge-card ${owned?'owned':''}"><div class="forge-card-head">${item.image?`<img src="${item.image}" alt="" decoding="async" loading="lazy">`:`<span>${item.icon}</span>`}<div><b>${escapeHtml(item.name)}</b><small>${equipmentSlotMeta(item.type).label} · Ancestral</small></div></div><div class="forge-stats">${forgeItemStats(item)}</div><div class="forge-cost">◇ ${cost.essence} · ◈ ${cost.bossCore} · ◉ ${cost.gold}</div><button data-craft-item="${item.id}" ${owned||!enough||locked?'disabled':''}>${owned?'YA FORJADO':locked?'CACERÍA ACTIVA':enough?'INICIAR FORJA RÚNICA':'FALTAN MATERIALES'}</button></div>`;
     }).join('')}</div>`;
   if(!forgeRitual) box.querySelectorAll('[data-craft-item]').forEach(button=>button.addEventListener('click',()=>beginRunicForge(button.dataset.craftItem)));
 
@@ -3267,7 +3448,7 @@ function renderForge(){
     const nextLevel = level+1;
     const risk = level<ENHANCE_MAX ? Math.round(enhanceBreakChance(nextLevel)*100) : 0;
     const riskLabel = risk>0 ? ` · <span class="enhance-risk">⚠ ${risk}% de rotura</span>` : '';
-    return `<div class="salvage-item" style="--rarity-color:${meta.color}">${item.image?`<img src="${item.image}" alt="">`:`<span>${item.icon}</span>`}<div><b>${escapeHtml(item.name)}${enhancementLabel(item)}</b><small>${level<ENHANCE_MAX?`Mejora: ◇ ${cost.essence} · ◈ ${cost.bossCore}${cost.scale?` · ✦ ${cost.scale}`:''} · ◉ ${cost.gold}${riskLabel}`:`MEJORA MÁXIMA +${ENHANCE_MAX}`}</small></div><span style="display:flex;gap:4px"><button data-enhance-item="${index}" ${locked||level>=ENHANCE_MAX||!enough?'disabled':''}>${level>=ENHANCE_MAX?`MÁX. +${ENHANCE_MAX}`:'MEJORAR'}</button><button data-salvage-item="${index}" ${locked?'disabled':''}>RECICLAR</button></span></div>`;
+    return `<div class="salvage-item" style="--rarity-color:${meta.color}">${item.image?`<img src="${item.image}" alt="" decoding="async" loading="lazy">`:`<span>${item.icon}</span>`}<div><b>${escapeHtml(item.name)}${enhancementLabel(item)}</b><small>${level<ENHANCE_MAX?`Mejora: ◇ ${cost.essence} · ◈ ${cost.bossCore}${cost.scale?` · ✦ ${cost.scale}`:''} · ◉ ${cost.gold}${riskLabel}`:`MEJORA MÁXIMA +${ENHANCE_MAX}`}</small></div><span style="display:flex;gap:4px"><button data-enhance-item="${index}" ${locked||level>=ENHANCE_MAX||!enough?'disabled':''}>${level>=ENHANCE_MAX?`MÁX. +${ENHANCE_MAX}`:'MEJORAR'}</button><button data-salvage-item="${index}" ${locked?'disabled':''}>RECICLAR</button></span></div>`;
   }).join(''):`<div class="forge-empty">Tu mochila está vacía.<br>El equipo que no uses puede convertirse en materiales.</div>`}</div>`;
   salvage.querySelectorAll('[data-enhance-item]').forEach(button=>button.addEventListener('click',()=>enhanceEquipment(Number(button.dataset.enhanceItem))));
   salvage.querySelectorAll('[data-salvage-item]').forEach(button=>button.addEventListener('click',()=>dismantleForgeItem(Number(button.dataset.salvageItem))));
@@ -3344,7 +3525,7 @@ const CLASS_EMBLEMS = {
 function classEmblem(classId, variant='inline'){
   const fallback = CLASSES[classId] || CLASSES.warrior;
   const src = CLASS_EMBLEMS[classId] || CLASS_EMBLEMS.warrior;
-  return `<img class="class-emblem ${variant}" src="${src}" alt="${fallback.label}">`;
+  return `<img class="class-emblem ${variant}" src="${src}" alt="${fallback.label}" decoding="async">`;
 }
 
 const CLASS_EQUIPMENT_SLOTS = {
@@ -3670,7 +3851,8 @@ function resolveCatch(){
   const bonusMsg = bonusGold>0 ? ` (+${bonusGold} racha x${state.fishing.streak})` : '';
   const recordMsg = isRecord ? ' · 🏆 ¡RÉCORD DE PESO!' : '';
   addLog(`🎣 Pescaste ${fish.icon} ${fish.label} (${weight}kg): +${fish.gold+bonusGold} oro${bonusMsg} · +${fish.essence} esencia${fish.scale?` · +${fish.scale} escamas`:''}${charmMsg}${isNewSpecies?' · ¡NUEVA ESPECIE!':''}${recordMsg}.`, 'reward');
-  Sound.reward();
+  if(FISH_RARITY_RANK[fish.key]>=3) Sound.bigCatch(isRecord);
+  else { Sound.reward(); if(isRecord) setTimeout(()=>Sound.bigCatch(true), 180); }
   showFeedback(`🎣 ¡${fish.label.toUpperCase()}!`, `${weight}kg · +${fish.gold+bonusGold} oro${bonusMsg} · +${fish.essence} esencia${fish.scale?` · +${fish.scale} escamas`:''}${charmMsg}`, 'reward');
   fishCast = { phase:'result', fish, ended:true, quality:Math.round(qualityNormalized*100), rating:fishRatingLabel(qualityNormalized), isNewSpecies, streak:state.fishing.streak, bonusGold, weight, isRecord };
   saveState();
@@ -3846,6 +4028,7 @@ function showDailyToast(day, reward){
   document.body.appendChild(el);
   setTimeout(()=> el.classList.add('show'), 30);
   setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(), 500); }, 4000);
+  Sound.reward();
 }
 
 /* ================= STATE ================= */
@@ -3904,7 +4087,7 @@ function defaultState(name, classId='warrior') {
     weeklyChallenge: { key:null, wins:0, claimed:false },
     lastRunSummary: null,
     bestRunSummary: null,
-    settings: { musicVolume:55, sfxVolume:70, musicEnabled:false, sfxEnabled:true, graphics:'high', reducedMotion:false },
+    settings: { musicVolume:100, sfxVolume:100, musicEnabled:false, sfxEnabled:true, graphics:'high', reducedMotion:false },
     log: []
   };
 }
@@ -4163,18 +4346,6 @@ async function fetchLeaderboard(){
     renderLeaderboard(Array.isArray(entries) ? entries : []);
   }catch(e){ renderLeaderboard(null); }
 }
-function renderLeaderboard(entries){
-  const box = document.getElementById('lbTabContent');
-  if(!box) return;
-  if(!entries){ box.innerHTML = `<div id="lbStatus">No se pudo cargar el ranking global.</div>`; return; }
-  if(entries.length===0){ box.innerHTML = `<div id="lbStatus">Todavía no hay nadie en el ranking. ¡Sé el primero!</div>`; return; }
-  box.innerHTML = entries.map((e,i)=>`
-    <div class="lb-row ${e.name===state.name?'me':''}">
-      <span class="rank">${i+1}</span>
-      <span class="lbname">${escapeHtml(e.name)}</span>
-      <span class="lbstat">Nv.${e.level} · ${e.resets}R</span>
-    </div>`).join('');
-}
 function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function decorateLeaderboardEntry(entry){
   const isCurrentHero = !!state && String(entry.name)===String(state.name) && Number(entry.level)===Number(state.level) && Number(entry.resets)===Number(state.resets);
@@ -4185,7 +4356,7 @@ function openLeaderboardProfile(index){
   const hero = leaderboardClassInfo(entry.class_key);
   document.getElementById('playerProfileBackdrop')?.remove();
   const profile = document.createElement('div'); profile.id='playerProfileBackdrop'; profile.className='player-profile-backdrop';
-  profile.innerHTML = `<div class="player-profile-card" role="dialog" aria-modal="true" aria-label="Ficha pública de ${escapeHtml(entry.name)}"><button class="profile-close" type="button" aria-label="Cerrar">×</button><div class="profile-banner"><img class="profile-avatar" src="${hero.image}" alt="${hero.label}"><div class="profile-identity"><small>${hero.icon} AVENTURERO DEL RANKING</small><h2>${escapeHtml(entry.name)}</h2><p>${hero.label} · Nivel ${entry.level} · ${entry.resets} resets</p></div></div><div class="profile-stats"><div class="profile-stat"><small>PODER</small><b>⚡ ${Number(entry.power)||0}</b></div><div class="profile-stat"><small>ATAQUE</small><b>${entry.attack ?? '—'}</b></div><div class="profile-stat"><small>DEFENSA</small><b>${entry.defense ?? '—'}</b></div><div class="profile-stat"><small>CRÍTICO</small><b>${entry.crit_chance == null ? '—' : `${entry.crit_chance}%`}</b></div><div class="profile-stat"><small>NIVEL</small><b>${entry.level}</b></div><div class="profile-stat"><small>RESETS</small><b>${entry.resets}</b></div></div></div>`;
+  profile.innerHTML = `<div class="player-profile-card" role="dialog" aria-modal="true" aria-label="Ficha pública de ${escapeHtml(entry.name)}"><button class="profile-close" type="button" aria-label="Cerrar">×</button><div class="profile-banner"><img class="profile-avatar" src="${hero.image}" alt="${hero.label}" decoding="async"><div class="profile-identity"><small>${hero.icon} AVENTURERO DEL RANKING</small><h2>${escapeHtml(entry.name)}</h2><p>${hero.label} · Nivel ${entry.level} · ${entry.resets} resets</p></div></div><div class="profile-stats"><div class="profile-stat"><small>PODER</small><b>⚡ ${Number(entry.power)||0}</b></div><div class="profile-stat"><small>ATAQUE</small><b>${entry.attack ?? '—'}</b></div><div class="profile-stat"><small>DEFENSA</small><b>${entry.defense ?? '—'}</b></div><div class="profile-stat"><small>CRÍTICO</small><b>${entry.crit_chance == null ? '—' : `${entry.crit_chance}%`}</b></div><div class="profile-stat"><small>NIVEL</small><b>${entry.level}</b></div><div class="profile-stat"><small>RESETS</small><b>${entry.resets}</b></div></div></div>`;
   profile.addEventListener('click', event=>{ if(event.target===profile || event.target.closest('.profile-close')) profile.remove(); }); document.body.appendChild(profile);
 }
 function renderLeaderboard(entries){
@@ -4555,9 +4726,10 @@ function awardRunLoot(monster){
   if(!battle || !battle.isRun || !runState) return null;
   const isBoss = monster.isBoss;
   const isElite = runState.currentNode && runState.currentNode.type==='elite';
-  if(!isBoss && !isElite) return null;
+  const isCommonFight = !isBoss && !isElite;
   const weekly=activeWeeklyTrial();
-  let essence = isBoss ? 12 + runState.depth*2 : 4 + runState.depth;
+  // Antes solo Élites y Jefes daban esencia; ahora todo combate aporta algo, aunque poco.
+  let essence = isBoss ? 12 + runState.depth*2 : isElite ? 4 + runState.depth : 1 + Math.floor(runState.depth/3);
   if(weekly.key==='fury') essence=Math.round(essence*1.20);
   state.materials.essence = (state.materials.essence||0) + essence;
   let trophy = null;
@@ -4570,9 +4742,13 @@ function awardRunLoot(monster){
   }
 
   const rarityRank = { common:0, uncommon:1, rare:2, epic:3, legendary:4, mythic:5, unique:6 };
-  const minRank = isBoss ? 3 : 2;
+  // Los combates comunes ahora pueden dejar objetos comunes/poco comunes; Élites y Jefes siguen
+  // reservados para lo raro en adelante.
+  const minRank = isBoss ? 3 : isElite ? 2 : 0;
   // La probabilidad final no puede superar 100%, pero Percepción no tiene límite de bonificación.
-  const gearChance = Math.min(1, (isBoss ? .72 : .34) + perceptionLootBonus() + (weekly.key==='hunter' && isBoss ? .15 : 0));
+  const gearChance = isCommonFight
+    ? Math.min(.55, .12 + perceptionLootBonus())
+    : Math.min(1, (isBoss ? .72 : .34) + perceptionLootBonus() + (weekly.key==='hunter' && isBoss ? .15 : 0));
   let item = null;
   if(Math.random()<gearChance){
     const candidates = SHOP_EQUIPMENT_ITEMS.filter(entry=>entry.classOnly===state.characterClass && rarityRank[entry.rarityKey]>=minRank);
@@ -4584,8 +4760,8 @@ function awardRunLoot(monster){
       addLog(`Botin encontrado: ${item.name} (${item.rarity}).`, 'win');
     }
   }
-  // Sólo élites y jefes pueden traer reliquias; un jefe siempre intenta conceder una.
-  const relic = (isBoss || Math.random()<.22) ? grantRunRelic() : null;
+  // Las reliquias siguen reservadas a Élites y Jefes; un jefe siempre intenta conceder una.
+  const relic = (isBoss || (isElite && Math.random()<.22)) ? grantRunRelic() : null;
   const parts = [`+${essence} esencia`];
   if(isBoss) parts.push('+1 nucleo de jefe');
   if(trophy) parts.push(`${trophy.icon} ${trophy.name}`);
@@ -4643,11 +4819,11 @@ function gainExp(amount){
   if(state.level >= LEVEL_CAP) state.exp = Math.min(state.exp, expToNext(LEVEL_CAP-1));
   state.maxLevelEver = Math.max(state.maxLevelEver||1, state.level);
   if(leveled){
-    Sound.reward();
-    showFeedback(`✦ NIVEL ${state.level}`, '+5 puntos para asignar');
+    Sound.levelUp();
+    showFeedback(`✦ NIVEL ${state.level}`, '+3 puntos para asignar');
     playLevelUpCelebration(finalLevel);
   }
-  if(leveled){ addLog(`¡Subiste a nivel ${state.level}! (+5 puntos de estadística)`, 'level'); }
+  if(leveled){ addLog(`¡Subiste a nivel ${state.level}! (+3 puntos de estadística)`, 'level'); }
 }
 function gainGold(amount){
   state.gold += amount;
@@ -4974,15 +5150,21 @@ function endBattle(result){
   saveState();
 }
 
-function spawnFloatText(side, text, cls){
+function spawnFloatText(side, text, cls, stackIndex=0){
   const arena = document.getElementById('arena');
   if(!arena) return;
   const el = document.createElement('div');
   el.className = 'dmg-float ' + (cls||'');
   el.textContent = text;
-  el.style.left = side==='player' ? (20+Math.random()*10)+'%' : (68+Math.random()*10)+'%';
+  // Los golpes de un mismo combo se escalonan en diagonal (en vez de superponerse al azar)
+  // para que cada número se pueda leer en el orden en que ocurrió.
+  const basePos = side==='player' ? 18 : 66;
+  const stagger = Math.min(stackIndex, 3) * 7;
+  el.style.left = (basePos + stagger + Math.random()*6)+'%';
+  el.style.top = (20 - Math.min(stackIndex,3)*6)+'%';
+  el.style.setProperty('--jitter-rot', (Math.random()*6-3)+'deg');
   arena.appendChild(el);
-  setTimeout(()=>el.remove(), 900);
+  setTimeout(()=>el.remove(), 1100);
 }
 
 function showFeedback(title, value='', tone=''){
@@ -5064,7 +5246,7 @@ function playClassAttackSprite(isSkill=false){
   target.querySelectorAll('.class-attack-vfx, .combat-vfx.slash').forEach(node=>node.remove());
   const effect = document.createElement('i');
   effect.className = `class-attack-vfx ${classKey} ${isSkill?'skill':''}`;
-  effect.innerHTML = `<img src="${source}" alt="">`;
+  effect.innerHTML = `<img src="${source}" alt="" decoding="async">`;
   target.appendChild(effect);
   setTimeout(()=>effect.remove(), isSkill ? 850 : 680);
 }
@@ -5076,7 +5258,7 @@ function playCombatVfx(kind, side='monster', extra=''){
   fighter.querySelectorAll(`.combat-vfx.${kind}`).forEach(node=>node.remove());
   const effect = document.createElement('i');
   effect.className = `combat-vfx ${kind} ${extra}`;
-  effect.innerHTML = `<img src="${source}" alt="">`;
+  effect.innerHTML = `<img src="${source}" alt="" decoding="async">`;
   fighter.appendChild(effect);
   setTimeout(()=>effect.remove(), kind==='shield' ? 850 : 820);
 }
@@ -5363,8 +5545,20 @@ function playerAttack(isSkill){
 
   let hits = 1;
   while(hits < 4 && Math.random() < extraTurnChance()) hits++;
+  if(hits>1) showComboBadge(hits);
 
   runPlayerHits(hits, isSkill, 0);
+}
+
+function showComboBadge(hits){
+  const arena = document.getElementById('arena');
+  if(!arena) return;
+  arena.querySelectorAll('.combo-badge').forEach(el=>el.remove());
+  const el = document.createElement('div');
+  el.className = 'combo-badge';
+  el.textContent = `COMBO x${hits}`;
+  arena.appendChild(el);
+  setTimeout(()=>el.remove(), 1300);
 }
 
 function tamingChance(){
@@ -5407,7 +5601,8 @@ function companionAssist(force=false){
   addMonsterBreak(rawDamage,false);
   playCombatVfx('slash','monster');
   Sound.classAttack('tamer');
-  spawnFloatText('monster',`${state.companion.name} -${damage}`,'crit');
+  // Se retrasa un poco y se desplaza para que no caiga justo encima del número del jugador.
+  setTimeout(()=>spawnFloatText('monster',`${state.companion.name} -${damage}`,'crit',3), 220);
   return damage;
 }
 
@@ -5423,7 +5618,8 @@ function runPlayerHits(totalHits, isSkill, doneCount, reference=battle){
     if (isCrit) {
       Sound.crit();
       const critColors = { warrior:'#ff8a55', archer:'#a9e981', mage:'#8bc8ff', priest:'#ffe7a0', assassin:'#dc9dff', tamer:'#78e2c6' };
-      burstSparks(critColors[state.characterClass] || 'var(--gold-bright)', 14);
+      // Golpes repetidos del mismo combo usan menos chispas para no saturar la pantalla.
+      burstSparks(critColors[state.characterClass] || 'var(--gold-bright)', doneCount>0 ? 7 : 14);
       const arenaEl = document.getElementById('arena');
       arenaEl.classList.remove('crit-shake'); void arenaEl.offsetWidth; arenaEl.classList.add('crit-shake');
     }
@@ -5454,28 +5650,45 @@ function runPlayerHits(totalHits, isSkill, doneCount, reference=battle){
     recordRunDamage(dmg);
     addMonsterBreak(rawDmg, isCrit);
     companionAssist();
-    mf.classList.remove('hit'); void mf.offsetWidth; mf.classList.add('hit');
-    const tag = isCrit ? '¡CRÍTICO! ' : (doneCount>0 ? `Golpe extra x${doneCount+1}! ` : '');
-    spawnFloatText('monster', tag+'-'+dmg, isCrit?'crit':'');
-    addLog(`${isSkill?'✦ Habilidad':'⚔ Ataque'}${isCrit?' crítico':''}: ${battle.monster.name} recibe ${dmg} de daño.`, 'combat');
-    pf.classList.remove('attacking');
-    syncBattleUi();
+    const isBigHit = dmg >= battle.monster.maxHp*.16;
+    const isMegaHit = dmg >= battle.monster.maxHp*.32;
+    // Hit-stop: una micropausa antes de que el golpe "impacte" en pantalla,
+    // para que los golpes fuertes se sientan con más peso.
+    const hitStopDelay = isCrit ? 90 : (isMegaHit ? 75 : (isBigHit ? 55 : 0));
+    const applyImpact = () => {
+      mf.classList.remove('hit'); void mf.offsetWidth; mf.classList.add('hit');
+      if(!isCrit && isBigHit){
+        const arenaEl = document.getElementById('arena');
+        const shakeClass = isMegaHit ? 'mega-shake' : 'hit-shake';
+        arenaEl.classList.remove('hit-shake','mega-shake'); void arenaEl.offsetWidth; arenaEl.classList.add(shakeClass);
+      }
+      const tag = isCrit ? 'CRIT ' : '';
+      spawnFloatText('monster', tag+'-'+dmg, (isCrit?'crit':'')+(isBigHit?' big':''), doneCount);
+      addLog(`${isSkill?'✦ Habilidad':'⚔ Ataque'}${isCrit?' crítico':''}: ${battle.monster.name} recibe ${dmg} de daño.`, isCrit?'crit':'combat');
+      pf.classList.remove('attacking');
+      syncBattleUi();
 
-    if(battle.monster.hp <= 0){
-      mf.classList.add('dead');
-      battle.busy = false;
-      setTimeout(()=>{ if(isCurrentBattle(reference)) endBattle('win'); }, 500);
-      return;
-    }
+      if(battle.monster.hp <= 0){
+        mf.classList.add('dead');
+        battle.busy = false;
+        setTimeout(()=>{ if(isCurrentBattle(reference)) endBattle('win'); }, 500);
+        return;
+      }
 
-    doneCount++;
-    if(doneCount < totalHits){
-      setTimeout(()=>runPlayerHits(totalHits, isSkill, doneCount, reference), 240);
-      return;
-    }
+      doneCount++;
+      if(doneCount < totalHits){
+        setTimeout(()=>runPlayerHits(totalHits, isSkill, doneCount, reference), 320);
+        return;
+      }
 
-    if(triggerBossPhaseTwo()) return;
-    startMonsterTurn(reference);
+      setTimeout(()=>{
+        if(!isCurrentBattle(reference)) return;
+        if(triggerBossPhaseTwo()) return;
+        startMonsterTurn(reference);
+      }, 260);
+    };
+    if(hitStopDelay>0) setTimeout(()=>{ if(isCurrentBattle(reference)) applyImpact(); }, hitStopDelay);
+    else applyImpact();
     return;
     setTimeout(()=>{
       mf.classList.add('attacking');
@@ -5503,7 +5716,7 @@ function runPlayerHits(totalHits, isSkill, doneCount, reference=battle){
         }
       }, 260);
     }, 300);
-  }, 220);
+  }, 260);
 }
 
 function doTrain(){
@@ -5600,7 +5813,7 @@ function endMonsterTurn(reference=battle){
   }
 }
 
-function resolveMonsterHits(remaining, special={}, reference=battle){
+function resolveMonsterHits(remaining, special={}, reference=battle, hitIndex=0){
   if(!isCurrentBattle(reference)) return;
   const monster = reference.monster;
   const fighter = document.querySelector('.fighter.monster');
@@ -5611,13 +5824,21 @@ function resolveMonsterHits(remaining, special={}, reference=battle){
     if(fighter) fighter.classList.remove('attacking');
     const strongAttack = !!monster.charging || finiteNumber(special.mult,0)>=1.45;
     const dodged = Math.random()<dodgeChance();
+    const continueTurn = () => {
+      syncBattleUi();
+      if(monster.hp<=0){ setTimeout(()=>{ if(isCurrentBattle(reference)) endBattle('win'); },350); return; }
+      if(reference.playerHp<=0){ endMonsterTurn(reference); return; }
+      if(remaining>1){ setTimeout(()=>resolveMonsterHits(remaining-1,special,reference,hitIndex+1),300); }
+      else setTimeout(()=>{ if(isCurrentBattle(reference)) endMonsterTurn(reference); },240);
+    };
     if(dodged){
       if(monster.charging) monster.charging=false;
       Sound.miss();
       playDodge('player');
-      spawnFloatText('player','Esquivado','miss');
+      spawnFloatText('player','Esquivado','miss',hitIndex);
       addLog(`↝ Esquivaste el ataque de ${monster.name}.`, 'combat');
       if(strongAttack) awardCombatMastery('dodge', monster);
+      continueTurn();
     } else {
       let mult = monster.affinityFury ? 1.40 : (monster.fury ? 1.45 : 1);
       if(monster.affinityFury && reference.playerStatus.stance==='defensive') mult *= .70;
@@ -5627,43 +5848,52 @@ function resolveMonsterHits(remaining, special={}, reference=battle){
       const shielded = reference.playerStatus.shieldTurns>0;
       if(shielded){ damage*=.48; reference.playerStatus.shieldTurns--; }
       damage = Math.max(1,Math.round(damage * (1-damageReduction())));
-      reference.playerHp = Math.max(0,reference.playerHp-damage);
-      if(player){ player.classList.remove('hit'); void player.offsetWidth; player.classList.add('hit'); }
-      playCombatVfx(shielded ? 'shield' : 'impact','player',shielded ? '' : 'enemy-hit');
-      spawnFloatText('player',`-${damage}`, '');
-      Sound.enemyAttack(monster, shielded);
-      addLog(`${monster.name} te golpea por ${damage} de daño${shielded?' · daño bloqueado':''}.`, 'enemy');
-      if(special.manaBurn){
-        const burn = Math.max(1,Math.round(reference.playerMaxMana*special.manaBurn));
-        reference.playerMana = Math.max(0,reference.playerMana-burn);
-        playCombatVfx('arcane','player','enemy-hit');
-        spawnFloatText('player',`-${burn} maná`,'miss');
-      }
-      const affinityVenom = monsterAffinity(monster)?.key==='venomous';
-      const venomHit = (monster.archetype.key==='venom' && Math.random()<.55) || special.poison || affinityVenom;
-      if(venomHit && !shielded){
-        reference.playerStatus.poisonTurns = Math.max(reference.playerStatus.poisonTurns,2);
-        playCombatVfx('poison','player');
-        spawnFloatText('player','☣ Veneno','miss');
-      } else if(affinityVenom && shielded){
-        addLog(`🛡 El escudo bloquea la toxina de ${monster.name}.`, 'combat');
-      }
-      if(reference.playerStatus.counterReady>0){
-        const counter = Math.max(1,Math.round(atkDamage()*.72));
-        reference.playerStatus.counterReady = 0;
-        monster.hp = Math.max(0,monster.hp-counter);
-        recordRunDamage(counter);
-        playCombatVfx('slash','monster','critical');
-        addMonsterBreak(counter,true);
-        spawnFloatText('monster',`↩ -${counter}`,'crit');
-        addLog(`↩ Contraataque: ${monster.name} recibe ${counter} de daño.`, 'combat');
-      }
+      const isBigHit = !shielded && damage >= reference.playerMaxHp*.16;
+      const isMegaHit = !shielded && damage >= reference.playerMaxHp*.32;
+      // Hit-stop: micropausa antes de que el golpe recibido impacte en pantalla.
+      const hitStopDelay = isMegaHit ? 90 : (isBigHit ? 70 : 0);
+      const applyImpact = () => {
+        reference.playerHp = Math.max(0,reference.playerHp-damage);
+        if(player){ player.classList.remove('hit'); void player.offsetWidth; player.classList.add('hit'); }
+        playCombatVfx(shielded ? 'shield' : 'impact','player',shielded ? '' : 'enemy-hit');
+        if(isBigHit){
+          const arenaEl = document.getElementById('arena');
+          const shakeClass = isMegaHit ? 'mega-shake' : 'hit-shake';
+          arenaEl.classList.remove('hit-shake','mega-shake'); void arenaEl.offsetWidth; arenaEl.classList.add(shakeClass);
+        }
+        spawnFloatText('player',`-${damage}`, isBigHit?'big':'', hitIndex);
+        Sound.enemyAttack(monster, shielded);
+        addLog(`💢 ${monster.name} te golpea por ${damage} de daño${shielded?' · daño bloqueado':''}.`, 'enemy');
+        if(special.manaBurn){
+          const burn = Math.max(1,Math.round(reference.playerMaxMana*special.manaBurn));
+          reference.playerMana = Math.max(0,reference.playerMana-burn);
+          playCombatVfx('arcane','player','enemy-hit');
+          spawnFloatText('player',`-${burn} maná`,'miss',hitIndex);
+        }
+        const affinityVenom = monsterAffinity(monster)?.key==='venomous';
+        const venomHit = (monster.archetype.key==='venom' && Math.random()<.55) || special.poison || affinityVenom;
+        if(venomHit && !shielded){
+          reference.playerStatus.poisonTurns = Math.max(reference.playerStatus.poisonTurns,2);
+          playCombatVfx('poison','player');
+          spawnFloatText('player','☣ Veneno','miss',hitIndex);
+        } else if(affinityVenom && shielded){
+          addLog(`🛡 El escudo bloquea la toxina de ${monster.name}.`, 'combat');
+        }
+        if(reference.playerStatus.counterReady>0){
+          const counter = Math.max(1,Math.round(atkDamage()*.72));
+          reference.playerStatus.counterReady = 0;
+          monster.hp = Math.max(0,monster.hp-counter);
+          recordRunDamage(counter);
+          playCombatVfx('slash','monster','critical');
+          addMonsterBreak(counter,true);
+          spawnFloatText('monster',`↩ -${counter}`,'crit',hitIndex);
+          addLog(`↩ Contraataque: ${monster.name} recibe ${counter} de daño.`, 'combat');
+        }
+        continueTurn();
+      };
+      if(hitStopDelay>0) setTimeout(()=>{ if(isCurrentBattle(reference)) applyImpact(); }, hitStopDelay);
+      else applyImpact();
     }
-    syncBattleUi();
-    if(monster.hp<=0){ setTimeout(()=>{ if(isCurrentBattle(reference)) endBattle('win'); },350); return; }
-    if(reference.playerHp<=0){ endMonsterTurn(reference); return; }
-    if(remaining>1){ setTimeout(()=>resolveMonsterHits(remaining-1,special,reference),220); }
-    else endMonsterTurn(reference);
   },260);
 }
 
@@ -5828,13 +6058,14 @@ function chooseShrine(kind){
     runState.hp = Math.min(runState.maxHp, runState.hp+amount);
     addLog(`El santuario restaura ${amount} de vida.`, 'win');
     showFeedback('✚ SANTUARIO', `+${amount} vida`);
+    Sound.heal();
   } else {
     const amount = Math.round(runState.maxMana*.55);
     runState.mana = Math.min(runState.maxMana, runState.mana+amount);
     addLog(`El santuario restaura ${amount} de maná.`, 'win');
     showFeedback('✚ SANTUARIO', `+${amount} maná`, 'mana');
+    Sound.mana();
   }
-  Sound.reward();
   advanceToBounty(); render(); saveState();
 }
 
@@ -5845,6 +6076,7 @@ function chooseEvent(kind){
     gainGold(gold);
     addLog(`El viajero te entrega ${gold} oro.`, 'win');
     showFeedback('? VIAJERO', `+${gold} oro`);
+    Sound.reward();
   } else {
     const cost = Math.max(1, Math.round(runState.maxHp*.12));
     const points = 2 + Math.floor(runState.depth/4);
@@ -5855,8 +6087,9 @@ function chooseEvent(kind){
     syncRunResources();
     addLog(`El altar cobra ${cost} vida y otorga +${points} ${STAT_LABELS[stat]} temporal para esta expedición.`, 'level');
     showFeedback('? ALTAR ANTIGUO', `-${cost} vida · +${points} ${STAT_LABELS[stat]}`, 'danger');
+    Sound.poison();
+    setTimeout(()=>Sound.reward(), 140);
   }
-  Sound.reward();
   advanceToBounty(); render(); saveState();
 }
 
@@ -5880,6 +6113,7 @@ function chooseTrackingTrail(id){
     addLog('🐾 Seguiste huellas pesadas: una bestia élite te corta el paso.', 'combat');
     showFeedback('🐾 BESTIA RASTREADA','Élite localizada · botín mejorado','danger');
     runState.trackingChoices=[];
+    Sound.warning();
     startRunBattle(); saveState(); return;
   }
   if(trail.outcome==='treasure'){
@@ -6573,7 +6807,7 @@ const CLASS_BATTLE_STYLE = {
 function battleClassStyle(){ return CLASS_BATTLE_STYLE[state.characterClass] || CLASS_BATTLE_STYLE.warrior; }
 function playerArt(){
   const style = battleClassStyle();
-  return style.image ? `<img class="hero-art" src="${style.image}" alt="${style.label}">` : playerSVG();
+  return style.image ? `<img class="hero-art" src="${style.image}" alt="${style.label}" decoding="async">` : playerSVG();
 }
 function playerSVG(){
   const style = battleClassStyle();
@@ -6640,7 +6874,7 @@ function monsterArt(monster){
   const form = MONSTER_FORMS[monster.tier] || MONSTER_FORMS.facil;
   const image = monster.image || form.image;
   if(!image) return monsterSVG(monster);
-  return `<img class="monster-art" src="${image}" alt="${escapeHtml(monster.name)}"><span class="boss-eyes" aria-hidden="true"></span>`;
+  return `<img class="monster-art" src="${image}" alt="${escapeHtml(monster.name)}" decoding="async"><span class="boss-eyes" aria-hidden="true"></span>`;
 }
 
 function renderArena(fresh){
@@ -6658,14 +6892,14 @@ function renderArena(fresh){
       <div class="fighter player class-${state.characterClass}">
         <div class="name">${escapeHtml(state.name)}</div>
         <div class="class-tag"><span>${style.icon}</span>${style.label}</div>
-        <div class="mini-bar"><div id="arenaPlayerHp" style="width:100%"></div></div>
+        <div class="mini-bar"><div class="mini-bar-ghost" id="arenaPlayerHpGhost" style="width:100%"></div><div id="arenaPlayerHp" style="width:100%"></div></div>
         <div class="sprite-box">${playerArt()}<span class="weapon-label">${style.weapon}</span>${state.companion ? `<span class="companion-tag">✦ ${escapeHtml(state.companion.name)}</span>` : ''}</div>
       </div>
-      ${state.characterClass==='tamer' && state.companion ? `<div class="companion-fighter"><img src="${state.companion.image}" alt="${escapeHtml(state.companion.name)}"><b>${escapeHtml(state.companion.name)}</b><small>COMPAÑERO</small></div>` : ''}
+      ${state.characterClass==='tamer' && state.companion ? `<div class="companion-fighter"><img src="${state.companion.image}" alt="${escapeHtml(state.companion.name)}" decoding="async"><b>${escapeHtml(state.companion.name)}</b><small>COMPAÑERO</small></div>` : ''}
       <div class="vs">VS</div>
       <div class="fighter monster monster-${battle.monster.visualType || 'slime'} ${battle.monster.isBoss?'boss':''} ${battle.monster.phaseTwo?'phase-two':''}">
         <div class="name">${escapeHtml(battle.monster.name)}</div>
-        <div class="mini-bar"><div id="arenaMonsterHp" style="width:100%"></div></div>
+        <div class="mini-bar"><div class="mini-bar-ghost" id="arenaMonsterHpGhost" style="width:100%"></div><div id="arenaMonsterHp" style="width:100%"></div></div>
         ${monsterAffinityMarkup(battle.monster)}
         <div class="monster-analysis ${battle.monster.analyzed?'revealed':'hidden'}" id="monsterAnalysis">${battle.monster.analyzed ? `🔎 ${battle.monster.hp}/${battle.monster.maxHp} vida` : `🔍 Análisis fallido · ${Math.round(battle.monster.analysisChance)}%`}</div>
         <div class="break-meter" id="breakMeter"><span>RUPTURA</span><div class="break-track"><div class="break-fill" id="breakFill"></div></div><span class="break-value" id="breakValue">0%</span></div>
@@ -6685,6 +6919,8 @@ function renderArenaBars(){
   if(!battle) return;
   const php = document.getElementById('arenaPlayerHp');
   const mhp = document.getElementById('arenaMonsterHp');
+  const phpGhost = document.getElementById('arenaPlayerHpGhost');
+  const mhpGhost = document.getElementById('arenaMonsterHpGhost');
   const breakFill = document.getElementById('breakFill');
   const breakValue = document.getElementById('breakValue');
   const breakMeter = document.getElementById('breakMeter');
@@ -6693,6 +6929,10 @@ function renderArenaBars(){
   const monsterPct = Math.max(0, Math.min(100, finiteNumber(battle.monster.hp) / Math.max(1, finiteNumber(battle.monster.maxHp, 1)) * 100));
   if(php) php.style.width = playerPct+'%';
   if(mhp) mhp.style.width = monsterPct+'%';
+  // La barra "fantasma" comparte destino pero tiene una transición más lenta y con retraso,
+  // así que se queda un instante atrás mostrando el golpe recién recibido.
+  if(phpGhost) phpGhost.style.width = playerPct+'%';
+  if(mhpGhost) mhpGhost.style.width = monsterPct+'%';
   const breakPct = Math.max(0, Math.min(100, Math.round(finiteNumber(battle.monster.breakMeter) / Math.max(1, finiteNumber(battle.monster.breakMax, 1)) * 100)));
   if(breakFill) breakFill.style.width = breakPct+'%';
   if(breakValue) breakValue.textContent = breakPct+'%';
@@ -6737,11 +6977,24 @@ function updateCombatTension(){
   const ratio = monster.maxHp ? monster.hp / monster.maxHp : 1;
   const lowHealth = monster.hp>0 && ratio<=.30;
   if(arena) arena.classList.toggle('last-stand', lowHealth);
-  if(!lowHealth || monster.tensionTriggered) return;
-  monster.tensionTriggered = true;
-  if(!(monster.isBoss && monster.phaseTwo)) Sound.setScene('danger');
-  showCombatWarning('⚠ ÚLTIMA RESISTENCIA','El enemigo pelea con todo lo que le queda', monster.isBoss);
-  spawnFloatText('monster','¡FURIA FINAL!','crit');
+  if(lowHealth && !monster.tensionTriggered){
+    monster.tensionTriggered = true;
+    if(!(monster.isBoss && monster.phaseTwo)) Sound.setScene('danger');
+    showCombatWarning('⚠ ÚLTIMA RESISTENCIA','El enemigo pelea con todo lo que le queda', monster.isBoss);
+    spawnFloatText('monster','¡FURIA FINAL!','crit');
+  }
+
+  const playerRatio = battle.playerMaxHp ? battle.playerHp / battle.playerMaxHp : 1;
+  const playerCritical = battle.playerHp>0 && playerRatio<=.25;
+  if(arena) arena.classList.toggle('player-danger', playerCritical);
+  if(playerCritical && !battle.playerTensionTriggered){
+    battle.playerTensionTriggered = true;
+    Sound.setScene('danger');
+    Sound.dangerPulse();
+    showCombatWarning('☠ AL BORDE DE LA MUERTE','Un golpe más y podrías caer');
+  } else if(!playerCritical && playerRatio>.4){
+    battle.playerTensionTriggered = false;
+  }
 }
 
 function renderActionButtons(){
@@ -7055,8 +7308,8 @@ function renderHeroSubTab() {
       <div class="equipment-tab">
         <div class="character-doll">
           <div class="loadout-title"><span>${classEmblem(state.characterClass)}</span><div><small>VESTIDURA ACTIVA</small><strong>${style.label}</strong><em>${style.weapon}</em></div></div>
-          <img class="equipment-sanctum-rune" src="assets/images/inventory_sanctum_rune.png" alt="">
-          <img class="equipment-hero-art" src="${style.image}" alt="${style.label}">
+          <img class="equipment-sanctum-rune" src="assets/images/inventory_sanctum_rune.png" alt="" decoding="async">
+          <img class="equipment-hero-art" src="${style.image}" alt="${style.label}" decoding="async">
           
           ${gearSlotMarkup('helmet')}
           ${gearSlotMarkup('chest')}
@@ -7070,12 +7323,12 @@ function renderHeroSubTab() {
 
         <div class="inventory-list">
           <div class="backpack-head"><span>◈</span><div><small>INVENTARIO DEL VIAJERO</small><h4>Tu Mochila</h4></div><b>${state.ownedEquipment.length}</b></div>
-          ${state.ownedEquipment.length === 0 ? `<div class="empty-backpack-state"><img src="assets/images/inventory_empty_satchel.png" alt="Mochila del viajero"><b>MOCHILA A LA ESPERA</b><p>Consigue piezas en la caceria, el gremio o la herreria para preparar a tu aventurero.</p><small>BOTIN · TIENDA · HERRERIA</small></div>` : ''}
+          ${state.ownedEquipment.length === 0 ? `<div class="empty-backpack-state"><img src="assets/images/inventory_empty_satchel.png" alt="Mochila del viajero" decoding="async"><b>MOCHILA A LA ESPERA</b><p>Consigue piezas en la caceria, el gremio o la herreria para preparar a tu aventurero.</p><small>BOTIN · TIENDA · HERRERIA</small></div>` : ''}
           ${state.ownedEquipment.map((item, idx) => {
             const rarity = itemRarityMeta(item);
             return `
             <div class="inv-item rarity-${rarity.key}" style="--rarity-color:${rarity.color};--rarity-glow:${rarity.glow};border-left-color:${rarity.color}">
-              ${item.image ? `<img class="inv-item-art" src="${item.image}" alt="">` : ''}<div class="inv-item-info">
+              ${item.image ? `<img class="inv-item-art" src="${item.image}" alt="" decoding="async" loading="lazy">` : ''}<div class="inv-item-info">
                 <span class="inv-item-name">${item.name}</span>
                 <span class="inv-rarity" style="--rarity-color:${rarity.color}">${rarity.label}</span>
                 <span class="inv-item-stats">
@@ -7144,7 +7397,7 @@ function renderProfile(){
   box.style.setProperty('--profile-glow', style.glow || '#e8c477');
   box.innerHTML = `
     <section class="profile-hero">
-      <div class="profile-portrait"><img src="${style.image}" alt="${hero.label}"></div>
+      <div class="profile-portrait"><img src="${style.image}" alt="${hero.label}" decoding="async"></div>
       <div class="profile-summary">
         <span class="profile-kicker">✦ REGISTRO DEL BASTIÓN · AVENTURERO ACTIVO</span>
         <h2 class="profile-name">${escapeHtml(state.name)}</h2>
@@ -7216,7 +7469,7 @@ function renderGuildSubTab() {
         return `
         <div class="shop-item rarity-${it.rarityKey||'common'} ${stock?'':'locked'}" style="--rarity-color:${it.color};--rarity-glow:${it.glow||'transparent'}">
           <div class="shop-top">
-            <span class="iname" style="color:${it.color}">${it.image ? `<img class="shop-item-art" src="${it.image}" alt="">` : it.icon} ${it.name}</span>
+            <span class="iname" style="color:${it.color}">${it.image ? `<img class="shop-item-art" src="${it.image}" alt="" decoding="async" loading="lazy">` : it.icon} ${it.name}</span>
             <span class="irarity" style="color:${it.color}">${it.rarity}</span>
           </div>
           <div class="shop-stat">${statString} &nbsp;·&nbsp; ${it.price} oro</div>
@@ -7243,7 +7496,7 @@ function renderGuildSubTab() {
         <span class="bestiary-tier">${tierName.toUpperCase()}</span><strong>${found ? escapeHtml(form.name.replace(/^Jefe:\s*/,'')) : 'Criatura desconocida'}</strong>
         <small>${found ? `${found.wins} victoria${found.wins===1?'':'s'} · ${detail}` : 'Derrotala para revelar vida, botín y comportamiento.'}</small>
         ${found && (found.boss||form.boss) ? `<span class="bestiary-boss">${form.boss?'TROFEO DE JEFE':'JEFE VENCIDO'}</span>` : ''}
-        <img src="${form.image}" alt="" aria-hidden="true"></article>`;
+        <img src="${form.image}" alt="" aria-hidden="true" decoding="async" loading="lazy"></article>`;
     }).join('')}</div>`;
   } else if (activeGuildTab === 'logros') {
     box.innerHTML = guildSummaryMarkup() + ACHIEVEMENTS.map(a=>{
@@ -7401,13 +7654,13 @@ function renderOptions(){
   };
   box.querySelector('#musicVolume').addEventListener('input', updateRange('musicVolume','musicVolumeValue'));
   box.querySelector('#sfxVolume').addEventListener('input', updateRange('sfxVolume','sfxVolumeValue'));
-  box.querySelector('#musicEnabledBtn').addEventListener('click', ()=>{ state.settings.musicEnabled=!state.settings.musicEnabled; Sound.musicEnabled=state.settings.musicEnabled; if(Sound.musicEnabled){ Sound.init(); Sound.playNextNote(); } Sound.applyVolumes(); saveState(); renderOptions(); });
+  box.querySelector('#musicEnabledBtn').addEventListener('click', ()=>{ state.settings.musicEnabled=!state.settings.musicEnabled; Sound.musicEnabled=state.settings.musicEnabled; if(Sound.musicEnabled){ Sound.init(); if(Sound.scene==='menu' && Sound.menuAudioEl){ Sound.syncMenuAudio(); } else { Sound.playNextNote(); } } else { Sound.syncMenuAudio(); } Sound.applyVolumes(); saveState(); renderOptions(); });
   box.querySelector('#sfxEnabledBtn').addEventListener('click', ()=>{ state.settings.sfxEnabled=!state.settings.sfxEnabled; Sound.applyVolumes(); Sound.click(); saveState(); renderOptions(); });
   box.querySelectorAll('[data-quality]').forEach(btn=>btn.addEventListener('click',()=>{ state.settings.graphics=btn.dataset.quality; applyVisualSettings(); saveState(); renderOptions(); }));
   box.querySelector('#motionBtn').addEventListener('click',()=>{ state.settings.reducedMotion=!state.settings.reducedMotion; applyVisualSettings(); saveState(); renderOptions(); });
   box.querySelector('#testSoundBtn').addEventListener('click',()=>Sound.preview());
   box.querySelector('#optionsFullscreenBtn').addEventListener('click',()=>toggleGameMode());
-  box.querySelector('#resetOptionsBtn').addEventListener('click',()=>{ state.settings={musicVolume:55,sfxVolume:70,musicEnabled:false,sfxEnabled:true,graphics:'high',reducedMotion:false}; Sound.musicEnabled=false; applyVisualSettings(); saveState(); renderOptions(); });
+  box.querySelector('#resetOptionsBtn').addEventListener('click',()=>{ state.settings={musicVolume:100,sfxVolume:100,musicEnabled:false,sfxEnabled:true,graphics:'high',reducedMotion:false}; Sound.musicEnabled=false; applyVisualSettings(); saveState(); renderOptions(); });
 }
 
 function profileHubStats(){
@@ -7444,7 +7697,7 @@ function renderProfileHub(){
     </div>`;
   } else if(activeProfileView==='identity'){
     const pct=state.level>=LEVEL_CAP?100:Math.max(0,Math.min(100,finiteNumber(state.exp)/Math.max(1,data.expNeed)*100));
-    box.innerHTML=`${head}<section class="hub-detail"><button class="hub-back" data-profile-back>← VOLVER AL PERFIL</button><div class="hub-detail-portrait"><img src="${style.image}" alt="${hero.label}"><div class="hub-detail-copy"><b>${escapeHtml(state.name)}</b><p>${hero.description}</p><p>Arma característica: <b>${style.weapon}</b></p><div class="profile-exp"><span>NIVEL ${state.level}</span><span>${state.level>=LEVEL_CAP?'NIVEL MÁXIMO':`${Math.floor(finiteNumber(state.exp))} / ${data.expNeed} EXP`}</span><div class="bar exp"><div style="width:${pct}%"></div></div></div></div></div><div class="hub-detail-grid"><div class="hub-detail-stat"><small>PODER</small><b>${Math.round(power())}</b></div><div class="hub-detail-stat"><small>ORO</small><b>${Math.floor(finiteNumber(state.gold))}</b></div><div class="hub-detail-stat"><small>RESETS</small><b>${state.resets||0}</b></div></div><div class="hub-action-row"><button data-profile-action="hero">ABRIR HÉROE Y EQUIPO</button><button class="profile-secondary" data-profile-action="characters">CAMBIAR PERSONAJE</button></div></section>`;
+    box.innerHTML=`${head}<section class="hub-detail"><button class="hub-back" data-profile-back>← VOLVER AL PERFIL</button><div class="hub-detail-portrait"><img src="${style.image}" alt="${hero.label}" decoding="async"><div class="hub-detail-copy"><b>${escapeHtml(state.name)}</b><p>${hero.description}</p><p>Arma característica: <b>${style.weapon}</b></p><div class="profile-exp"><span>NIVEL ${state.level}</span><span>${state.level>=LEVEL_CAP?'NIVEL MÁXIMO':`${Math.floor(finiteNumber(state.exp))} / ${data.expNeed} EXP`}</span><div class="bar exp"><div style="width:${pct}%"></div></div></div></div></div><div class="hub-detail-grid"><div class="hub-detail-stat"><small>PODER</small><b>${Math.round(power())}</b></div><div class="hub-detail-stat"><small>ORO</small><b>${Math.floor(finiteNumber(state.gold))}</b></div><div class="hub-detail-stat"><small>RESETS</small><b>${state.resets||0}</b></div></div><div class="hub-action-row"><button data-profile-action="hero">ABRIR HÉROE Y EQUIPO</button><button class="profile-secondary" data-profile-action="characters">CAMBIAR PERSONAJE</button></div></section>`;
   } else if(activeProfileView==='progress'){
     box.innerHTML=`${head}<section class="hub-detail"><button class="hub-back" data-profile-back>← VOLVER AL PERFIL</button><h3 class="hub-detail-title">PROGRESO DE EXPEDICIÓN</h3><p class="hub-detail-sub">Los hitos que definen el camino de tu aventurero.</p><div class="hub-detail-grid"><div class="hub-detail-stat"><small>VICTORIAS</small><b>${state.totalWins||0}</b></div><div class="hub-detail-stat"><small>GUARDIANES</small><b>${state.totalBossWins||0}</b></div><div class="hub-detail-stat"><small>MEJOR PROFUNDIDAD</small><b>${state.maxHuntDepth||0}</b></div><div class="hub-detail-stat"><small>RESETS</small><b>${state.resets||0}</b></div><div class="hub-detail-stat"><small>DISPONIBLES</small><b>${availableStatResets()}</b></div><div class="hub-detail-stat"><small>RACHA</small><b>${winStreak}</b></div></div><div class="profile-run-badge">${data.runActive?`⚔ Expedición en curso · profundidad ${runState.depth}`:'✦ No hay expedición activa. Podés preparar una nueva cacería.'}</div><div class="hub-action-row"><button data-profile-action="hunt">IR A CACERÍA</button></div></section>`;
   } else if(activeProfileView==='achievements'){
@@ -7479,13 +7732,13 @@ function renderOptionsHub(){
   const update=(key,output)=>event=>{state.settings[key]=Number(event.target.value);const out=box.querySelector(output);if(out)out.textContent=`${event.target.value}%`;Sound.applyVolumes();saveState();};
   box.querySelector('#musicVolume')?.addEventListener('input',update('musicVolume','#musicVolumeValue'));
   box.querySelector('#sfxVolume')?.addEventListener('input',update('sfxVolume','#sfxVolumeValue'));
-  box.querySelector('#musicEnabledBtn')?.addEventListener('click',()=>{state.settings.musicEnabled=!state.settings.musicEnabled;Sound.musicEnabled=state.settings.musicEnabled;if(Sound.musicEnabled){Sound.init();Sound.playNextNote();}Sound.applyVolumes();saveState();renderOptionsHub();});
+  box.querySelector('#musicEnabledBtn')?.addEventListener('click',()=>{state.settings.musicEnabled=!state.settings.musicEnabled;Sound.musicEnabled=state.settings.musicEnabled;if(Sound.musicEnabled){Sound.init();if(Sound.scene==='menu'&&Sound.menuAudioEl){Sound.syncMenuAudio();}else{Sound.playNextNote();}}else{Sound.syncMenuAudio();}Sound.applyVolumes();saveState();renderOptionsHub();});
   box.querySelector('#sfxEnabledBtn')?.addEventListener('click',()=>{state.settings.sfxEnabled=!state.settings.sfxEnabled;Sound.applyVolumes();Sound.click();saveState();renderOptionsHub();});
   box.querySelectorAll('[data-quality]').forEach(button=>button.addEventListener('click',()=>{state.settings.graphics=button.dataset.quality;applyVisualSettings();saveState();renderOptionsHub();}));
   box.querySelector('#motionBtn')?.addEventListener('click',()=>{state.settings.reducedMotion=!state.settings.reducedMotion;applyVisualSettings();saveState();renderOptionsHub();});
   box.querySelector('#testSoundBtn')?.addEventListener('click',()=>Sound.preview());
   box.querySelector('#optionsFullscreenBtn')?.addEventListener('click',()=>toggleGameMode());
-  box.querySelector('#resetOptionsBtn')?.addEventListener('click',()=>{state.settings={musicVolume:55,sfxVolume:70,musicEnabled:false,sfxEnabled:true,graphics:'high',reducedMotion:false};Sound.musicEnabled=false;applyVisualSettings();saveState();activeOptionsView='home';renderOptionsHub();});
+  box.querySelector('#resetOptionsBtn')?.addEventListener('click',()=>{state.settings={musicVolume:100,sfxVolume:100,musicEnabled:false,sfxEnabled:true,graphics:'high',reducedMotion:false};Sound.musicEnabled=false;applyVisualSettings();saveState();activeOptionsView='home';renderOptionsHub();});
 }
 
 function buyItem(id){
@@ -7733,7 +7986,7 @@ function renderGateClassShowcase(){
   gate.style.setProperty('--class-glow', visual.glow || '#e8c477');
   showcase.innerHTML = `
     <div class="gate-class-artbox">
-      <img class="gate-class-art" src="${visual.image}" alt="${selected.label}">
+      <img class="gate-class-art" src="${visual.image}" alt="${selected.label}" decoding="async">
     </div>
     <div class="gate-class-info">
       <span class="gate-class-pill">${classEmblem(selectedClassId)} ${selected.label}</span>
@@ -7766,7 +8019,7 @@ async function createCharacter(){
   activeCharacterId = `hero-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
   state = defaultState(name, selectedClassId);
   await saveState();
-  Sound.victory();
+  Sound.heroBorn();
   showGame();
 }
 
