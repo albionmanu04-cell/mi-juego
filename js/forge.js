@@ -72,7 +72,9 @@ function forgeBlueprints(){
 }
 function forgeCost(item){
   // La forja ancestral es el objetivo de largo plazo: el coste es igual para cada pieza.
-  return { essence:300, bossCore:30, scale:25, gold:20000 };
+  // Subido para que llegar a la pieza ancestral cueste una campaña larga de Cacería
+  // y pesca, no un par de expediciones cortas.
+  return { essence:700, bossCore:60, scale:60, gold:45000 };
 }
 const ENHANCE_MAX = 13;
 const ENHANCE_BREAK_START = 8;
