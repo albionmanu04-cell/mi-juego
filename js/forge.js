@@ -71,8 +71,8 @@ function forgeBlueprints(){
   return FORGE_EXCLUSIVE_ITEMS.filter(item=>item.classOnly===state.characterClass);
 }
 function forgeCost(item){
-  // Una pieza ancestral debe requerir varias expediciones con guardianes.
-  return { essence:60, bossCore:4, gold:Math.max(1500, Math.round(item.price*.40)) };
+  // La forja ancestral es el objetivo de largo plazo: el coste es igual para cada pieza.
+  return { essence:300, bossCore:30, scale:25, gold:20000 };
 }
 const ENHANCE_MAX = 13;
 const ENHANCE_BREAK_START = 8;
@@ -133,8 +133,8 @@ function beginRunicForge(id){
   if(!item || (state.ownedItems[item.id]||0)>0) return;
   const cost = forgeCost(item);
   const materials = state.materials;
-  if((materials.essence||0)<cost.essence || (materials.bossCore||0)<cost.bossCore || state.gold<cost.gold){
-    showFeedback('MATERIALES INSUFICIENTES',`Necesitás ${cost.essence} esencia · ${cost.bossCore} núcleos · ${cost.gold} oro.`,'danger');
+  if((materials.essence||0)<cost.essence || (materials.bossCore||0)<cost.bossCore || (materials.scale||0)<cost.scale || state.gold<cost.gold){
+    showFeedback('MATERIALES INSUFICIENTES',`Necesitás ${cost.essence} esencia · ${cost.bossCore} núcleos · ${cost.scale} escamas · ${cost.gold} oro.`,'danger');
     return;
   }
   forgeRitual = { itemId:id, hits:[], activeZone:-1, result:'Seguí el círculo y golpeá cuando el aro toque el núcleo.' };
@@ -208,9 +208,10 @@ function craftUniqueItem(id){
   if(!item || (state.ownedItems[item.id]||0)>0){ forgeRitual=null; return; }
   const cost = forgeCost(item);
   const materials = state.materials;
-  if((materials.essence||0)<cost.essence || (materials.bossCore||0)<cost.bossCore || state.gold<cost.gold){ forgeRitual=null; renderForge(); return; }
+  if((materials.essence||0)<cost.essence || (materials.bossCore||0)<cost.bossCore || (materials.scale||0)<cost.scale || state.gold<cost.gold){ forgeRitual=null; renderForge(); return; }
   materials.essence -= cost.essence;
   materials.bossCore -= cost.bossCore;
+  materials.scale -= cost.scale;
   state.gold -= cost.gold;
   const outcome=forgeOutcome(forgeRitual.hits);
   state.ownedEquipment.push(applyForgeOutcome(item,outcome));
@@ -293,8 +294,8 @@ function renderForge(){
     <div class="forge-title"><span>PLANOS ANCESTRALES</span><small>${blueprints.length-unowned.length} completados · ${unowned.length} pendientes</small></div>
     <div class="forge-blueprints">${blueprints.map(item=>{
       const cost=forgeCost(item), owned=(state.ownedItems[item.id]||0)>0;
-      const enough=(materials.essence||0)>=cost.essence && (materials.bossCore||0)>=cost.bossCore && state.gold>=cost.gold;
-      return `<div class="forge-card ${owned?'owned':''} ${enough?'craft-ready':'needs-materials'}"><div class="forge-card-ribbon">${owned?'OBTENIDO':enough?'LISTO':'INCOMPLETO'}</div><div class="forge-card-head">${item.image?`<span class="forge-card-art"><img src="${item.image}" alt="" decoding="async" loading="lazy"></span>`:`<span class="forge-card-art">${item.icon}</span>`}<div><small>${equipmentSlotMeta(item.type).label} · ANCESTRAL</small><b>${escapeHtml(item.name)}</b></div></div><div class="forge-stats">${forgeItemStats(item)}</div><div class="forge-recipe"><span class="${(materials.essence||0)>=cost.essence?'has':'lacks'}">◇ ${materials.essence||0}/${cost.essence}</span><span class="${(materials.bossCore||0)>=cost.bossCore?'has':'lacks'}">◈ ${materials.bossCore||0}/${cost.bossCore}</span><span class="${state.gold>=cost.gold?'has':'lacks'}">◉ ${cost.gold}</span></div><button data-craft-item="${item.id}" ${owned||!enough||locked?'disabled':''}>${owned?'✓ PIEZA COMPLETADA':locked?'CACERÍA EN CURSO':enough?'⚒ COMENZAR FORJA':'REUNÍ LOS MATERIALES'}</button></div>`;
+      const enough=(materials.essence||0)>=cost.essence && (materials.bossCore||0)>=cost.bossCore && (materials.scale||0)>=cost.scale && state.gold>=cost.gold;
+      return `<div class="forge-card ${owned?'owned':''} ${enough?'craft-ready':'needs-materials'}"><div class="forge-card-ribbon">${owned?'OBTENIDO':enough?'LISTO':'INCOMPLETO'}</div><div class="forge-card-head">${item.image?`<span class="forge-card-art"><img src="${item.image}" alt="" decoding="async" loading="lazy"></span>`:`<span class="forge-card-art">${item.icon}</span>`}<div><small>${equipmentSlotMeta(item.type).label} · ANCESTRAL</small><b>${escapeHtml(item.name)}</b></div></div><div class="forge-stats">${forgeItemStats(item)}</div><div class="forge-recipe"><span class="${(materials.essence||0)>=cost.essence?'has':'lacks'}">◇ ${materials.essence||0}/${cost.essence}</span><span class="${(materials.bossCore||0)>=cost.bossCore?'has':'lacks'}">◈ ${materials.bossCore||0}/${cost.bossCore}</span><span class="${(materials.scale||0)>=cost.scale?'has':'lacks'}">✦ ${materials.scale||0}/${cost.scale}</span><span class="${state.gold>=cost.gold?'has':'lacks'}">◉ ${cost.gold}</span></div><button data-craft-item="${item.id}" ${owned||!enough||locked?'disabled':''}>${owned?'✓ PIEZA COMPLETADA':locked?'CACERÍA EN CURSO':enough?'⚒ COMENZAR FORJA':'REUNÍ LOS MATERIALES'}</button></div>`;
     }).join('')}</div>`;
   if(!forgeRitual) box.querySelectorAll('[data-craft-item]').forEach(button=>button.addEventListener('click',()=>beginRunicForge(button.dataset.craftItem)));
 
