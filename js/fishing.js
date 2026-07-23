@@ -13,16 +13,16 @@
 // progreso individual de especies: como se repite entre peces, agruparía
 // especies distintas como si fueran la misma.
 const FISH_TABLE = [
-  { id:'pejerrey',  key:'common',    label:'Pejerrey Común',   icon:'🐟', weight:50, essence:1,  gold:8,   scale:0, sizeMin:0.2, sizeMax:1.1 },
-  { id:'trucha',    key:'uncommon',  label:'Trucha Plateada',  icon:'🐠', weight:27, essence:2,  gold:18,  scale:1, sizeMin:0.6, sizeMax:2.4 },
-  { id:'dorado',    key:'rare',      label:'Dorado de Río',    icon:'🐡', weight:14, essence:4,  gold:42,  scale:2, sizeMin:1.5, sizeMax:5.2 },
-  { id:'calamar',   key:'rare',      label:'Calamar Luminoso', icon:'🦑', weight:12, essence:5,  gold:55,  scale:3, sizeMin:2.0, sizeMax:6.5 },
-  { id:'serpiente', key:'epic',      label:'Serpiente Abisal', icon:'🐍', weight:6,  essence:8,  gold:95,  scale:4, sizeMin:4,   sizeMax:12  },
-  { id:'lubina',    key:'epic',      label:'Lubina de Magma',  icon:'🦐', weight:5,  essence:10, gold:120, scale:4, sizeMin:3.5, sizeMax:9.0 },
-  { id:'tortuga',   key:'epic',      label:'Tortuga Coraza de Hierro', icon:'🐢', weight:4, essence:12, gold:150, scale:5, sizeMin:5.0, sizeMax:15.0 },
-  { id:'leviatan',  key:'legendary', label:'Leviatán Menor',   icon:'🐋', weight:1,  essence:16, gold:230, scale:8, sizeMin:10,  sizeMax:38  },
-  { id:'dragon',    key:'legendary', label:'Dragón de las Olas', icon:'🐉', weight:1, essence:20, gold:300, scale:9, sizeMin:12, sizeMax:45 },
-  { id:'tiburon',   key:'legendary', label:'Gran Tiburón Blanco', icon:'🦈', weight:1, essence:25, gold:380, scale:10, sizeMin:15, sizeMax:50 }
+  { id:'pejerrey',  key:'common',    label:'Pejerrey Común',   icon:'🐟', weight:50, essence:1,  gold:5,   scale:0, sizeMin:0.2, sizeMax:1.1 },
+  { id:'trucha',    key:'uncommon',  label:'Trucha Plateada',  icon:'🐠', weight:27, essence:1,  gold:12,  scale:1, sizeMin:0.6, sizeMax:2.4 },
+  { id:'dorado',    key:'rare',      label:'Dorado de Río',    icon:'🐡', weight:14, essence:3,  gold:28,  scale:2, sizeMin:1.5, sizeMax:5.2 },
+  { id:'calamar',   key:'rare',      label:'Calamar Luminoso', icon:'🦑', weight:12, essence:3,  gold:36,  scale:2, sizeMin:2.0, sizeMax:6.5 },
+  { id:'serpiente', key:'epic',      label:'Serpiente Abisal', icon:'🐍', weight:6,  essence:5,  gold:65,  scale:3, sizeMin:4,   sizeMax:12  },
+  { id:'lubina',    key:'epic',      label:'Lubina de Magma',  icon:'🦐', weight:5,  essence:7,  gold:80,  scale:3, sizeMin:3.5, sizeMax:9.0 },
+  { id:'tortuga',   key:'epic',      label:'Tortuga Coraza de Hierro', icon:'🐢', weight:4, essence:8, gold:100, scale:4, sizeMin:5.0, sizeMax:15.0 },
+  { id:'leviatan',  key:'legendary', label:'Leviatán Menor',   icon:'🐋', weight:1,  essence:11, gold:155, scale:6, sizeMin:10,  sizeMax:38  },
+  { id:'dragon',    key:'legendary', label:'Dragón de las Olas', icon:'🐉', weight:1, essence:14, gold:200, scale:6, sizeMin:12, sizeMax:45 },
+  { id:'tiburon',   key:'legendary', label:'Gran Tiburón Blanco', icon:'🦈', weight:1, essence:17, gold:250, scale:7, sizeMin:15, sizeMax:50 }
 ];
 const FISH_RARITY_RANK = { common:0, uncommon:1, rare:2, epic:3, legendary:4, mythic:5 };
 const FISH_COLORS = { common:'#9fb4c7', uncommon:'#7fd1a5', rare:'#5aa9ff', epic:'#c58bff', legendary:'#f6c965', mythic:'#5be3c9' };
@@ -31,14 +31,14 @@ const FISH_COLORS = { common:'#9fb4c7', uncommon:'#7fd1a5', rare:'#5aa9ff', epic
 // completitud — es un bonus aparte, reservado a zonas avanzadas y a que se
 // den ciertas condiciones de clima/hora a la vez. Le da un motivo concreto
 // para estar pescando en el momento justo, no solo en la zona justa.
-const EVENT_FISH = { id:'kraken', key:'mythic', label:'Kraken Juvenil', icon:'🐙', essence:30, gold:520, scale:15, sizeMin:14, sizeMax:46 };
+const EVENT_FISH = { id:'kraken', key:'mythic', label:'Kraken Juvenil', icon:'🐙', essence:20, gold:350, scale:10, sizeMin:14, sizeMax:46 };
 const EVENT_FISH_CHANCE = 0.08; // chance por picada normal, solo en zonas habilitadas y con la condición activa
 function eventFishActive(){ return isNightTime() && currentWeather().key==='rain'; }
 
 // Recompensa única por completar el dex (atrapar las 5 especies al menos una
 // vez). Además de un pago de materiales, otorga una mejora pasiva permanente
 // ("Pescador Maestro"): espera de picada más corta y mejor calidad de tirada.
-const DEX_COMPLETE_REWARD = { gold:400, essence:25, scale:20 };
+const DEX_COMPLETE_REWARD = { gold:270, essence:17, scale:14 };
 const DEX_MASTERY_WAIT_MULT = 0.92;
 const DEX_MASTERY_QUALITY_BONUS = 0.05;
 function isDexComplete(){
