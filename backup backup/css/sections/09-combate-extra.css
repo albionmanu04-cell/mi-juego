@@ -1,0 +1,313 @@
+/* ================================================================
+   09-COMBATE-EXTRA.CSS — Ficha del héroe, recompensa diaria, jefes, feedback de combate, música flotante, atmósfera, arena de fantasía y biomas.
+   Parte de game.css original, líneas 1306-1612. Orden de carga:
+   ver comentario en index.html.
+   ================================================================ */
+
+  /* ---- FICHA DEL HÉROE ---- */
+  #secHero > .panel:nth-child(2){ overflow:hidden; }
+  #secHero .tabs{ padding:5px; gap:4px; background:rgba(0,0,0,.22); border:1px solid var(--line); border-radius:5px; }
+  #secHero .tab{ border:0; border-radius:3px; padding:9px 6px; background:transparent; }
+  #secHero .tab.active{ background:linear-gradient(135deg,#3a2b17,#241a0f); box-shadow:inset 0 0 0 1px var(--gold),0 0 12px rgba(200,155,60,.16); }
+  .equipment-tab{ position:relative; display:grid; grid-template-columns:minmax(175px,.75fr) minmax(0,1.25fr); align-items:stretch; gap:18px; padding:0; border:0; background:transparent; box-shadow:none; }
+  .character-doll{ width:100%; min-height:285px; height:auto; margin:0; border-color:#504026; background:radial-gradient(ellipse at 50% 45%,rgba(200,155,60,.16),transparent 46%),linear-gradient(160deg,#201810,#120e0a); box-shadow:inset 0 0 35px rgba(0,0,0,.62),0 8px 18px rgba(0,0,0,.26); }
+  .character-doll::before{ content:'EQUIPO'; position:absolute; top:10px; left:50%; transform:translateX(-50%); font:700 9px 'Cinzel'; letter-spacing:2px; color:var(--gold); }
+  .character-doll::after{ content:'Tocá una pieza equipada para quitarla'; position:absolute; bottom:8px; left:8px; right:8px; color:var(--parchment-dim); font:9px 'JetBrains Mono'; text-align:center; }
+  .character-silhouette{ opacity:.22; width:108px; color:var(--gold-bright); filter:drop-shadow(0 0 12px rgba(232,196,119,.22)); }
+  .eq-slot{ width:46px; height:46px; border-radius:6px; font-size:20px; border-color:#4c3c27; box-shadow:0 3px 8px rgba(0,0,0,.35); }
+  .eq-slot::after{ content:attr(title); position:absolute; left:50%; top:calc(100% + 5px); transform:translateX(-50%); z-index:5; padding:3px 5px; border-radius:2px; background:#100c08; border:1px solid var(--line); color:var(--parchment-dim); font:8px 'JetBrains Mono'; white-space:nowrap; opacity:0; pointer-events:none; transition:.16s ease; }
+  .eq-slot:hover::after{ opacity:1; }
+  .eq-slot.equipped{ border-color:var(--gold-bright); background:linear-gradient(135deg,rgba(200,155,60,.27),rgba(25,18,11,.9)); box-shadow:inset 0 0 12px rgba(232,196,119,.15),0 0 12px rgba(200,155,60,.25); }
+  .slot-helmet{top:34px;left:calc(50% - 23px)} .slot-chest{top:99px;left:calc(50% - 23px)} .slot-gloves{top:160px;left:16px} .slot-boots{bottom:30px;top:auto;left:calc(50% - 23px)} .slot-weapon{top:99px;left:16px} .slot-shield{top:99px;left:auto;right:16px} .slot-ring{top:160px;left:auto;right:16px}
+  .inventory-list{ max-height:285px; padding:4px; gap:9px; }
+  .inventory-list h4{ display:flex; align-items:center; gap:8px; padding:7px 8px; margin:0; border:1px solid var(--line); border-radius:3px; background:rgba(0,0,0,.16); }
+  .inventory-list h4::before{ content:'◈'; color:var(--gold-bright); font-size:15px; }
+  .inv-item{ min-height:62px; padding:9px 10px 9px 13px; border-left-width:4px; border-radius:4px; background:linear-gradient(120deg,#17110c,#21180f); transition:.18s ease; }
+  .inv-item:hover{ transform:translateX(3px); border-color:var(--gold); box-shadow:0 5px 12px rgba(0,0,0,.28); }
+  .inv-item-name{ font-family:'Cinzel'; font-size:11px; letter-spacing:.4px; }
+  .inv-item-stats{ color:var(--gold-bright); line-height:1.5; }
+  .stats-detailed{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:8px; border:0; background:transparent; box-shadow:none; }
+  .stats-detailed h4{ grid-column:1/-1; padding:10px 11px; margin:0; border:1px solid var(--line); border-radius:4px; background:linear-gradient(120deg,rgba(200,155,60,.14),rgba(0,0,0,.12)); }
+  .stat-row-detail{ min-height:66px; flex-direction:column; align-items:flex-start; justify-content:center; gap:5px; padding:10px 11px; border:1px solid var(--line); border-radius:4px; background:linear-gradient(145deg,#211810,#17110c); }
+  .stat-row-detail:last-child{ border-bottom:1px solid var(--line); }
+  .stat-row-detail .label{ font:9px 'JetBrains Mono'; letter-spacing:.7px; text-transform:uppercase; }
+  .stat-row-detail .val{ font-size:14px; }
+  @media(max-width:560px){ .equipment-tab{grid-template-columns:1fr}.character-doll{min-height:270px}.inventory-list{max-height:none}.stats-detailed{grid-template-columns:1fr}.stat-row-detail{min-height:56px} }
+
+  /* ---- RECOMPENSA DIARIA ---- */
+  .daily-toast{
+    position:fixed; top:-100px; left:50%; transform:translateX(-50%);
+    background:var(--bg-panel); border:1px solid var(--gold); border-radius:4px; padding:14px 26px;
+    text-align:center; box-shadow:0 8px 24px rgba(0,0,0,0.6), 0 0 18px rgba(200,155,60,0.35); z-index:200;
+    transition: top .5s cubic-bezier(.2,.9,.3,1.2);
+  }
+  .daily-toast.show{ top:18px; }
+  .daily-toast-title{ font-family:'Cinzel'; color:var(--gold-bright); font-size:13px; letter-spacing:1px; }
+  .daily-toast-sub{ font-family:'JetBrains Mono'; color:var(--parchment-dim); font-size:11px; margin-top:4px; }
+
+  /* ---- JEFES ---- */
+.fighter.monster.boss .sprite-box{ transform:scale(1.22); filter:drop-shadow(0 0 10px var(--ember)) drop-shadow(0 0 4px var(--gold-bright)); }
+.fighter.monster.boss .name{ color:var(--ember); text-shadow:0 0 6px rgba(232,98,44,0.6); }
+  .arena.boss-phase-two{ box-shadow:inset 0 0 80px rgba(151,23,39,.42),0 0 26px rgba(218,57,56,.22); animation:bossPhasePulse 1.05s ease-in-out infinite; }
+.arena.boss-phase-two::before{ content:''; position:absolute; inset:0; z-index:2; pointer-events:none; background:radial-gradient(circle at 76% 53%,rgba(220,41,55,.38),transparent 35%); mix-blend-mode:screen; animation:bossPhaseVeil 1.15s ease-in-out infinite; }
+.fighter.monster.boss.phase-two .sprite-box{ transform:scale(1.34); filter:drop-shadow(0 0 17px #f33) drop-shadow(0 0 8px #9c1d44) brightness(1.18) saturate(1.5); animation:bossPhaseFloat .72s ease-in-out infinite alternate; }
+.fighter.monster.boss.phase-two .name{ color:#ff8b75; text-shadow:0 0 11px #e72d3b; }
+.fighter.monster.boss.phase-two .mini-bar{ border-color:#f04b55; box-shadow:0 0 12px rgba(240,75,85,.65); }
+@keyframes bossPhasePulse{ 50%{filter:brightness(1.11) saturate(1.2)} }
+@keyframes bossPhaseVeil{ 50%{opacity:.38} }
+@keyframes bossPhaseFloat{ to{transform:scale(1.39) translateY(-4px)} }
+  .arena.last-stand:not(.boss-phase-two){ box-shadow:inset 0 0 72px rgba(185,35,36,.42),0 0 22px rgba(195,53,42,.2); animation:lastStandPulse 1.15s ease-in-out infinite; }
+  .arena.last-stand::after{ content:''; position:absolute; z-index:5; inset:0; pointer-events:none; background:radial-gradient(circle at 76% 54%,rgba(236,60,49,.25),transparent 34%),linear-gradient(90deg,transparent,rgba(157,24,28,.15),transparent); mix-blend-mode:screen; animation:lastStandVeil 1.15s ease-in-out infinite; }
+  .arena.last-stand .fighter.monster .sprite-box{ filter:drop-shadow(0 0 15px #e44a43) brightness(1.15) saturate(1.25); }
+  .arena.player-danger{ box-shadow:inset 0 0 0 2px rgba(220,30,30,.5),inset 0 0 85px rgba(160,10,10,.55); animation:playerDangerPulse .85s ease-in-out infinite; }
+  @keyframes playerDangerPulse{
+    0%,100%{ box-shadow:inset 0 0 0 2px rgba(220,30,30,.35),inset 0 0 55px rgba(160,10,10,.3); }
+    50%{ box-shadow:inset 0 0 0 3px rgba(255,45,45,.75),inset 0 0 110px rgba(200,15,15,.65); }
+  }
+  .combat-warning{ position:absolute; z-index:30; left:50%; top:14px; width:min(78%,390px); transform:translateX(-50%); padding:8px 12px; border:1px solid #d85b47; border-radius:4px; text-align:center; background:linear-gradient(90deg,rgba(70,15,14,.95),rgba(117,36,25,.95),rgba(70,15,14,.95)); box-shadow:0 0 20px rgba(222,63,45,.45),inset 0 1px rgba(255,225,180,.18); color:#ffe1ba; font:700 10px 'Cinzel'; letter-spacing:1px; animation:warningDrop .7s cubic-bezier(.16,.8,.25,1) both; }
+  .combat-warning small{ display:block; margin-top:3px; color:#f4ab8a; font:9px 'JetBrains Mono'; letter-spacing:0; }.combat-warning.boss{ border-color:#f2b056; background:linear-gradient(90deg,rgba(82,21,14,.96),rgba(137,46,21,.96),rgba(82,21,14,.96)); }
+  @keyframes warningDrop{ 0%{opacity:0;transform:translate(-50%,-15px) scale(.88)} 20%,72%{opacity:1;transform:translate(-50%,0) scale(1)} 100%{opacity:0;transform:translate(-50%,-4px) scale(.97)} }
+  @keyframes lastStandPulse{ 50%{filter:brightness(1.13) saturate(1.18)} } @keyframes lastStandVeil{ 50%{opacity:.78} }
+  .combat-finisher{ position:absolute; z-index:40; inset:0; pointer-events:none; display:grid; place-items:center; overflow:hidden; background:radial-gradient(circle,rgba(255,232,157,.22),transparent 34%); animation:finisherFade .82s ease-out forwards; }
+  .combat-finisher::before{ content:''; width:2px; height:130%; background:linear-gradient(transparent,#fff1ba 35%,#f2b846 50%,transparent); box-shadow:0 0 14px #ffe199,0 0 42px #e98b38; transform:rotate(52deg); animation:finisherSlash .62s cubic-bezier(.15,.74,.25,1) forwards; }
+  .combat-finisher b{ position:absolute; color:#ffe3a0; font:700 21px 'Cinzel'; letter-spacing:3px; text-shadow:0 0 14px #d97931,0 3px 4px #210c08; animation:finisherText .75s ease-out forwards; }
+  @keyframes finisherSlash{ from{opacity:0;transform:rotate(52deg) scaleY(.1)} 25%{opacity:1} to{opacity:0;transform:rotate(52deg) scaleY(1.15)} } @keyframes finisherText{ from{opacity:0;transform:scale(.65)} 34%,70%{opacity:1;transform:scale(1)} to{opacity:0;transform:scale(1.16)} } @keyframes finisherFade{ to{opacity:0} }
+
+  /* ---- JUGOSIDAD DE COMBATE ---- */
+  .arena.crit-shake{ animation:critShake .4s; }
+  @keyframes critShake{
+    0%,100%{ transform:translateX(0) scale(1); } 15%{ transform:translateX(-6px) rotate(-.5deg) scale(1.018); } 20%{ transform:translateX(-6px) rotate(-.5deg); }
+    40%{ transform:translateX(6px) rotate(.5deg); } 60%{ transform:translateX(-4px); } 80%{ transform:translateX(4px); }
+  }
+  .arena.hit-shake{ animation:hitShake .26s; }
+  @keyframes hitShake{
+    0%,100%{ transform:translateX(0) scale(1); } 20%{ transform:scale(1.01); } 30%{ transform:translateX(-3px); } 60%{ transform:translateX(3px); }
+  }
+  .arena.mega-shake{ animation:megaShake .46s; }
+  @keyframes megaShake{
+    0%,100%{ transform:translateX(0) scale(1); } 10%{ transform:translateX(-9px) rotate(-.7deg) scale(1.03); } 25%{ transform:translateX(8px) rotate(.6deg); }
+    40%{ transform:translateX(-7px) rotate(-.5deg); } 55%{ transform:translateX(6px); } 70%{ transform:translateX(-4px); } 85%{ transform:translateX(3px); }
+  }
+  .fighter.hit .sprite-box::after{
+    content:''; position:absolute; inset:-6px; z-index:2; border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle, rgba(255,255,255,.75), transparent 70%);
+    animation:impactFlash .28s ease-out forwards;
+  }
+  @keyframes impactFlash{ 0%{ opacity:.9; } 100%{ opacity:0; } }
+  .combo-badge{
+    position:absolute; top:6px; left:50%; transform:translateX(-50%) scale(.7); z-index:6; pointer-events:none;
+    font-family:'Cinzel'; font-weight:700; font-size:13px; letter-spacing:1.5px; color:var(--gold-bright);
+    text-shadow:0 0 10px rgba(232,196,119,.7),0 2px 4px rgba(0,0,0,.6);
+    animation:comboBadgeIn .45s cubic-bezier(.2,.9,.25,1.3) forwards, comboBadgeOut .35s ease-in 950ms forwards;
+  }
+  @keyframes comboBadgeIn{ 0%{ opacity:0; transform:translateX(-50%) scale(.6); } 100%{ opacity:1; transform:translateX(-50%) scale(1); } }
+  @keyframes comboBadgeOut{ to{ opacity:0; transform:translateX(-50%) scale(.85) translateY(-6px); } }
+  .streak-tag{ color:var(--ember); }
+
+  /* ---- CONTROL DE MÚSICA FLOTANTE ---- */
+  .music-control {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    background: var(--bg-panel);
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5), inset 0 0 0 1px #000;
+    z-index: 100;
+    transition: all 0.2s ease;
+  }
+  .music-control:hover {
+    transform: scale(1.05);
+    border-color: var(--gold-bright);
+    box-shadow: 0 0 8px rgba(232, 196, 119, 0.4);
+  }
+  .music-control svg {
+    width: 20px;
+    height: 20px;
+    fill: var(--gold-bright);
+  }
+  .music-control.active{ border-color:var(--gold-bright); background:radial-gradient(circle at 35% 28%,#4b351a,#1a120b 68%); box-shadow:0 0 0 3px rgba(200,155,60,.11),0 0 18px rgba(232,196,119,.26),inset 0 0 0 1px #000; animation:musicPulse 2.1s ease-in-out infinite; }
+  .music-control::after{ content:attr(data-audio-label); position:absolute; right:50px; top:50%; transform:translateY(-50%) translateX(7px); width:max-content; max-width:155px; padding:6px 8px; border:1px solid rgba(200,155,60,.35); border-radius:4px; color:var(--parchment); background:rgba(18,12,8,.95); box-shadow:0 6px 15px rgba(0,0,0,.35); font:8px 'JetBrains Mono'; letter-spacing:.5px; opacity:0; pointer-events:none; transition:.18s ease; }
+  .music-control:hover::after,.music-control.active::after{ opacity:1; transform:translateY(-50%) translateX(0); }
+  @keyframes musicPulse{ 50%{ box-shadow:0 0 0 5px rgba(200,155,60,.06),0 0 23px rgba(232,196,119,.32),inset 0 0 0 1px #000; } }
+
+  /* ---- ATMÓSFERA Y RESPUESTA AL JUGADOR ---- */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:-1; opacity:.5;
+    background-image:radial-gradient(circle at 18% 22%, rgba(232,196,119,.18) 0 1px, transparent 2px), radial-gradient(circle at 82% 38%, rgba(232,98,44,.14) 0 1px, transparent 2px), radial-gradient(circle at 40% 78%, rgba(232,196,119,.09) 0 1px, transparent 2px);
+    background-size:190px 170px, 230px 210px, 270px 245px; animation:embersDrift 14s linear infinite;
+  }
+  @keyframes embersDrift{ from{background-position:0 0,0 0,0 0} to{background-position:70px -120px,-45px -100px,90px -140px} }
+  .panel{ transition:transform .22s ease, border-color .22s ease, box-shadow .22s ease; }
+  .panel:hover{ border-color:#5a472d; box-shadow:0 0 0 1px #000 inset, 0 12px 28px rgba(0,0,0,.2), 0 0 22px rgba(200,155,60,.05); }
+  .game-section.active > .panel:not(.hub-shell){ animation:sectionUnseal .38s cubic-bezier(.14,.78,.26,1) both; }
+  .game-section.active > .panel:not(.hub-shell)::after{ content:''; position:absolute; inset:0; pointer-events:none; border-radius:inherit; background:linear-gradient(108deg,transparent 28%,rgba(247,208,123,.045) 49%,transparent 68%); animation:panelSweep .9s ease-out both; }
+  .game-section.active:not(#secGuild) > .panel > h3{ position:relative; }
+  .game-section.active:not(#secGuild) > .panel > h3::after{ content:'✦'; margin-left:8px; color:rgba(239,193,90,.7); font-size:11px; text-shadow:0 0 10px rgba(232,185,70,.35); }
+  @keyframes sectionUnseal{ from{opacity:0;transform:translateY(14px) scale(.99)} to{opacity:1;transform:translateY(0) scale(1)} }
+  @keyframes panelSweep{ from{opacity:0;transform:translateX(-40%)} 30%{opacity:1} to{opacity:0;transform:translateX(40%)} }
+  button, .tier-btn, .bounty-card, .reward-card, .die, .eq-slot, .claim-btn{ -webkit-tap-highlight-color:transparent; }
+  button:not(:disabled), .tier-btn:not(:disabled), .bounty-card, .reward-card, .die, .eq-slot, .claim-btn.ready{ transition:transform .14s ease, filter .14s ease, box-shadow .14s ease, border-color .14s ease; }
+  button:not(:disabled):hover, .tier-btn:not(:disabled):hover, .bounty-card:hover, .reward-card:hover, .claim-btn.ready:hover{ filter:brightness(1.14); }
+  button:not(:disabled):active, .tier-btn:not(:disabled):active, .bounty-card:active, .reward-card:active, .die:active, .eq-slot:active{ transform:translateY(2px) scale(.98); }
+  .bar > div, .mini-bar > div, .rbar > div{ position:relative; overflow:hidden; }
+  .bar > div::after, .mini-bar > div::after, .rbar > div::after{ content:""; position:absolute; inset:0; transform:translateX(-100%); background:linear-gradient(90deg,transparent,rgba(255,255,255,.38),transparent); animation:barSheen 2.8s ease-in-out infinite; }
+  @keyframes barSheen{ 0%,55%{transform:translateX(-120%)} 100%{transform:translateX(130%)} }
+  .arena{ isolation:isolate; box-shadow:inset 0 0 34px rgba(0,0,0,.5), 0 10px 22px rgba(0,0,0,.24); }
+  .arena::before{ content:""; position:absolute; inset:-30%; z-index:-1; background:radial-gradient(circle,rgba(232,98,44,.11),transparent 44%); animation:arenaGlow 5s ease-in-out infinite alternate; }
+  @keyframes arenaGlow{ from{transform:scale(.82);opacity:.35} to{transform:scale(1.15);opacity:.9} }
+  .fighter:not(.dead) .sprite-box{ animation:fighterBreathe 2.5s ease-in-out infinite; }
+  .fighter.monster:not(.dead) .sprite-box{ animation-delay:-1.2s; }
+  @keyframes fighterBreathe{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+  .arena.skill-flash{ animation:skillFlash .42s ease-out; }
+  .arena.reward-flash{ animation:rewardFlash .6s ease-out; }
+  @keyframes skillFlash{ 0%{box-shadow:inset 0 0 0 rgba(63,127,168,0)} 40%{box-shadow:inset 0 0 70px rgba(63,127,168,.48)} 100%{box-shadow:inset 0 0 0 rgba(63,127,168,0)} }
+  @keyframes rewardFlash{ 0%{filter:brightness(1)} 35%{filter:brightness(1.5) sepia(.15)} 100%{filter:brightness(1)} }
+  .dmg-float.crit{ text-shadow:0 0 12px rgba(232,196,119,.95),-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000; animation:critFloat 1.1s cubic-bezier(.15,.75,.25,1) forwards; }
+  @keyframes critFloat{ 0%{transform:scale(.5) rotate(var(--jitter-rot,0deg));opacity:0} 16%{transform:scale(1.4) rotate(var(--jitter-rot,0deg));opacity:1} 34%{transform:scale(1.05) rotate(var(--jitter-rot,0deg));opacity:1} 100%{transform:translateY(-52px) scale(1) rotate(var(--jitter-rot,0deg));opacity:0} }
+  .feedback-toast{ position:fixed; left:50%; bottom:28px; transform:translate(-50%,20px) scale(.92); opacity:0; pointer-events:none; z-index:250; min-width:180px; padding:10px 16px; text-align:center; font-family:'Cinzel'; font-size:12px; letter-spacing:1px; color:var(--parchment); background:linear-gradient(135deg,rgba(42,32,19,.96),rgba(25,18,11,.96)); border:1px solid var(--gold); border-radius:4px; box-shadow:0 10px 28px rgba(0,0,0,.58),0 0 20px rgba(200,155,60,.25); transition:opacity .2s ease,transform .28s cubic-bezier(.2,.9,.25,1.2); }
+  .feedback-toast.show{ opacity:1; transform:translate(-50%,0) scale(1); }
+
+  /* ---- Arena de fantasia JRPG ---- */
+  .arena{ height:300px; min-height:300px; padding:20px 42px 30px; background:radial-gradient(ellipse at 50% 100%,#392713 0%,#17100a 52%,#0e0a07 100%); }
+  .arena::after{ content:''; position:absolute; z-index:-1; inset:auto 9% 17px; height:1px; background:linear-gradient(90deg,transparent,rgba(232,196,119,.5),transparent); box-shadow:0 0 18px rgba(232,196,119,.25); }
+  .fighter{ z-index:2; width:126px; }
+  .fighter .name{ max-width:138px; text-align:center; color:var(--parchment); font-size:11px; text-shadow:0 2px 4px #000; }
+  .fighter.player .name{ color:var(--gold-bright); }
+  .fighter .mini-bar{ width:116px; height:7px; box-shadow:0 2px 6px rgba(0,0,0,.45); }
+  .sprite-box{ width:104px; height:116px; filter:drop-shadow(0 10px 8px rgba(0,0,0,.62)); }
+  .fighter.player .sprite-box::before{ content:''; position:absolute; inset:17px; border-radius:50%; background:radial-gradient(circle,rgba(var(--class-rgb),.42),transparent 66%); filter:blur(5px); animation:classAura 2.4s ease-in-out infinite alternate; }
+  .fighter.player .sprite-box svg{ position:relative; z-index:1; }
+  .fighter.player .hero-art{ position:relative; z-index:1; width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 9px 7px rgba(0,0,0,.67)); transition:transform .16s ease,filter .16s ease; }
+  .fighter.player.attacking .hero-art{ transform:translateX(8px) rotate(-3deg) scale(1.06); filter:drop-shadow(0 0 10px rgba(var(--class-rgb),.72)) drop-shadow(0 9px 7px rgba(0,0,0,.67)); }
+  @keyframes classAura{ from{transform:scale(.76);opacity:.4} to{transform:scale(1.2);opacity:.85} }
+  .fighter .class-tag{ display:flex; align-items:center; justify-content:center; gap:4px; min-height:15px; margin:2px 0 5px; color:rgb(var(--class-rgb)); font:700 8px 'JetBrains Mono'; letter-spacing:.8px; text-transform:uppercase; text-shadow:0 0 9px rgba(var(--class-rgb),.5); }
+  .fighter .class-tag span{ font-size:11px; }
+  .fighter .weapon-label{ position:absolute; z-index:4; bottom:1px; left:50%; transform:translateX(-50%); width:max-content; max-width:116px; padding:3px 6px; overflow:hidden; border:1px solid rgba(var(--class-rgb),.42); border-radius:10px; background:rgba(13,9,6,.86); color:#ddcda9; font:8px 'JetBrains Mono'; white-space:nowrap; text-overflow:ellipsis; box-shadow:0 3px 9px rgba(0,0,0,.4); }
+  .companion-tag{ position:absolute; z-index:5; left:50%; top:calc(100% + 4px); transform:translateX(-50%); display:flex; align-items:center; gap:4px; width:max-content; max-width:124px; padding:3px 6px; overflow:hidden; border:1px solid rgba(100,214,181,.45); border-radius:10px; color:#9ce8d2; background:rgba(7,25,20,.9); font:8px 'JetBrains Mono'; white-space:nowrap; text-overflow:ellipsis; box-shadow:0 0 10px rgba(72,208,173,.18); }
+  .arena.has-companion{ min-height:360px; height:360px; padding-bottom:34px; }
+  .companion-fighter{ position:absolute; z-index:3; left:26%; bottom:32px; width:78px; text-align:center; filter:drop-shadow(0 10px 8px rgba(0,0,0,.68)); animation:companionHop 2.2s ease-in-out infinite; }
+  .companion-fighter img{ display:block; width:74px; height:84px; margin:0 auto; object-fit:contain; }.companion-fighter b{ display:block; margin-top:-2px; color:#9ce8d2; font:700 7px 'Cinzel'; letter-spacing:.45px; text-shadow:0 2px 3px #000; }
+  .companion-fighter small{ display:inline-block; margin-top:3px; padding:2px 5px; border:1px solid rgba(100,214,181,.42); border-radius:8px; color:#a6f0da; background:rgba(6,26,19,.86); font:7px 'JetBrains Mono'; }
+  @keyframes companionHop{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  .fighter.player.class-warrior{ --class-rgb:224,129,70; }
+  .fighter.player.class-archer{ --class-rgb:102,191,126; }
+  .fighter.player.class-mage{ --class-rgb:102,157,235; }
+  .fighter.player.class-priest{ --class-rgb:236,207,126; }
+  .fighter.player.class-assassin{ --class-rgb:185,104,194; }
+  .fighter.player.class-tamer{ --class-rgb:74,205,165; }
+  .arena .vs{ z-index:3; align-self:center; margin-bottom:23px; color:rgba(232,196,119,.42); text-shadow:0 0 14px rgba(232,196,119,.26); }
+  @media(max-width:520px){ .arena{ height:288px; min-height:288px; padding:18px 14px 28px; } .arena.has-companion{min-height:338px;height:338px}.fighter{ width:96px; } .sprite-box{ width:88px; height:100px; } .fighter .mini-bar{ width:88px; } .fighter .weapon-label{ font-size:7px; max-width:98px; overflow:hidden; text-overflow:ellipsis; }.companion-fighter{left:25%;bottom:28px;width:66px}.companion-fighter img{width:62px;height:70px} }
+
+  /* ---- Biomas y efectos de clase ---- */
+  .arena.biome-forest{ background:linear-gradient(rgba(5,14,7,.48),rgba(5,14,7,.75)),url('assets/images/fondo bosque.webp') center/cover no-repeat; }
+  .arena.biome-ruins{ background:linear-gradient(rgba(26,20,29,.42),rgba(9,8,13,.78)),url('assets/images/fondo ruinas.webp') center/cover no-repeat; }
+  .arena.biome-cavern{ background:linear-gradient(rgba(19,7,4,.42),rgba(11,5,4,.78)),url('assets/images/fondo cueva.webp') center/cover no-repeat; }
+  .arena.biome-temple{ background:linear-gradient(rgba(13,10,32,.38),rgba(6,5,18,.77)),url('assets/images/fondo templo.webp') center/cover no-repeat; }
+  .arena.biome-dragon-nest{ background:linear-gradient(rgba(42,9,7,.34),rgba(13,4,3,.76)),url('assets/images/fondo dragon.webp') center/cover no-repeat; }
+  .arena.biome-moon-swamp{ background:linear-gradient(rgba(8,24,19,.42),rgba(4,13,11,.78)),url('assets/images/fondo pantano de lunas.webp') center/cover no-repeat; }
+  .arena.biome-forgotten-crypt{ background:linear-gradient(rgba(13,18,31,.42),rgba(5,7,14,.8)),url('assets/images/fondo cripta olvidada.webp') center/cover no-repeat; }
+  .arena.biome-obsidian-fortress{ background:linear-gradient(rgba(42,11,6,.36),rgba(13,4,3,.8)),url('assets/images/fondo fortaleza obsidiana.webp') center/cover no-repeat; }
+  .arena.biome-frozen-peaks{ background:linear-gradient(rgba(8,20,37,.38),rgba(4,9,18,.78)),url('assets/images/fondo cumbres heladas.webp') center/cover no-repeat; }
+  .arena.biome-forest::before{ background:radial-gradient(circle,rgba(119,204,92,.2),transparent 44%); }
+  .arena.biome-ruins::before{ background:radial-gradient(circle,rgba(185,191,209,.16),transparent 44%); }
+  .arena.biome-cavern::before{ background:radial-gradient(circle,rgba(238,111,48,.16),transparent 44%); }
+  .arena.biome-temple::before{ background:radial-gradient(circle,rgba(159,115,244,.22),transparent 44%); }
+  .arena.biome-dragon-nest::before{ background:radial-gradient(circle,rgba(244,78,53,.25),transparent 44%); }
+  .arena.biome-moon-swamp::before{ background:radial-gradient(circle,rgba(104,225,142,.18),transparent 44%); }
+  .arena.biome-forgotten-crypt::before{ background:radial-gradient(circle,rgba(93,182,255,.18),transparent 44%); }
+  .arena.biome-obsidian-fortress::before{ background:radial-gradient(circle,rgba(255,105,49,.22),transparent 44%); }
+  .arena.biome-frozen-peaks::before{ background:radial-gradient(circle,rgba(144,222,255,.22),transparent 44%); }
+  .biome-badge{ padding:3px 7px; border:1px solid rgba(200,155,60,.35); border-radius:12px; color:var(--gold-bright); font:9px 'Cinzel'; letter-spacing:.7px; background:rgba(0,0,0,.2); }
+
+  /* Sprites ilustrados: los PNG se muestran sin su fondo y conservan la silueta en combate. */
+  .fighter.monster .sprite-box{ display:grid; place-items:center; overflow:visible; }
+  .monster-art{ width:100%; height:100%; object-fit:contain; position:relative; z-index:1; filter:drop-shadow(0 10px 8px rgba(0,0,0,.72)); transition:filter .25s ease; }
+  .fighter.monster.boss .monster-art{ filter:drop-shadow(0 0 10px currentColor) drop-shadow(0 12px 9px rgba(0,0,0,.76)); }
+  .fighter.monster.monster-slime.boss .monster-art{ filter:hue-rotate(67deg) saturate(1.45) drop-shadow(0 0 11px #b566ff); }
+  .fighter.monster.monster-wolf.boss .monster-art{ filter:grayscale(1) brightness(.46) contrast(1.45) drop-shadow(0 0 10px #f13838); }
+  .fighter.monster.monster-minotaur.boss .monster-art{ filter:hue-rotate(318deg) saturate(1.65) brightness(1.08) drop-shadow(0 0 11px #ed4d36); }
+  .fighter.monster.monster-dragon.boss .monster-art{ filter:grayscale(.9) brightness(1.8) contrast(.76) drop-shadow(0 0 12px #81d9ff); }
+  .boss-eyes{ position:absolute; z-index:2; top:43%; left:50%; width:21px; height:7px; transform:translateX(-50%); border-radius:50%; opacity:0; pointer-events:none; }
+  .monster-wolf.boss .boss-eyes{ opacity:1; background:radial-gradient(circle at 25% 50%,#ff3b3b 0 22%,transparent 26%),radial-gradient(circle at 75% 50%,#ff3b3b 0 22%,transparent 26%); filter:drop-shadow(0 0 5px #f11); }
+  .monster-dragon.boss .boss-eyes{ opacity:1; background:radial-gradient(circle at 25% 50%,#77eaff 0 22%,transparent 26%),radial-gradient(circle at 75% 50%,#77eaff 0 22%,transparent 26%); filter:drop-shadow(0 0 5px #48cfff); }
+  .class-fx{ position:absolute; z-index:8; pointer-events:none; left:21%; top:37%; width:58%; height:35%; opacity:0; }
+  .class-fx::before{ content:''; position:absolute; inset:0; }
+  .class-fx.warrior::before{ border-top:5px solid #ffd26e; border-radius:50%; transform:rotate(-22deg); box-shadow:0 -1px 12px #e67a43; animation:slashFx .48s ease-out forwards; }
+  .class-fx.archer::before{ content:'➤'; color:#bce48f; font-size:58px; text-shadow:0 0 14px #66bf7e; animation:arrowFx .5s ease-out forwards; }
+  .class-fx.mage::before{ content:'✦'; color:#a9d8ff; font-size:78px; text-align:center; text-shadow:0 0 22px #669deb; animation:magicFx .55s ease-out forwards; }
+  .class-fx.priest::before{ content:'✚'; color:#fff0a6; font-size:76px; text-align:center; text-shadow:0 0 24px #eccf7e; animation:magicFx .55s ease-out forwards; }
+  .class-fx.assassin::before{ content:'✧ ✧'; color:#ef9bff; font-size:43px; letter-spacing:25px; text-shadow:0 0 18px #b968c2; animation:dashFx .45s ease-out forwards; }
+  .class-fx.skill::before{ filter:brightness(1.5); transform:scale(1.35); }
+  /* Asesino: sombras, dagas y cortes con identidad propia. */
+  .assassin-fx{ position:absolute; z-index:12; pointer-events:none; inset:13% 7% 9%; overflow:hidden; }
+  .assassin-fx .afterimage{ position:absolute; left:10%; bottom:8%; width:76px; height:112px; border-radius:48% 48% 38% 38%; background:linear-gradient(90deg,transparent,rgba(203,112,233,.38),transparent); filter:blur(6px); opacity:0; transform:skewX(-18deg); animation:assassinGhost .58s cubic-bezier(.12,.65,.25,1) forwards; }
+  .assassin-fx .afterimage.two{ left:29%; animation-delay:.09s; opacity:0; }
+  .assassin-fx .dagger-streak{ position:absolute; top:36%; left:28%; width:47%; height:5px; border-radius:50%; background:linear-gradient(90deg,transparent,#f8d7ff 35%,#b85bd2 68%,transparent); box-shadow:0 0 7px #f3a7ff,0 0 19px #9445af; opacity:0; transform:rotate(-30deg) scaleX(.2); animation:assassinSlash .38s ease-out forwards; }
+  .assassin-fx .dagger-streak.b{ top:50%; left:40%; transform:rotate(27deg) scaleX(.15); animation-delay:.12s; }
+  .assassin-fx .dagger-streak.c{ top:23%; left:47%; transform:rotate(-10deg) scaleX(.1); animation-delay:.23s; }
+  .assassin-fx.skill .dagger-streak{ height:7px; box-shadow:0 0 10px #ffd4ff,0 0 28px #b243d0; }
+  .assassin-fx.skill .afterimage{ width:104px; height:142px; filter:blur(9px); }
+  .arena.assassin-strike .fighter.player .sprite-box{ animation:assassinLunge .44s cubic-bezier(.12,.75,.25,1); }
+  .arena.assassin-skill::before{ content:''; position:absolute; z-index:6; inset:0; pointer-events:none; background:radial-gradient(ellipse at 68% 55%,rgba(199,78,221,.35),transparent 25%),linear-gradient(90deg,transparent,rgba(84,22,99,.23),transparent); animation:assassinVeil .72s ease-out forwards; }
+  .arena.assassin-skill .fighter.monster .sprite-box{ animation:assassinMarked .6s ease-out; }
+  @keyframes assassinGhost{ 0%{opacity:0;transform:translateX(-42px) skewX(-18deg) scale(.8)} 28%{opacity:.85} 100%{opacity:0;transform:translateX(168px) skewX(-18deg) scale(1.12)} }
+  @keyframes assassinSlash{ 0%{opacity:0;transform:translateX(-40px) rotate(-30deg) scaleX(.15)} 24%{opacity:1} 74%{opacity:.92} 100%{opacity:0;transform:translateX(150px) rotate(-30deg) scaleX(1.22)} }
+  @keyframes assassinLunge{ 0%,100%{transform:translateX(0) scale(1)} 38%{transform:translateX(32px) scale(1.12)} 56%{transform:translateX(14px) scale(1.04)} }
+  @keyframes assassinVeil{ 0%{opacity:0} 28%{opacity:1} 100%{opacity:0} }
+  @keyframes assassinMarked{ 0%,100%{filter:none} 28%{filter:brightness(2) saturate(.2) drop-shadow(0 0 17px #e36bff)} 62%{filter:brightness(.55) hue-rotate(265deg) drop-shadow(0 0 13px #b63bc9)} }
+  /* Sprite de ataque único: un solo impacto visual por clase. */
+  .class-attack-vfx{ position:absolute; z-index:14; pointer-events:none; inset:-36%; display:grid; place-items:center; mix-blend-mode:screen; animation:classAttackSprite .56s cubic-bezier(.14,.78,.25,1) forwards; }
+  .class-attack-vfx img{ width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 0 14px currentColor); }
+  .class-attack-vfx.warrior{ color:#ff7444; transform:rotate(-12deg); }.class-attack-vfx.archer{ color:#a5e983; transform:scale(.88) translateX(-7%); }.class-attack-vfx.mage{ color:#82c8ff; transform:scale(.95); }.class-attack-vfx.priest{ color:#ffe9a2; transform:scale(.9); }.class-attack-vfx.assassin{ color:#ec9bff; transform:scale(.92) rotate(-7deg); }.class-attack-vfx.tamer{ color:#78e2c6; transform:scale(.92); }
+  .class-attack-vfx.skill{ inset:-50%; animation-duration:.68s; filter:brightness(1.26) saturate(1.22); }
+  @keyframes classAttackSprite{ 0%{opacity:0;transform:scale(.22) rotate(-18deg)} 18%{opacity:1} 58%{opacity:1;transform:scale(1.05) rotate(4deg)} 100%{opacity:0;transform:scale(1.3) rotate(13deg)} }
+  .combat-vfx{ position:absolute; z-index:10; pointer-events:none; inset:-48%; display:grid; place-items:center; mix-blend-mode:screen; }
+  .combat-vfx img{ width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 0 12px currentColor); }
+  .combat-vfx.slash{ animation:vfxSlash .48s cubic-bezier(.15,.8,.25,1) forwards; }
+  .combat-vfx.slash.enemy-hit img{ filter:hue-rotate(315deg) saturate(1.35) drop-shadow(0 0 14px #ff4e43); }
+  .combat-vfx.arcane{ inset:-62%; animation:vfxArcane .76s ease-out forwards; }
+  .combat-vfx.heal{ inset:-62%; animation:vfxHeal .82s ease-out forwards; }
+  .combat-vfx.shield{ inset:-40%; animation:vfxShield .8s ease-out forwards; }
+  .combat-vfx.impact{ inset:-52%; animation:vfxImpact .42s cubic-bezier(.12,.72,.28,1) forwards; }
+  .combat-vfx.poison{ inset:-50%; animation:vfxPoison 1.05s ease-out forwards; }
+  .combat-vfx.critical{ transform:scale(1.35); filter:brightness(1.45) saturate(1.45); }
+  @keyframes vfxSlash{ 0%{opacity:0;transform:translate(-22%,18%) rotate(-25deg) scale(.42)} 20%{opacity:1} 72%{opacity:1;transform:translate(8%,-6%) rotate(8deg) scale(1.08)} 100%{opacity:0;transform:translate(24%,-18%) rotate(18deg) scale(1.25)} }
+  @keyframes vfxArcane{ 0%{opacity:0;transform:scale(.3) rotate(-45deg)} 25%{opacity:1} 100%{opacity:0;transform:scale(1.42) rotate(100deg)} }
+  @keyframes vfxHeal{ 0%{opacity:0;transform:translateY(14%) scale(.42)} 32%{opacity:1} 100%{opacity:0;transform:translateY(-25%) scale(1.12)} }
+  @keyframes vfxShield{ 0%{opacity:0;transform:scale(.38)} 25%{opacity:.88;transform:scale(1.08)} 62%{opacity:.6;transform:scale(.94)} 100%{opacity:0;transform:scale(1.2)} }
+  @keyframes vfxImpact{ 0%{opacity:0;transform:scale(.25) rotate(-35deg)} 26%{opacity:1;transform:scale(1.05) rotate(5deg)} 100%{opacity:0;transform:scale(1.42) rotate(22deg)} }
+  @keyframes vfxPoison{ 0%{opacity:0;transform:translateY(18%) scale(.35)} 30%{opacity:.82;transform:translateY(-2%) scale(1)} 100%{opacity:0;transform:translateY(-26%) scale(1.22)} }
+  .fighter.dodging .sprite-box{ animation:dodgeDash .46s ease-out; }
+  .fighter.dodging .sprite-box::after{ content:''; position:absolute; inset:15% -30%; background:linear-gradient(90deg,transparent,rgba(173,219,255,.55),transparent); filter:blur(8px); animation:dodgeGhost .46s ease-out forwards; }
+  @keyframes dodgeDash{ 0%,100%{transform:translateX(0)} 45%{transform:translateX(-22px) skewX(-10deg)} }
+  @keyframes dodgeGhost{ from{opacity:.85;transform:translateX(16px)} to{opacity:0;transform:translateX(-30px)} }
+  .arena.boss-arrival{ animation:bossArrival .75s cubic-bezier(.16,.8,.24,1); }
+  .arena.boss-arrival::after{ content:''; position:absolute; inset:0; pointer-events:none; background:radial-gradient(circle at 74% 54%,rgba(255,78,42,.56),transparent 32%); animation:bossGlow .72s ease-out forwards; }
+  @keyframes bossArrival{ 0%{transform:scale(.97);filter:brightness(.45)} 46%{transform:scale(1.012);filter:brightness(1.32)} 100%{transform:scale(1);filter:brightness(1)} }
+  @keyframes bossGlow{ from{opacity:1} to{opacity:0} }
+  @keyframes slashFx{ 0%{opacity:0;transform:translateX(-25%) rotate(-38deg) scale(.5)} 30%{opacity:1} 100%{opacity:0;transform:translateX(55%) rotate(-8deg) scale(1.2)} }
+  @keyframes arrowFx{ 0%{opacity:0;transform:translateX(-45%) scale(.7)} 25%{opacity:1} 100%{opacity:0;transform:translateX(180%) scale(1.1)} }
+  @keyframes magicFx{ 0%{opacity:0;transform:scale(.35) rotate(0)} 35%{opacity:1} 100%{opacity:0;transform:scale(1.6) rotate(80deg)} }
+  @keyframes dashFx{ 0%{opacity:0;transform:translateX(-30%) scale(.6)} 35%{opacity:1} 100%{opacity:0;transform:translateX(105%) scale(1.25)} }
+  .feedback-toast .feedback-value{ display:block; margin-top:3px; font-family:'JetBrains Mono'; font-size:11px; color:var(--gold-bright); }
+  .feedback-toast.danger{ border-color:#b43c35; box-shadow:0 10px 28px rgba(0,0,0,.58),0 0 22px rgba(180,60,53,.25); }
+  .feedback-toast.mana{ border-color:var(--mana); }
+  .combat-status{ grid-column:1/-1; display:flex; flex-wrap:wrap; gap:5px; min-height:20px; padding:2px 0; }
+  .status-badge{ padding:3px 6px; border:1px solid var(--line); border-radius:12px; background:rgba(0,0,0,.2); color:var(--parchment-dim); font:9px 'JetBrains Mono'; letter-spacing:.3px; }
+  .status-badge.bleed{ border-color:#b43c35; color:#e5776d; }.status-badge.poison{border-color:#638a4c;color:#9ecb7a}.status-badge.shield{border-color:var(--mana);color:#8fc8ec}.status-badge.stun{border-color:var(--gold);color:var(--gold-bright)}.status-badge.fury{border-color:var(--ember);color:var(--ember)}.status-badge.affinity.armored{border-color:#a7c7df;color:#c5e3f3}.status-badge.affinity.furious{border-color:#ef8663;color:#ffaf88}.status-badge.affinity.venomous{border-color:#90c568;color:#bce89c}.status-badge.affinity.unstable{border-color:#c59af2;color:#dfc8ff}.status-badge.affinity.broken{opacity:.7;text-decoration:line-through}
+  .ability-btn{ min-height:48px; padding:8px 6px!important; background:linear-gradient(145deg,#2b2116,#17110c); color:var(--parchment); border:1px solid var(--line)!important; box-shadow:none!important; }
+  .ability-btn strong{ display:block; font:700 10px 'Cinzel'; letter-spacing:.6px; }.ability-btn small{ display:block; margin-top:3px; color:var(--parchment-dim); font:9px 'JetBrains Mono'; }
+  .ability-btn.ready{ border-color:var(--mana)!important; color:#b9dcf1; }.ability-btn:disabled{ opacity:.42; cursor:not-allowed; }
+  .stance-row{ grid-column:1/-1; display:grid; grid-template-columns:repeat(3,1fr); gap:5px; padding:6px; border:1px solid var(--line); border-radius:4px; background:#120f0b; }
+  .stance-btn{ min-height:43px; padding:5px 3px; border:1px solid transparent; border-radius:3px; background:rgba(255,255,255,.02); color:var(--parchment-dim); cursor:pointer; font-family:'Cinzel'; font-size:8px; letter-spacing:.45px; transition:.18s ease; }
+  .stance-btn span{ display:block; font-size:12px; margin-bottom:2px; }.stance-btn small{ display:block; margin-top:2px; font:8px 'JetBrains Mono'; color:#8e806b; }
+  .stance-btn:hover:not(:disabled){ color:var(--parchment); background:rgba(255,255,255,.05); }
+  .stance-btn.active{ color:var(--gold-bright); border-color:var(--gold); box-shadow:inset 0 0 10px rgba(211,158,43,.12); }
+  .stance-btn[data-stance="offensive"].active{ border-color:#c95a47; color:#ff9a74; }.stance-btn[data-stance="defensive"].active{ border-color:#4e9ac3; color:#a7dcf3; }

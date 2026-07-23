@@ -162,7 +162,7 @@ function renderRunMode(){
     arena.innerHTML = `
       <div class="dice-stage"><div class="combo-label" style="color:var(--mana)">✧ Reliquia del camino</div>
       <div class="bounty-intro">El sendero responde a tu voluntad. Elegí un poder solo para esta expedición.</div>
-      <div class="event-choice">${(runState.relicChoices||[]).map(relic=>`<button data-run-relic="${relic.id}"><b>${relic.icon} ${relic.name}</b><br><small>${relic.description}</small></button>`).join('')}</div></div>`;
+      <div class="event-choice relic-choice">${(runState.relicChoices||[]).map(relic=>`<button class="relic-card" data-run-relic="${relic.id}"><span class="relic-icon">${relic.icon}</span><b>${relic.name}</b><small>${relic.description}</small></button>`).join('')}</div></div>`;
     arena.querySelectorAll('[data-run-relic]').forEach(button=>button.addEventListener('click',()=>chooseRunRelic(button.dataset.runRelic)));
     box.innerHTML = '';
     return;

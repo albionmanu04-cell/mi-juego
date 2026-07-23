@@ -1,0 +1,46 @@
+/* ================================================================
+   BASE.CSS — Variables de color, reset global, tipografía base
+   (título del juego, subtítulo). Se carga PRIMERO.
+   ================================================================ */
+
+:root{
+    --bg-deep:#120f0c;
+    --bg-panel:#1c1610;
+    --bg-panel-2:#241c14;
+    --line:#3a2f22;
+    --gold:#c89b3c;
+    --gold-bright:#e8c477;
+    --ember:#e8622c;
+    --ember-dim:#8a3b1c;
+    --steel:#8b8478;
+    --parchment:#e9dfc9;
+    --parchment-dim:#a89c85;
+    --blood:#8a2020;
+    --green:#5f8a4c;
+    --mana:#3f7fa8;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 20% 0%, #241a10 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 100%, #1a1409 0%, transparent 50%),
+      var(--bg-deep);
+    color:var(--parchment);
+    font-family:'Spectral', serif;
+    min-height:100vh;
+    padding:28px 20px 60px;
+  }
+  .wrap{ max-width:1100px; margin:0 auto; }
+
+  header{ text-align:center; margin-bottom:20px; position:relative; }
+  header::before, header::after{
+    content:""; position:absolute; top:50%; width:20%; height:1px;
+    background:linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  header::before{ left:0; } header::after{ right:0; }
+  h1{
+    font-family:'Cinzel Decorative', serif; font-weight:900;
+    font-size:clamp(28px,4.2vw,44px); letter-spacing:2px; color:var(--gold-bright);
+    text-shadow:0 0 22px rgba(232,98,44,0.35), 0 2px 0 #000;
+  }
+  .subtitle{ font-family:'Cinzel', serif; font-size:12px; letter-spacing:4px; text-transform:uppercase; color:var(--parchment-dim); margin-top:6px; }

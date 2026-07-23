@@ -1,0 +1,64 @@
+/* ================================================================
+   02-MAPA-RUTAS.CSS — Mapa de rutas de la cacería (nodos, spire-map).
+   Parte de game.css original, líneas 65-122. Orden de carga:
+   ver comentario en index.html.
+   ================================================================ */
+
+  /* ---- CACERÍA: MENÚ DE RUTA JUGOSO ---- */
+  .spire-map-prompt{ animation:promptGlow 2.2s ease-in-out infinite; }
+  @keyframes promptGlow{ 0%,100%{ box-shadow:0 0 12px rgba(218,163,55,.1); } 50%{ box-shadow:0 0 20px rgba(232,196,119,.4); } }
+
+  .spire-node{ animation:spireNodeIn .38s cubic-bezier(.2,.9,.25,1.3) backwards; }
+  .spire-row .spire-node:nth-child(1){ animation-delay:.03s; } .spire-row .spire-node:nth-child(2){ animation-delay:.1s; } .spire-row .spire-node:nth-child(3){ animation-delay:.17s; }
+  @keyframes spireNodeIn{ 0%{ opacity:0; transform:translateY(10px) scale(.7); } 100%{ opacity:1; transform:translateY(0) scale(1); } }
+
+  .spire-node.available{ animation:spireNodeIn .38s cubic-bezier(.2,.9,.25,1.3) backwards, nodeBreathe 1.7s ease-in-out .38s infinite; }
+  @keyframes nodeBreathe{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.06); } }
+  .spire-node.available::before{ /* radar ping ring */
+    content:''; position:absolute; inset:-4px; z-index:-1; border-radius:50%;
+    border:1.5px solid var(--node-color); opacity:0; pointer-events:none;
+    animation:nodeRadarPing 2.1s cubic-bezier(.15,.7,.3,1) infinite;
+  }
+  @keyframes nodeRadarPing{ 0%{ transform:scale(.85); opacity:.9; } 80%{ transform:scale(1.7); opacity:0; } 100%{ opacity:0; } }
+  .spire-node.available:hover{ filter:brightness(1.18); }
+  .spire-node.available:active{ transform:scale(.92)!important; }
+  .spire-node.boss.available::before{ border-color:#f0796a; animation-duration:1.5s; }
+
+  .spire-node.chosen{ animation:nodeChosenBurst .5s cubic-bezier(.15,.85,.3,1) forwards!important; z-index:9; }
+  @keyframes nodeChosenBurst{
+    0%{ transform:scale(1); filter:brightness(1); }
+    35%{ transform:scale(1.35); filter:brightness(1.9) saturate(1.3); box-shadow:0 0 0 8px rgba(255,255,255,.18), 0 0 34px var(--node-color); }
+    100%{ transform:scale(1.12); filter:brightness(1.3); }
+  }
+  .spire-node.dimmed{ transition:opacity .25s ease, filter .25s ease; opacity:.25!important; filter:grayscale(.6); pointer-events:none; }
+  .node-choice-spark{ position:absolute; width:4px; height:4px; border-radius:50%; pointer-events:none; z-index:20; background:#fff2c9; box-shadow:0 0 8px currentColor; animation:sparkBurst .6s ease-out forwards; }
+
+  #startRunBtn{ position:relative; overflow:hidden; animation:startRunGlow 1.8s ease-in-out infinite; }
+  @keyframes startRunGlow{ 0%,100%{ box-shadow:0 0 10px rgba(232,196,119,.35), inset 0 1px 0 rgba(255,255,255,.12); } 50%{ box-shadow:0 0 24px rgba(232,196,119,.7), inset 0 1px 0 rgba(255,255,255,.2); } }
+  #startRunBtn::after{ content:''; position:absolute; top:0; bottom:0; left:-30%; width:22%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent); animation:startRunSheen 2.6s ease-in-out infinite; }
+  @keyframes startRunSheen{ 0%{ transform:translateX(0); } 60%,100%{ transform:translateX(560%); } }
+  #arenaIdle::before{ animation:idlePortalPulse 2.4s ease-in-out infinite; }
+  @keyframes idlePortalPulse{ 0%,100%{ box-shadow:0 0 22px rgba(228,178,67,.18); transform:scale(1); } 50%{ box-shadow:0 0 32px rgba(228,178,67,.4); transform:scale(1.06); } }
+  .event-choice{ width:100%; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .event-choice button{ min-height:74px; padding:9px; background:var(--bg-panel-2); border:1px solid var(--line); color:var(--parchment); border-radius:3px; font-family:'Cinzel'; font-size:11px; cursor:pointer; }
+  .event-choice button:hover{ border-color:var(--mana); box-shadow:0 0 12px rgba(63,127,168,.25); }
+  .scenario-event{ position:relative; width:100%; min-height:175px; padding:18px 17px; overflow:hidden; text-align:center; border:1px solid rgba(112,154,190,.45); border-radius:6px; background:radial-gradient(circle at 50% 0,rgba(86,127,169,.25),transparent 42%),rgba(15,18,21,.82); box-shadow:inset 0 0 32px rgba(2,8,12,.38); }
+  .scenario-event::before{ content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(105deg,transparent,rgba(255,255,255,.045),transparent); }
+  .scenario-event.biome-forest{ border-color:rgba(102,191,126,.56); background:radial-gradient(circle at 50% 0,rgba(62,131,92,.3),transparent 42%),rgba(11,25,17,.88); }
+  .scenario-event.biome-ruins{ border-color:rgba(200,155,60,.58); background:radial-gradient(circle at 50% 0,rgba(138,94,35,.29),transparent 42%),rgba(27,19,12,.88); }
+  .scenario-event.biome-cavern{ border-color:rgba(225,98,46,.58); background:radial-gradient(circle at 50% 0,rgba(164,56,24,.29),transparent 42%),rgba(29,14,10,.9); }
+  .scenario-event.biome-temple{ border-color:rgba(137,177,239,.58); background:radial-gradient(circle at 50% 0,rgba(69,81,155,.3),transparent 42%),rgba(15,14,30,.9); }
+  .scenario-event.biome-dragon-nest{ border-color:rgba(216,92,64,.64); background:radial-gradient(circle at 50% 0,rgba(149,45,30,.31),transparent 42%),rgba(29,12,10,.9); }
+  .scenario-emblem{ position:relative; z-index:1; margin-bottom:4px; color:var(--gold-bright); font-size:30px; filter:drop-shadow(0 0 13px currentColor); animation:scenarioFloat 2.4s ease-in-out infinite alternate; }
+  .scenario-event .combo-label,.scenario-event .bounty-intro,.scenario-event .event-choice,.scenario-note{ position:relative; z-index:1; }
+  .scenario-event .event-choice{ margin-top:12px; }.scenario-event .event-choice button b{ color:var(--gold-bright); }.scenario-event .event-choice button small{ color:var(--parchment-dim); font:9px 'JetBrains Mono'; }
+  .scenario-note{ display:block; margin-top:10px; color:#9f927f; font:8px 'JetBrains Mono'; }
+  @keyframes scenarioFloat{ to{ transform:translateY(-4px) scale(1.06); filter:drop-shadow(0 0 19px currentColor); } }
+  .tracking-event{ position:relative; width:100%; min-height:230px; padding:17px; overflow:hidden; text-align:center; border:1px solid rgba(104,190,144,.55); border-radius:6px; background:radial-gradient(circle at 50% 0,rgba(52,133,92,.26),transparent 45%),rgba(9,27,18,.9); box-shadow:inset 0 0 35px rgba(0,0,0,.45); }
+  .tracking-event::before{ content:'🐾  ·  🐾  ·  🐾'; position:absolute; top:12px; left:0; right:0; color:rgba(154,237,185,.13); font-size:21px; letter-spacing:20px; }.tracking-event .combo-label,.tracking-event .bounty-intro,.tracking-event .tracking-trails,.tracking-event .scenario-note{ position:relative; z-index:1; }
+  .tracking-trails{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:13px; }.tracking-trail{ min-height:122px; padding:10px 6px; border:1px solid rgba(106,169,119,.42); border-radius:5px; color:var(--parchment); background:linear-gradient(160deg,rgba(38,73,49,.55),rgba(11,20,14,.78)); cursor:pointer; transition:.2s ease; }.tracking-trail:hover{ transform:translateY(-4px); border-color:#9fe3ad; box-shadow:0 10px 18px rgba(0,0,0,.32),0 0 17px rgba(91,190,119,.18); }.tracking-trail .track-icon{ display:block; margin-bottom:5px; font-size:24px; filter:drop-shadow(0 0 7px rgba(155,235,173,.45)); }.tracking-trail b{ display:block; color:#d7f0c9; font:700 10px 'Cinzel'; letter-spacing:.5px; }.tracking-trail small{ display:block; margin-top:6px; color:#a8b9a1; font:8px 'JetBrains Mono'; line-height:1.35; }
+  .merchant-event{ position:relative; width:100%; min-height:230px; padding:17px; overflow:hidden; text-align:center; border:1px solid rgba(192,124,226,.52); border-radius:6px; background:radial-gradient(circle at 50% 0,rgba(120,57,151,.27),transparent 45%),rgba(20,11,25,.92); box-shadow:inset 0 0 38px rgba(0,0,0,.45); }.merchant-event::before{ content:'✦  ?  ✦'; position:absolute; top:11px; left:0; right:0; color:rgba(231,175,255,.17); font-size:23px; letter-spacing:44px; }
+  .merchant-event .combo-label,.merchant-event .bounty-intro,.merchant-event .merchant-offers,.merchant-event .scenario-note{ position:relative; z-index:1; }.merchant-offers{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:13px; }.merchant-offer{ min-height:125px; padding:11px 7px; border:1px solid rgba(187,113,225,.42); border-radius:5px; color:var(--parchment); background:linear-gradient(160deg,rgba(76,34,91,.58),rgba(18,10,22,.84)); cursor:pointer; transition:.2s ease; }.merchant-offer:hover:not(:disabled){ transform:translateY(-4px); border-color:#edbeff; box-shadow:0 10px 18px rgba(0,0,0,.34),0 0 18px rgba(185,83,239,.24); }.merchant-offer:disabled{ opacity:.38; cursor:not-allowed; }.merchant-offer .offer-icon{ display:block; font-size:25px; margin-bottom:5px; filter:drop-shadow(0 0 8px rgba(224,161,255,.52)); }.merchant-offer b{ display:block; color:#efd3ff; font:700 10px 'Cinzel'; letter-spacing:.45px; }.merchant-offer small{ display:block; margin-top:6px; color:#c6a9d1; font:8px 'JetBrains Mono'; line-height:1.35; }.merchant-leave{ margin-top:11px; padding:7px 14px; color:#c4b4cb; border-color:#5d4968; background:#1a121e; font:9px 'Cinzel'; cursor:pointer; }
+  @media(max-width:620px){ .tracking-trails{ grid-template-columns:1fr; }.tracking-trail{ min-height:76px; display:grid; grid-template-columns:34px 1fr; text-align:left; align-items:center; }.tracking-trail .track-icon{ grid-row:1/3; margin:0; }.tracking-trail small{ margin-top:3px; } }
+  @media(max-width:620px){ .merchant-offers{ grid-template-columns:1fr; }.merchant-offer{ min-height:76px; display:grid; grid-template-columns:34px 1fr; text-align:left; align-items:center; }.merchant-offer .offer-icon{ grid-row:1/3; margin:0; }.merchant-offer small{ margin-top:3px; } }
+

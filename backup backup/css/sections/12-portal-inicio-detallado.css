@@ -1,0 +1,101 @@
+/* ================================================================
+   12-PORTAL-INICIO-DETALLADO.CSS — Portal de inicio (selección de personaje) — parte 2 de 2, diseño detallado (redefine #nameGate; ver nota en 01-portal-inicio.css).
+   Parte de game.css original, líneas 1901-1995. Orden de carga:
+   ver comentario en index.html.
+   ================================================================ */
+
+/* ================= PORTAL DE INICIO ================= */
+#nameGate{
+  position:relative; isolation:isolate; display:grid; grid-template-columns:minmax(0,1.08fr) minmax(390px,.92fr);
+  width:min(1080px,100%); max-width:1080px; min-height:625px; margin:28px auto 58px; padding:0;
+  overflow:hidden; text-align:left; border:1px solid rgba(200,155,60,.66); border-radius:12px;
+  background:linear-gradient(125deg,rgba(38,27,15,.98),rgba(20,15,10,.99));
+  box-shadow:0 0 0 1px rgba(0,0,0,.9) inset,0 28px 68px rgba(0,0,0,.52),0 0 50px rgba(159,99,25,.12);
+}
+#nameGate::before{ content:""; position:absolute; z-index:-1; inset:0; opacity:.88; pointer-events:none; background:
+  radial-gradient(circle at 24% 28%,rgba(232,196,119,.17),transparent 20%),
+  radial-gradient(circle at 76% 82%,rgba(120,70,20,.18),transparent 30%),
+  linear-gradient(115deg,transparent 0 31%,rgba(232,196,119,.035) 31.2% 31.6%,transparent 31.8% 62%,rgba(232,196,119,.03) 62.2% 62.5%,transparent 62.8%);
+}
+#nameGate::after{ content:""; position:absolute; z-index:-1; inset:9px; pointer-events:none; border:1px solid rgba(232,196,119,.12); border-radius:8px; }
+.gate-hero{ position:relative; display:flex; min-height:625px; flex-direction:column; padding:29px 38px 24px; overflow:hidden; border-right:1px solid rgba(200,155,60,.28); background:linear-gradient(118deg,rgba(18,13,8,.45),rgba(64,39,15,.18)); }
+.gate-hero::before{ content:""; position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse at 42% 52%,rgba(215,169,70,.16),transparent 38%),linear-gradient(180deg,rgba(255,231,164,.04),transparent 34%,rgba(0,0,0,.18)); }
+.gate-hero::after{ content:"✦  ·  ✧  ·  ✦"; position:absolute; right:-12px; bottom:22px; color:rgba(232,196,119,.1); font:32px 'Cinzel'; letter-spacing:18px; transform:rotate(-21deg); }
+.gate-hero-top,.gate-hero-copy,.gate-class-showcase,.gate-hero-footer{ position:relative; z-index:1; }
+.gate-hero-top{ display:flex; justify-content:space-between; gap:12px; color:#c7ad7a; font:700 9px 'JetBrains Mono'; letter-spacing:1.15px; }
+.gate-hero-top span:last-child{ color:rgba(190,172,142,.62); }
+.gate-hero-copy{ max-width:520px; margin-top:47px; }
+#nameGate .gate-kicker{ margin:0 0 10px; color:#e8c477; font:700 10px 'JetBrains Mono'; letter-spacing:2px; }
+#nameGate .gate-hero h2{ max-width:530px; margin:0; color:#f2d184; font:900 clamp(29px,4vw,49px)/1.03 'Cinzel Decorative',serif; letter-spacing:.6px; text-transform:uppercase; text-shadow:0 4px 18px rgba(0,0,0,.62),0 0 28px rgba(220,159,53,.25); }
+#nameGate .gate-hero-copy > p:last-child{ max-width:490px; margin:18px 0 0; color:#cabda3; font-size:16px; line-height:1.52; }
+.gate-class-showcase{ display:grid; grid-template-columns:minmax(185px,.82fr) minmax(180px,1.1fr); align-items:center; gap:18px; min-height:256px; margin:auto 0 10px; }
+.gate-class-artbox{ position:relative; display:grid; place-items:end center; align-self:stretch; min-height:246px; overflow:hidden; border:1px solid color-mix(in srgb,var(--class-glow,#e8c477) 48%,rgba(232,196,119,.22)); border-radius:90px 90px 11px 11px; background:radial-gradient(circle at 50% 34%,color-mix(in srgb,var(--class-glow,#e8c477) 26%,transparent),transparent 47%),linear-gradient(180deg,rgba(6,5,3,.15),rgba(8,6,3,.82)); box-shadow:inset 0 0 28px rgba(0,0,0,.45),0 0 27px color-mix(in srgb,var(--class-glow,#e8c477) 18%,transparent); }
+.gate-class-artbox::before{ content:""; position:absolute; top:18px; width:130px; height:130px; border:1px solid color-mix(in srgb,var(--class-glow,#e8c477) 58%,transparent); border-radius:50%; box-shadow:0 0 0 14px color-mix(in srgb,var(--class-glow,#e8c477) 6%,transparent),0 0 24px color-mix(in srgb,var(--class-glow,#e8c477) 25%,transparent); }
+.gate-class-artbox::after{ content:"CLASE ELEGIDA"; position:absolute; z-index:2; bottom:9px; padding:4px 8px; color:#f3d28a; border:1px solid rgba(232,196,119,.34); border-radius:9px; background:rgba(18,12,7,.83); font:700 8px 'JetBrains Mono'; letter-spacing:1px; }
+.gate-class-art{ position:relative; z-index:1; width:100%; height:262px; object-fit:contain; object-position:center bottom; filter:drop-shadow(0 14px 12px rgba(0,0,0,.7)) drop-shadow(0 0 15px color-mix(in srgb,var(--class-glow,#e8c477) 38%,transparent)); animation:gateClassFloat 4s ease-in-out infinite; }
+.gate-class-info{ padding:13px 0 12px; }
+.gate-class-pill{ display:inline-flex; align-items:center; gap:7px; padding:5px 9px; color:var(--class-glow,#e8c477); border:1px solid color-mix(in srgb,var(--class-glow,#e8c477) 54%,transparent); border-radius:14px; background:color-mix(in srgb,var(--class-glow,#e8c477) 10%,rgba(18,12,7,.72)); font:700 9px 'JetBrains Mono'; letter-spacing:.95px; text-transform:uppercase; }
+.gate-class-pill .class-emblem{ width:18px; height:18px; object-fit:contain; filter:drop-shadow(0 0 4px currentColor); }
+.gate-class-info h3{ margin:12px 0 3px; color:#f2d184; font:700 22px 'Cinzel'; letter-spacing:1px; }
+.gate-class-weapon{ display:block; color:#bba87e; font:10px 'JetBrains Mono'; letter-spacing:.4px; }
+.gate-class-info p{ margin:12px 0 0; color:#d1c3a6; font-size:13px; line-height:1.4; }
+.gate-class-traits{ display:flex; flex-wrap:wrap; gap:6px; margin-top:13px; }
+.gate-class-traits span{ padding:5px 7px; color:#d9c795; border:1px solid rgba(232,196,119,.18); border-radius:3px; background:rgba(5,4,2,.28); font:700 8px 'JetBrains Mono'; letter-spacing:.25px; }
+.gate-hero-footer{ display:flex; justify-content:space-between; gap:12px; padding-top:16px; border-top:1px solid rgba(232,196,119,.15); color:#ae9d7e; font:8px 'JetBrains Mono'; letter-spacing:.4px; }
+.gate-console{ position:relative; z-index:1; padding:31px 31px 27px; background:linear-gradient(180deg,rgba(37,28,18,.83),rgba(22,16,10,.88)); }
+.gate-console::before{ content:""; position:absolute; left:0; right:0; top:0; height:2px; background:linear-gradient(90deg,transparent,rgba(232,196,119,.63),transparent); }
+.gate-console-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; color:#d9bd79; font:700 9px 'JetBrains Mono'; letter-spacing:1.35px; }
+.gate-roster-count{ padding:5px 7px; color:#d4c098; border:1px solid rgba(232,196,119,.25); border-radius:12px; background:rgba(10,8,5,.34); font-size:8px; white-space:nowrap; }
+#nameGate > .gate-console > h2{ margin:13px 0 7px; color:#f0cd79; font:700 27px 'Cinzel Decorative',serif; letter-spacing:.3px; text-transform:uppercase; text-shadow:0 2px 12px rgba(0,0,0,.65); }
+#nameGate > .gate-console > p{ margin:0 0 17px; color:#bcae91; font-size:13px; line-height:1.42; }
+#nameGate .character-list{ gap:8px; margin:13px 0 10px; }
+#nameGate .character-card{ min-height:62px; padding:6px; border-color:rgba(200,155,60,.26); border-radius:6px; background:linear-gradient(105deg,rgba(74,51,24,.31),rgba(21,16,10,.48)); }
+#nameGate .character-card:hover{ border-color:var(--gold-bright); background:linear-gradient(105deg,rgba(99,66,27,.45),rgba(26,18,10,.66)); box-shadow:0 10px 20px rgba(0,0,0,.38),0 0 18px rgba(200,155,60,.13); }
+#nameGate .character-select{ grid-template-columns:46px 1fr auto; gap:8px; }
+#nameGate .character-card .char-icon{ width:40px; height:40px; border-color:rgba(232,196,119,.42); border-radius:11px; background:radial-gradient(circle at 50% 35%,rgba(232,196,119,.23),rgba(8,6,3,.72)); }
+#nameGate .character-card .char-icon .class-emblem{ width:38px; height:38px; }
+#nameGate .character-card .char-name{ color:#efd18a; font-size:12px; }
+#nameGate .character-card .char-meta{ font-size:9px; }
+#nameGate .character-card .char-play{ color:#9ac879; font-size:9px; }
+#nameGate .character-delete{ width:29px; height:29px; border-radius:5px; }
+#nameGate .character-divider{ margin:16px 0 11px; color:#d5bc84; font:700 9px 'JetBrains Mono'; letter-spacing:1px; }
+#nameGate .class-picker{ width:100%; gap:7px; margin:0 0 9px; }
+#nameGate .class-choice{ min-height:84px; border-color:rgba(200,155,60,.28); border-radius:6px; background:radial-gradient(circle at 50% 16%,rgba(232,196,119,.12),transparent 50%),linear-gradient(160deg,rgba(65,48,29,.52),rgba(19,14,9,.86)); color:#ad9d81; font-size:8px; transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,background .18s ease; }
+#nameGate .class-choice .class-emblem{ width:44px; height:44px; margin-bottom:4px; }
+#nameGate .class-choice:hover{ transform:translateY(-3px); border-color:#d6b260; background:linear-gradient(160deg,rgba(101,72,29,.64),rgba(31,21,10,.92)); }
+#nameGate .class-choice.active{ color:#f2d184; border-color:#e0b64f; background:radial-gradient(circle at 50% 10%,rgba(235,185,70,.24),transparent 58%),linear-gradient(160deg,rgba(80,57,24,.92),rgba(27,18,9,.94)); box-shadow:0 0 0 1px rgba(232,196,119,.1) inset,0 8px 18px rgba(0,0,0,.32),0 0 18px rgba(213,171,65,.18); }
+#nameGate .class-description{ min-height:30px; margin:3px 0 10px; color:#c5b690; font-size:11px; }
+.gate-name-label{ display:block; margin:7px 0 6px; color:#c9ae76; font:700 9px 'JetBrains Mono'; letter-spacing:1px; }
+.gate-name-label span{ display:inline-grid; place-items:center; width:17px; height:17px; margin-right:5px; color:#f1d184; border:1px solid rgba(232,196,119,.42); border-radius:50%; background:rgba(100,72,27,.2); }
+#nameGate #nameInput{ padding:12px 13px; border-color:rgba(200,155,60,.34); border-radius:5px; background:rgba(12,9,6,.72); box-shadow:inset 0 1px 10px rgba(0,0,0,.28); }
+#nameGate #nameInput:focus{ border-color:#dfb752; box-shadow:0 0 0 3px rgba(232,196,119,.08),inset 0 1px 10px rgba(0,0,0,.28); }
+#nameGate #startBtn{ display:flex; align-items:center; justify-content:center; gap:12px; width:100%; min-height:47px; margin-top:13px; border-color:#e0b64f; border-radius:5px; color:#211407; background:linear-gradient(180deg,#e7bf5a,#a8781f); box-shadow:inset 0 1px 0 rgba(255,245,201,.48),0 6px 14px rgba(0,0,0,.35); font-size:11px; letter-spacing:1.5px; }
+#nameGate #startBtn:hover{ transform:translateY(-2px); background:linear-gradient(180deg,#f2d078,#bd8d2d); box-shadow:inset 0 1px 0 rgba(255,248,211,.62),0 10px 21px rgba(0,0,0,.38),0 0 20px rgba(229,181,66,.22); }
+#nameGate #startBtn span{ font-size:18px; line-height:0; }
+@keyframes gateClassFloat{ 0%,100%{ transform:translateY(2px); } 50%{ transform:translateY(-7px); } }
+@media(max-width:880px){
+  #nameGate{ grid-template-columns:1fr; max-width:650px; min-height:0; }
+  .gate-hero{ min-height:480px; border-right:0; border-bottom:1px solid rgba(200,155,60,.28); }
+  .gate-console{ padding:28px 30px; }
+}
+@media(max-width:540px){
+  body{ padding:20px 12px 40px; }
+  #nameGate{ margin:18px auto 34px; border-radius:8px; }
+  .gate-hero{ min-height:476px; padding:22px 19px 18px; }
+  .gate-hero-copy{ margin-top:31px; }
+  #nameGate .gate-hero h2{ font-size:29px; }
+  #nameGate .gate-hero-copy > p:last-child{ font-size:13px; }
+  .gate-class-showcase{ grid-template-columns:138px 1fr; gap:13px; min-height:203px; }
+  .gate-class-artbox{ min-height:205px; }
+  .gate-class-art{ height:214px; }
+  .gate-class-artbox::before{ width:99px; height:99px; }
+  .gate-class-info h3{ font-size:18px; }
+  .gate-class-info p{ font-size:11px; }
+  .gate-hero-footer{ font-size:7px; }
+  .gate-console{ padding:23px 18px 21px; }
+  #nameGate > .gate-console > h2{ font-size:21px; }
+  #nameGate .character-select{ grid-template-columns:42px 1fr auto; }
+  #nameGate .class-choice{ min-height:72px; font-size:7px; }
+  #nameGate .class-choice .class-emblem{ width:36px; height:36px; }
+}
+

@@ -1,0 +1,35 @@
+FORJA ETERNA · ACTIVAR CUENTAS Y GUARDADO ONLINE
+================================================
+
+1. Entrá a tu proyecto de Supabase.
+2. Abrí Authentication > Sign In / Providers > Email.
+3. Activá Email y permití nuevos registros.
+4. Para probar inmediatamente, podés desactivar temporalmente "Confirm email".
+   Si lo dejás activo, cada jugador deberá confirmar el correo antes de ingresar.
+5. Abrí SQL Editor > New query.
+6. Copiá todo el contenido de "supabase-cloud-save.sql" y presioná Run.
+7. Subí esta versión del juego a GitHub/Vercel.
+
+SEGURIDAD
+---------
+- Cada cuenta solo puede leer o modificar su propia partida.
+- Las contraseñas son administradas por Supabase y nunca se guardan dentro del juego.
+- El juego conserva una copia local inmediata y otra online cada 12 minutos.
+- Los personajes locales existentes se vinculan a la primera cuenta utilizada.
+
+PRUEBA RECOMENDADA
+------------------
+1. Creá una cuenta.
+2. Creá o abrí un personaje y jugá unos minutos.
+3. Esperá a ver "Nube actualizada" o cambiá de pestaña.
+4. Abrí el juego en una ventana privada e iniciá sesión con la misma cuenta.
+5. Tus personajes deberían recuperarse automáticamente.
+
+REINICIO GLOBAL DE TEMPORADA
+----------------------------
+La versión actual usa el espacio local "temporada-2", por lo que ignora todos los
+personajes locales creados antes de esta actualización.
+
+Para eliminar también el progreso online y el ranking anterior, ejecutá una sola vez
+el archivo "supabase-reinicio-global.sql" desde SQL Editor. Las cuentas y contraseñas
+se conservan: cada jugador podrá ingresar, pero comenzará sin personajes.

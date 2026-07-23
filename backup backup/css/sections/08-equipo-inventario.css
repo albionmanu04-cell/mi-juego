@@ -1,0 +1,160 @@
+/* ================================================================
+   08-EQUIPO-INVENTARIO.CSS — Equipamiento y estadísticas detalladas del héroe.
+   Parte de game.css original, líneas 1152-1305. Orden de carga:
+   ver comentario en index.html.
+   ================================================================ */
+
+  /* ================= EQUIPAMIENTO Y ESTADÍSTICAS DETALLADAS ================= */
+  .equipment-tab {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: var(--bg-panel-2);
+    padding: 16px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    box-shadow: 0 0 0 1px #000 inset;
+  }
+  @media (min-width: 480px) {
+    .equipment-tab { flex-direction: row; }
+  }
+  .character-doll {
+    position: relative;
+    width: 150px;
+    height: 240px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin: 0 auto;
+  }
+  .character-silhouette {
+    opacity: 0.08;
+    width: 90px;
+    height: auto;
+    color: var(--parchment-dim);
+  }
+  .eq-slot {
+    position: absolute;
+    width: 38px;
+    height: 38px;
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .eq-slot:hover {
+    border-color: var(--gold-bright);
+    box-shadow: 0 0 6px rgba(232, 196, 119, 0.4);
+  }
+  .eq-slot.equipped {
+    border-color: var(--gold);
+    background: rgba(200, 155, 60, 0.1);
+    box-shadow: inset 0 0 4px rgba(200, 155, 60, 0.2);
+  }
+  .slot-helmet  { top: 10px;  left: 56px; }
+  .slot-chest   { top: 65px;  left: 56px; }
+  .slot-gloves  { top: 120px; left: 10px; }
+  .slot-boots   { top: 185px; left: 56px; }
+  .slot-weapon  { top: 65px;  left: 10px; }
+  .slot-shield  { top: 65px;  left: 102px;}
+  .slot-ring    { top: 120px; left: 102px;}
+
+  .inventory-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 240px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .inventory-list h4 {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--gold);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 6px;
+    margin-bottom: 4px;
+  }
+  .inv-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-deep);
+    padding: 8px 10px;
+    border-radius: 2px;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--gold);
+  }
+  .inv-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .inv-item-name {
+    font-family: 'Spectral', serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--parchment);
+  }
+.inv-item-stats {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--gold-bright);
+  }
+.inv-rarity{ display:inline-flex; width:max-content; margin-top:2px; padding:2px 5px; border:1px solid var(--rarity-color); border-radius:9px; color:var(--rarity-color); background:color-mix(in srgb,var(--rarity-color) 10%,transparent); font:700 8px 'JetBrains Mono'; letter-spacing:.55px; text-transform:uppercase; }
+.inv-actions{ display:flex; flex-direction:column; gap:5px; align-items:stretch; margin-left:8px; }
+.delete-item-btn{ padding:4px 8px; border:1px solid rgba(210,74,68,.55); border-radius:3px; color:#e98a82; background:rgba(126,28,23,.18); font:700 9px 'Cinzel'; cursor:pointer; }
+.delete-item-btn:hover{ color:#fff0e8; border-color:#ef766b; background:rgba(150,31,25,.42); }
+  .stats-detailed {
+    background: var(--bg-panel-2);
+    padding: 18px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    box-shadow: 0 0 0 1px #000 inset;
+  }
+  .stats-detailed h4 {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    color: var(--gold-bright);
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 6px;
+  }
+  .stat-row-detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--line);
+    font-size: 12.5px;
+  }
+  .stat-row-detail:last-child {
+    border-bottom: none;
+  }
+  .stat-row-detail .label {
+    color: var(--parchment-dim);
+  }
+  .stat-row-detail .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--parchment);
+  }
+  .stat-row-detail .val-bonus {
+    color: var(--green);
+    font-size: 11px;
+    margin-left: 4px;
+  }
+

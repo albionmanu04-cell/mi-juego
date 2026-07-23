@@ -1,0 +1,327 @@
+/* ================================================================
+   07-PESCA.CSS — Minijuego de Pesca.
+   Parte de game.css original, líneas 1003-1151. Orden de carga:
+   ver comentario en index.html.
+   ================================================================ */
+
+  /* ---- PESCA ---- */
+  .fishing-panel{ position:relative; overflow:hidden; padding:18px; border:1px solid rgba(78,166,214,.5); border-radius:7px; background:radial-gradient(circle at 50% 0,rgba(45,124,168,.22),transparent 48%),linear-gradient(145deg,rgba(11,24,33,.96),rgba(8,12,15,.96)); box-shadow:inset 0 0 42px rgba(28,90,133,.16),0 0 20px rgba(45,124,168,.12); text-align:center; }
+  .fishing-panel::before{ content:''; position:absolute; inset:0; background:linear-gradient(120deg,transparent 30%,rgba(120,210,255,.07) 50%,transparent 70%); background-size:220% 220%; animation:fishShimmer 6s linear infinite; pointer-events:none; }
+  .fish-bubbles{ position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+  .fish-bubbles i{ position:absolute; bottom:-12px; width:5px; height:5px; border-radius:50%; background:rgba(180,225,255,.4); box-shadow:0 0 4px rgba(180,225,255,.5); animation:fishBubbleRise 4.5s linear infinite; }
+  .fish-bubbles i:nth-child(1){ left:16%; animation-delay:0s; }
+  .fish-bubbles i:nth-child(2){ left:52%; width:4px; height:4px; animation-delay:1.5s; }
+  .fish-bubbles i:nth-child(3){ left:80%; width:6px; height:6px; animation-delay:3s; }
+  @keyframes fishShimmer{ 0%{background-position:0% 0%} 100%{background-position:200% 200%} }
+  @keyframes fishBubbleRise{ 0%{ transform:translateY(0); opacity:0; } 12%{ opacity:.75; } 100%{ transform:translateY(-150px); opacity:0; } }
+  .fish-pond{ position:relative; display:grid; place-items:center; width:70px; height:70px; margin:6px auto 14px; border:1px solid rgba(126,200,238,.4); border-radius:50%; background:radial-gradient(circle,rgba(45,124,168,.28),rgba(10,18,24,.2)); font-size:28px; box-shadow:0 0 22px rgba(94,180,224,.18); animation:fishBob 2.6s ease-in-out infinite; z-index:1; }
+  .fish-pond.bite{ animation:fishBiteShake .35s ease-in-out infinite; border-color:#ffb35a; box-shadow:0 0 26px rgba(255,160,60,.4); }
+  .fish-pond.casting::after{ content:''; position:absolute; inset:-6px; border-radius:50%; border:2px solid rgba(126,200,238,.5); animation:fishRipple 1.8s ease-out infinite; }
+  @keyframes fishRipple{ 0%{ transform:scale(.7); opacity:.85; } 100%{ transform:scale(2.1); opacity:0; } }
+  @keyframes fishBob{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+  @keyframes fishBiteShake{ 0%,100%{transform:translateX(0) rotate(0)} 25%{transform:translateX(-4px) rotate(-4deg)} 75%{transform:translateX(4px) rotate(4deg)} }
+  .fish-status{ margin:8px 0 14px; color:#a8c7d6; font:9px 'JetBrains Mono'; letter-spacing:.4px; }
+  .fish-bite-alert{ margin:2px 0 12px; color:#ffb35a; font:700 15px 'Cinzel'; letter-spacing:1.5px; text-shadow:0 0 12px rgba(255,160,60,.5); animation:fishAlertPulse .5s ease-in-out infinite; }
+  @keyframes fishAlertPulse{ 0%,100%{opacity:1} 50%{opacity:.55} }
+  .fishing-panel p{ color:#9db9c8; font:10px 'JetBrains Mono'; line-height:1.5; margin-bottom:6px; }
+  .fish-cast-btn{ min-width:200px; min-height:42px; padding:9px 16px; border:0; border-radius:5px; color:#04222f; background:linear-gradient(180deg,#8fdcff,#2f8ab8); box-shadow:0 3px 0 #1c5a76,0 0 17px rgba(90,180,224,.35); font:700 11px 'Cinzel'; letter-spacing:1px; cursor:pointer; user-select:none; touch-action:none; -webkit-user-select:none; }
+  .fish-cast-btn.hook{ background:linear-gradient(180deg,#ffcf8a,#d97b2b); box-shadow:0 3px 0 #7a4413,0 0 20px rgba(255,160,60,.5); color:#2c1503; }
+  .fish-lunge-alert{ min-height:14px; margin:2px 0 4px; color:#ff6b5a; font:700 11px 'Cinzel'; letter-spacing:.8px; opacity:0; transition:opacity .15s; text-shadow:0 0 10px rgba(255,90,74,.6); }
+  .fish-rating{ margin-top:2px; color:#8ba9b8; font:700 9px 'JetBrains Mono'; letter-spacing:.4px; }
+  body.fish-big-catch{ animation:fishScreenShake .5s ease-in-out; }
+  @keyframes fishScreenShake{ 0%,100%{transform:translate(0,0)} 20%{transform:translate(-6px,3px)} 40%{transform:translate(6px,-3px)} 60%{transform:translate(-4px,2px)} 80%{transform:translate(4px,-2px)} }
+  body.fish-big-catch::after{ content:''; position:fixed; inset:0; z-index:9999; pointer-events:none; background:radial-gradient(circle,rgba(255,225,140,.35),transparent 60%); animation:fishFlash .7s ease-out forwards; }
+  @keyframes fishFlash{ 0%{opacity:1} 100%{opacity:0} }
+  .fish-weight-badge{ position:relative; z-index:1; display:inline-block; margin:2px 0 4px; color:#eafcff; font:700 11px 'JetBrains Mono'; letter-spacing:.4px; }
+  .fish-record-badge{ position:relative; z-index:1; display:inline-block; margin-top:4px; padding:3px 10px; border-radius:10px; background:rgba(247,208,123,.15); color:#f7d07b; font:700 9px 'Cinzel'; letter-spacing:.5px; border:1px solid rgba(247,208,123,.45); animation:fishAlertPulse .7s ease-in-out infinite; }
+  .fish-shadow{ position:absolute; bottom:6px; font-size:13px; opacity:.35; filter:blur(.3px) grayscale(1) brightness(.6); animation:fishShadowSwim 5s ease-in-out infinite; pointer-events:none; }
+  .fish-shadow.s2{ bottom:16px; font-size:10px; animation-duration:6.5s; animation-delay:-2s; opacity:.25; }
+  @keyframes fishShadowSwim{ 0%{ left:8%; transform:scaleX(1);} 48%{ left:78%; transform:scaleX(1);} 50%{ transform:scaleX(-1);} 98%{ left:8%; transform:scaleX(-1);} 100%{ left:8%; transform:scaleX(1);} }
+  .fish-streak-badge{ position:relative; z-index:1; display:inline-flex; align-items:center; gap:6px; margin:2px auto 12px; padding:4px 12px; border-radius:20px; border:1px solid rgba(247,208,123,.45); background:rgba(247,208,123,.08); color:#f7d07b; font:700 9px 'Cinzel'; letter-spacing:.6px; }
+  .fish-dex-row{ position:relative; z-index:1; display:flex; justify-content:center; gap:8px; margin:2px 0 14px; }
+  .fish-dex-item{ width:30px; height:30px; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(126,200,238,.25); background:rgba(10,18,24,.45); font-size:15px; filter:grayscale(1) brightness(.45); opacity:.5; transition:all .2s; }
+  .fish-dex-item.caught{ filter:none; opacity:1; box-shadow:0 0 10px currentColor; border-color:currentColor; }
+  .fish-dex-wrap{ position:relative; z-index:1; margin:2px 0 14px; }
+  .fish-dex-progress{ margin-top:6px; color:#7fa0af; font:8px 'JetBrains Mono'; letter-spacing:.3px; text-align:center; }
+  .fish-dex-complete-badge{ position:relative; z-index:1; display:inline-block; margin-top:6px; padding:5px 12px; border-radius:10px; background:rgba(255,214,107,.14); color:#ffd66b; font:700 9px 'Cinzel'; letter-spacing:.4px; border:1px solid rgba(255,214,107,.5); line-height:1.6; animation:fishAlertPulse .8s ease-in-out infinite; }
+  .fish-mastery-box{ margin-top:8px; padding:10px; border:1px solid rgba(255,214,107,.4); border-radius:5px; background:linear-gradient(145deg,rgba(120,90,20,.22),rgba(10,18,24,.4)); color:#ffd66b; font:700 10px 'Cinzel'; letter-spacing:.5px; text-align:center; }
+  .fish-mastery-box small{ display:block; margin-top:5px; color:#d8c69a; font:8px 'JetBrains Mono'; letter-spacing:.2px; text-transform:none; font-weight:400; line-height:1.5; }
+  .fish-new-badge{ position:relative; z-index:1; display:inline-block; margin-top:6px; padding:3px 10px; border-radius:10px; background:rgba(120,255,160,.15); color:#8fffb0; font:700 9px 'Cinzel'; letter-spacing:.5px; border:1px solid rgba(120,255,160,.4); animation:fishAlertPulse .7s ease-in-out infinite; }
+  .fishing-panel.result .fish-result-icon{ position:relative; z-index:1; font-size:40px; margin-bottom:6px; animation:fishResultPop .5s cubic-bezier(.17,.89,.32,1.28) both; }
+  @keyframes fishResultPop{ 0%{ transform:scale(.3); opacity:0; } 60%{ transform:scale(1.18); opacity:1; } 100%{ transform:scale(1); } }
+  .fishing-panel.result h4{ position:relative; z-index:1; font:700 15px 'Cinzel'; letter-spacing:1px; margin-bottom:6px; }
+  .fishing-panel.result p, .fishing-panel.result .fish-rating, .fishing-panel.result .fish-new-badge{ position:relative; z-index:1; }
+  .fish-stat-row{ display:flex; align-items:center; justify-content:space-between; padding:9px 11px; margin-bottom:8px; border:1px solid rgba(126,200,238,.22); border-radius:4px; background:rgba(11,24,33,.5); }
+  .fish-stat-row small{ color:#8ba9b8; font:8px 'Cinzel'; letter-spacing:.8px; }
+  .fish-stat-row b{ color:#eafcff; font:700 12px 'JetBrains Mono'; }
+  .fish-rod-box{ margin-top:12px; padding:12px; border:1px solid rgba(126,200,238,.3); border-radius:5px; background:linear-gradient(145deg,rgba(28,90,118,.28),rgba(10,18,24,.4)); color:#cfe6f0; font:700 10px 'Cinzel'; letter-spacing:.6px; text-align:center; }
+
+  /* ---- ZONAS DE PESCA (estanque / río / abismo) ---- */
+  .fish-zone-row{ position:relative; z-index:1; display:flex; justify-content:center; gap:8px; margin:0 0 10px; flex-wrap:wrap; }
+  .fish-zone-tab{ display:flex; flex-direction:column; align-items:center; gap:3px; min-width:78px; padding:8px 10px; border:1px solid rgba(126,200,238,.28); border-radius:6px; background:rgba(10,18,24,.5); color:#9db9c8; cursor:pointer; transition:.18s ease; }
+  .fish-zone-tab .zone-icon{ font-size:17px; line-height:1; }
+  .fish-zone-tab .zone-name{ font:700 8px 'Cinzel'; letter-spacing:.5px; color:inherit; }
+  .fish-zone-tab:not(.locked):hover{ border-color:rgba(126,200,238,.55); background:rgba(45,124,168,.16); color:#eafcff; }
+  .fish-zone-tab.active{ border-color:#8fdcff; background:rgba(90,180,224,.16); color:#eafcff; box-shadow:0 0 14px rgba(90,180,224,.3); }
+  .fish-zone-tab.locked{ opacity:.42; cursor:not-allowed; }
+  .fish-zone-desc{ position:relative; z-index:1; margin:0 0 10px; color:#7fa0af; font:9px 'JetBrains Mono'; letter-spacing:.2px; font-style:italic; }
+
+  /* ---- CONDICIONES: clima y hora del día (modificador liviano sobre la mordida) ---- */
+  .fish-conditions-row{ position:relative; z-index:1; display:flex; justify-content:center; gap:6px; flex-wrap:wrap; margin:0 0 10px; }
+  .fish-cond{ display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:10px; font:700 8.5px 'JetBrains Mono'; letter-spacing:.3px; border:1px solid transparent; }
+  .fish-cond.night{ color:#b9a8ff; background:rgba(150,110,220,.12); border-color:rgba(150,110,220,.4); }
+  .fish-cond.rain{ color:#8fd0ff; background:rgba(90,180,224,.12); border-color:rgba(90,180,224,.4); }
+  .fish-cond.event{ color:#ffd08a; background:rgba(255,160,60,.12); border-color:rgba(255,160,60,.4); animation:fishAlertPulse 1.4s ease-in-out infinite; }
+  .fish-mythic-badge{ position:relative; z-index:1; display:inline-block; margin-top:6px; padding:4px 12px; border-radius:10px; background:rgba(91,227,201,.14); color:#5be3c9; font:700 9px 'Cinzel'; letter-spacing:.4px; border:1px solid rgba(91,227,201,.5); animation:fishAlertPulse .8s ease-in-out infinite; }
+
+  /* ---- CEBOS / CARNADAS ---- */
+  .fish-bait-row{ position:relative; z-index:1; display:flex; justify-content:center; gap:8px; margin:0 0 12px; flex-wrap:wrap; }
+  .fish-bait-tile{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .fish-bait-tab{ display:flex; flex-direction:column; align-items:center; gap:2px; min-width:74px; padding:7px 8px; border:1px solid rgba(126,200,238,.28); border-radius:6px; background:rgba(10,18,24,.5); color:#9db9c8; cursor:pointer; transition:.18s ease; }
+  .fish-bait-tab .bait-icon{ font-size:16px; line-height:1; }
+  .fish-bait-tab .bait-name{ font:700 7.5px 'Cinzel'; letter-spacing:.4px; color:inherit; }
+  .fish-bait-tab .bait-count{ font:9px 'JetBrains Mono'; color:#7fa0af; }
+  .fish-bait-tab:not(.empty):hover{ border-color:rgba(126,200,238,.55); background:rgba(45,124,168,.16); color:#eafcff; }
+  .fish-bait-tab.active{ border-color:#ffcf8a; background:rgba(255,160,60,.14); color:#ffe3b8; box-shadow:0 0 12px rgba(255,160,60,.25); }
+  .fish-bait-tab.empty{ opacity:.55; }
+  .fish-bait-buy{ min-width:74px; padding:3px 4px; border:1px solid rgba(126,200,238,.25); border-radius:4px; background:transparent; color:#7fa0af; font:8px 'JetBrains Mono'; cursor:pointer; transition:.15s; }
+  .fish-bait-buy:hover{ border-color:rgba(126,200,238,.5); color:#cfe6f0; }
+  .fish-bait-buy.cant-afford{ opacity:.4; }
+  .fish-bait-tag{ position:relative; z-index:1; display:inline-block; margin:2px 0 8px; padding:3px 10px; border-radius:10px; background:rgba(255,160,60,.1); color:#ffcf8a; font:700 9px 'JetBrains Mono'; letter-spacing:.3px; border:1px solid rgba(255,160,60,.3); }
+
+  .fishing-panel.zone-river{ border-color:rgba(120,220,170,.5); background:radial-gradient(circle at 50% 0,rgba(50,150,110,.22),transparent 48%),linear-gradient(145deg,rgba(9,28,20,.96),rgba(7,13,10,.96)); box-shadow:inset 0 0 42px rgba(60,150,110,.14),0 0 20px rgba(60,150,110,.1); }
+  .fishing-panel.zone-river::before{ background:linear-gradient(120deg,transparent 30%,rgba(140,255,190,.07) 50%,transparent 70%); }
+  .fish-pond.zone-river{ border-color:rgba(120,220,170,.4); background:radial-gradient(circle,rgba(50,150,110,.3),rgba(10,18,24,.2)); box-shadow:0 0 22px rgba(120,220,170,.18); }
+  .fish-zone-tab.active[data-zone="river"]{ border-color:#8ff0b8; box-shadow:0 0 14px rgba(120,220,170,.3); }
+
+  .fishing-panel.zone-depths{ border-color:rgba(150,110,220,.5); background:radial-gradient(circle at 50% 0,rgba(80,50,140,.24),transparent 48%),linear-gradient(145deg,rgba(13,8,24,.97),rgba(6,4,11,.97)); box-shadow:inset 0 0 46px rgba(90,55,150,.18),0 0 22px rgba(120,80,200,.14); }
+  .fishing-panel.zone-depths::before{ background:linear-gradient(120deg,transparent 30%,rgba(180,140,255,.08) 50%,transparent 70%); }
+  .fish-pond.zone-depths{ border-color:rgba(150,110,220,.45); background:radial-gradient(circle,rgba(90,55,150,.32),rgba(10,18,24,.2)); box-shadow:0 0 26px rgba(120,80,200,.3); }
+  .fish-zone-tab.active[data-zone="depths"]{ border-color:#c79bff; box-shadow:0 0 14px rgba(150,110,220,.35); }
+
+  .fishing-panel.zone-sea{ border-color:rgba(70,150,190,.55); background:radial-gradient(circle at 50% 0,rgba(20,90,130,.26),transparent 48%),linear-gradient(145deg,rgba(6,20,30,.97),rgba(4,10,15,.97)); box-shadow:inset 0 0 46px rgba(30,110,150,.2),0 0 22px rgba(50,140,180,.16); }
+  .fishing-panel.zone-sea::before{ background:linear-gradient(120deg,transparent 30%,rgba(140,220,255,.08) 50%,transparent 70%); }
+  .fish-pond.zone-sea{ border-color:rgba(80,170,210,.5); background:radial-gradient(circle,rgba(20,100,140,.34),rgba(10,18,24,.2)); box-shadow:0 0 28px rgba(70,170,210,.32); }
+  .fish-zone-tab.active[data-zone="sea"]{ border-color:#8fd8ff; box-shadow:0 0 14px rgba(70,170,210,.35); }
+
+  /* ---- AMBIENTACIÓN POR ZONA (detalle visual de fondo, no toca la mecánica) ---- */
+  /* Estanque: aguas tranquilas — sombras suaves y lentas */
+  .fish-shadow.pond{ opacity:.22; }
+  .fish-shadow.pond.s1{ bottom:8px; font-size:11px; animation-duration:6.5s; }
+  .fish-shadow.pond.s2{ bottom:18px; font-size:8px; animation-duration:8s; animation-delay:-3s; opacity:.16; }
+
+  /* Río: corriente fuerte — más sombras, más rápidas, y líneas de corriente */
+  .fish-shadow.river{ opacity:.4; }
+  .fish-shadow.river.s1{ bottom:10px; font-size:12px; animation-duration:3.2s; }
+  .fish-shadow.river.s2{ bottom:22px; font-size:9px; animation-duration:4s; animation-delay:-1.4s; opacity:.28; }
+  .fish-shadow.river.s3{ bottom:32px; font-size:14px; animation-duration:3.6s; animation-delay:-2.6s; opacity:.3; }
+  .fish-current{ position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+  .fish-current i{ position:absolute; left:-40px; height:1px; width:40px; background:linear-gradient(90deg,transparent,rgba(160,255,200,.4),transparent); animation:fishCurrentFlow 2.4s linear infinite; }
+  .fish-current i:nth-child(1){ top:28%; animation-delay:0s; }
+  .fish-current i:nth-child(2){ top:54%; animation-delay:.8s; }
+  .fish-current i:nth-child(3){ top:76%; animation-delay:1.6s; }
+  @keyframes fishCurrentFlow{ 0%{ left:-40px; opacity:0; } 15%{ opacity:.6; } 85%{ opacity:.6; } 100%{ left:110%; opacity:0; } }
+
+  /* Abismo: burbujas propias — más grandes, lentas, con deriva y tinte violeta, más motas bioluminiscentes */
+  .fish-bubbles.zone-depths i{ background:rgba(190,140,255,.4); box-shadow:0 0 8px rgba(190,140,255,.55); animation-name:fishBubbleDriftDeep; }
+  .fish-bubbles.zone-depths i:nth-child(1){ width:8px; height:8px; animation-duration:7s; }
+  .fish-bubbles.zone-depths i:nth-child(2){ left:52%; width:5px; height:5px; animation-duration:6s; animation-delay:1.5s; }
+  .fish-bubbles.zone-depths i:nth-child(3){ left:80%; width:10px; height:10px; animation-duration:8s; animation-delay:3s; }
+  .fish-bubbles.zone-depths i:nth-child(4){ left:34%; width:4px; height:4px; animation-duration:5.5s; animation-delay:2.2s; }
+  @keyframes fishBubbleDriftDeep{ 0%{ transform:translate(0,0); opacity:0; } 10%{ opacity:.7; } 50%{ transform:translate(8px,-80px); } 100%{ transform:translate(-6px,-170px); opacity:0; } }
+  .fish-mote{ position:absolute; width:3px; height:3px; border-radius:50%; background:#c79bff; box-shadow:0 0 6px 2px rgba(199,155,255,.7); opacity:0; pointer-events:none; animation:fishMoteDrift 8s ease-in-out infinite; }
+  .fish-mote.m1{ top:22%; left:20%; animation-delay:0s; }
+  .fish-mote.m2{ top:55%; left:70%; animation-delay:2.6s; }
+  .fish-mote.m3{ top:76%; left:42%; animation-delay:5.2s; }
+  @keyframes fishMoteDrift{ 0%{ opacity:0; transform:translate(0,0) scale(.6); } 15%{ opacity:.9; } 50%{ transform:translate(10px,-14px) scale(1); } 85%{ opacity:.7; } 100%{ opacity:0; transform:translate(-8px,-26px) scale(.6); } }
+
+  /* Mar Abierto: oleaje lento de fondo y una sombra grande que cruza lejos, como algo enorme pasando por debajo */
+  .fish-shadow.sea{ opacity:.3; filter:blur(.4px) grayscale(1) brightness(.5); }
+  .fish-shadow.sea.s1{ bottom:14px; font-size:20px; animation-duration:9s; }
+  .fish-shadow.sea.s2{ bottom:30px; font-size:10px; animation-duration:5.5s; animation-delay:-2s; opacity:.22; }
+  .fish-swell{ position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+  .fish-swell i{ position:absolute; left:-60%; width:220%; height:10px; border-radius:50%; background:radial-gradient(ellipse at center,rgba(140,220,255,.1),transparent 70%); animation:fishSwellMove 7s ease-in-out infinite; }
+  .fish-swell i:nth-child(1){ top:20%; animation-duration:7s; }
+  .fish-swell i:nth-child(2){ top:62%; animation-delay:-3s; animation-duration:8.5s; }
+  @keyframes fishSwellMove{ 0%,100%{ transform:translateX(-3%); opacity:.5; } 50%{ transform:translateX(3%); opacity:.9; } }
+  .fish-bubbles.zone-sea i{ background:rgba(140,220,255,.35); box-shadow:0 0 6px rgba(140,220,255,.45); }
+
+  /* ---- BARRA VERTICAL DE CAPTURA (mantené la barra sobre el pez) ---- */
+  .fishing-panel.vertical{ padding-bottom:14px; }
+  .fish-vwrap{ display:flex; align-items:stretch; justify-content:center; gap:14px; margin:12px 0 6px; }
+  .fish-vtrack{ position:relative; width:64px; height:190px; overflow:hidden; border:1px solid rgba(126,200,238,.4); border-radius:6px; background:linear-gradient(180deg,#122e3b,#0a1a22 55%,#081218); box-shadow:inset 0 0 20px rgba(0,0,0,.6); }
+  .fish-catch-bar{ position:absolute; left:0; right:0; bottom:0; height:40%; background:rgba(120,255,160,.16); border-top:2px solid rgba(120,255,160,.5); border-bottom:2px solid rgba(120,255,160,.5); transition:background .12s,box-shadow .12s; }
+  .fish-catch-bar.active{ background:rgba(120,255,160,.32); box-shadow:inset 0 0 18px rgba(120,255,160,.5),0 0 14px rgba(120,255,160,.35); }
+  .fish-critter{ position:absolute; left:50%; bottom:50%; transform:translate(-50%,50%); font-size:22px; filter:drop-shadow(0 0 6px rgba(0,0,0,.6)); transition:bottom .04s linear; }
+  .fish-vmeter{ position:relative; width:16px; height:190px; border:1px solid rgba(126,200,238,.35); border-radius:6px; background:#0e2a36; overflow:hidden; box-shadow:inset 0 0 12px rgba(0,0,0,.6); }
+  .fish-vmeter-fill{ position:absolute; left:0; right:0; bottom:0; height:45%; background:linear-gradient(0deg,#2f8ab8,#8fdcff); transition:background .2s; }
+  .fish-vmeter-fill.danger{ background:linear-gradient(0deg,#a83a2f,#ff6b5a); animation:fishTensionPulse .45s ease-in-out infinite; }
+  @keyframes fishTensionPulse{ 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.4)} }
+  .fish-reel-btn.danger{ animation:fishTensionPulse .45s ease-in-out infinite; }
+
+  /* ---- PESCA DORADA (evento raro, riesgoso, gran recompensa) ---- */
+  @keyframes fishGoldenPulse{ 0%,100%{ box-shadow:0 0 22px rgba(255,214,107,.35),inset 0 0 30px rgba(255,214,107,.12);} 50%{ box-shadow:0 0 38px rgba(255,214,107,.6),inset 0 0 40px rgba(255,214,107,.22);} }
+  .fishing-panel.golden{ border-color:rgba(255,214,107,.6); animation:fishGoldenPulse 1.1s ease-in-out infinite; }
+  .fish-pond.bite.golden{ border-color:#ffd66b; box-shadow:0 0 30px rgba(255,214,107,.55); animation:fishBiteShake .22s ease-in-out infinite; }
+  .fish-bite-alert.golden{ color:#ffd66b; text-shadow:0 0 16px rgba(255,214,107,.75); animation:fishAlertPulse .3s ease-in-out infinite; }
+  .fish-cast-btn.hook.golden{ background:linear-gradient(180deg,#ffe9ad,#d9a02b); box-shadow:0 3px 0 #7a5a13,0 0 26px rgba(255,214,107,.65); color:#2c1e03; }
+  .fish-golden-banner{ position:relative; z-index:1; margin:-2px 0 10px; padding:5px 10px; border-radius:6px; border:1px solid rgba(255,214,107,.5); background:rgba(255,214,107,.1); color:#ffd66b; font:700 9.5px 'Cinzel'; letter-spacing:.5px; }
+  .fish-reel-btn.golden{ background:linear-gradient(180deg,#ffe9ad,#d9a02b); box-shadow:0 3px 0 #7a5a13,0 0 20px rgba(255,214,107,.5); color:#2c1e03; }
+  .fish-golden-badge{ position:relative; z-index:1; display:inline-block; margin-top:4px; padding:3px 10px; border-radius:10px; background:rgba(255,214,107,.15); color:#ffd66b; font:700 9px 'Cinzel'; letter-spacing:.5px; border:1px solid rgba(255,214,107,.5); animation:fishAlertPulse .7s ease-in-out infinite; }
+
+  /* ---- COFRE DE RACHA (hito cada varias capturas seguidas) ---- */
+  .fish-milestone-badge{ position:relative; z-index:1; display:inline-block; margin-top:6px; padding:3px 10px; border-radius:10px; background:rgba(120,200,255,.15); color:#8fdcff; font:700 9px 'Cinzel'; letter-spacing:.5px; border:1px solid rgba(120,200,255,.4); }
+  .fish-rod-box small{ display:block; margin:6px 0 10px; color:#8ba9b8; font:8px 'JetBrains Mono'; letter-spacing:.2px; text-transform:none; font-weight:400; }
+  .fish-rod-box button{ width:100%; min-height:38px; padding:8px; border:0; border-radius:4px; color:#04222f; background:linear-gradient(180deg,#8fdcff,#2f8ab8); font:700 10px 'Cinzel'; letter-spacing:.8px; cursor:pointer; }
+  .fish-rod-box button:disabled{ opacity:.45; cursor:not-allowed; background:#2a3a42; color:#7f97a1; }
+  .fish-power-wrap{ position:relative; height:26px; margin:14px 0 10px; border:1px solid rgba(126,200,238,.35); border-radius:4px; background:#0e2a36; box-shadow:inset 0 0 14px rgba(0,0,0,.6); overflow:hidden; }
+  .fish-power-fill{ position:absolute; left:0; top:0; height:100%; width:0%; background:linear-gradient(90deg,#2f8ab8,#8fdcff,#ffcf8a,#ff6b5a); }
+  .fish-power-fill::after{ content:''; position:absolute; right:0; top:0; width:2px; height:100%; background:#fff; box-shadow:0 0 8px #fff; }
+  .fish-power-label{ margin:2px 0 10px; color:#8ba9b8; font:8px 'JetBrains Mono'; letter-spacing:.4px; }
+  .fish-cast-btn.charging{ background:linear-gradient(180deg,#ffcf8a,#d97b2b); box-shadow:0 3px 0 #7a4413,0 0 20px rgba(255,160,60,.5); color:#2c1503; user-select:none; touch-action:none; }
+  .fish-reel-btn{ width:100%; min-width:200px; min-height:52px; padding:9px 16px; border:0; border-radius:5px; color:#04222f; background:linear-gradient(180deg,#8fdcff,#2f8ab8); box-shadow:0 3px 0 #1c5a76,0 0 17px rgba(90,180,224,.35); font:700 11px 'Cinzel'; letter-spacing:1px; cursor:pointer; user-select:none; touch-action:none; }
+  .fish-reel-btn.holding{ background:linear-gradient(180deg,#ffcf8a,#d97b2b); box-shadow:0 3px 0 #7a4413,0 0 20px rgba(255,160,60,.5); color:#2c1503; }
+
+
+  @media(max-width:620px){ .forge-blueprints{ grid-template-columns:1fr; }.forge-materials{ grid-template-columns:repeat(3,1fr); }.forge-hero{ text-align:center; } }
+
+  /* Subpestañas */
+  .tabs{ display:flex; gap:6px; margin-bottom:14px; flex-wrap: wrap; }
+  .tab{
+    flex:1; min-width: 75px; text-align:center; padding:8px 4px; font-family:'Cinzel'; font-size:10px; letter-spacing:0.5px;
+    text-transform:uppercase; cursor:pointer; color:var(--parchment-dim); border:1px solid var(--line);
+    border-radius:2px; background:var(--bg-panel-2); transition: all 0.2s ease;
+  }
+  .tab.active{ color:var(--gold-bright); border-color:var(--gold); box-shadow: 0 0 6px rgba(200,155,60,0.2); }
+
+  .mission{ background:var(--bg-panel-2); border:1px solid var(--line); border-radius:2px; padding:10px 12px; margin-bottom:8px; }
+  .mission-top{ display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px; }
+  .mission-top span:last-child{ font-family:'JetBrains Mono'; color:var(--parchment-dim); font-size:11px;}
+  .mbar{ height:6px; background:var(--bg-deep); border-radius:2px; overflow:hidden; margin-bottom:8px;}
+  .mbar > div{ height:100%; background:var(--gold); }
+  .claim-btn{
+    width:100%; padding:7px; font-family:'Cinzel'; font-size:10.5px; letter-spacing:1px; text-transform:uppercase;
+    border:1px solid var(--line); background:transparent; color:var(--parchment-dim); cursor:pointer; border-radius:2px;
+  }
+  .claim-btn.ready{ background:var(--green); color:#0e1a0a; border:none; cursor:pointer; }
+  .claim-btn.done{ opacity:0.4; cursor:default; }
+
+  .lb-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 4px; border-bottom:1px solid var(--line); font-size:12.5px; }
+  .lb-row .rank{ font-family:'JetBrains Mono'; color:var(--gold); width:22px; }
+  .lb-row .lbname{ flex:1; padding-left:6px; color:var(--parchment); }
+  .lb-row.me{ background:rgba(200,155,60,0.08); }
+  .lb-row .lbstat{ font-family:'JetBrains Mono'; color:var(--parchment-dim); font-size:11px; }
+  #lbStatus{ font-size:11px; color:var(--parchment-dim); text-align:center; padding:10px 0;}
+  .lb-intro{ margin:8px 0 10px; color:var(--parchment-dim); font-size:10px; text-align:center; letter-spacing:.3px; }
+  .lb-row{ position:relative; min-height:55px; gap:8px; padding:7px 7px; cursor:pointer; border:1px solid transparent; border-bottom-color:var(--line); transition:.18s ease; }
+  button.lb-row{ width:100%; display:flex; align-items:center; justify-content:initial; appearance:none; -webkit-appearance:none; text-align:left; font:inherit; color:inherit; background:linear-gradient(90deg,rgba(31,21,12,.76),rgba(15,10,7,.48)); border-radius:4px; }
+  button.lb-row:nth-of-type(even){ background:linear-gradient(90deg,rgba(43,29,15,.7),rgba(16,11,8,.35)); }
+  button.lb-row.me{ border-color:rgba(232,196,119,.55); background:linear-gradient(90deg,rgba(106,72,22,.4),rgba(31,20,10,.54)); box-shadow:inset 3px 0 0 var(--gold),0 0 13px rgba(200,155,60,.13); }
+  .lb-row:hover,.lb-row:focus-visible{ outline:none; transform:translateX(2px); border-color:rgba(232,196,119,.42); background:linear-gradient(90deg,rgba(200,155,60,.16),rgba(25,17,10,.08)); }
+  .lb-row .rank{ align-self:center; text-align:center; font-size:13px; }
+  .lb-crest{ width:34px; height:34px; display:grid; place-items:center; border:1px solid rgba(232,196,119,.35); border-radius:50%; background:radial-gradient(circle,rgba(200,155,60,.18),rgba(16,11,7,.9)); color:var(--gold-bright); font-size:17px; box-shadow:inset 0 0 10px rgba(200,155,60,.12); }
+  .lb-player{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
+  .lb-player strong{ color:var(--parchment); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lb-player small{ color:var(--parchment-dim); font:9px 'JetBrains Mono'; text-transform:uppercase; letter-spacing:.45px; }
+  .lb-player small b{ color:var(--gold-bright); font-weight:normal; }
+  .lb-power{ text-align:right; display:flex; flex-direction:column; gap:3px; color:var(--parchment-dim); font:9px 'JetBrains Mono'; white-space:nowrap; }
+  .lb-power b{ color:#e77e42; font-size:10px; font-weight:normal; }
+  .lb-view{ color:var(--gold); font:9px 'Cinzel'; letter-spacing:.5px; opacity:.72; }
+  .player-profile-backdrop{ position:fixed; inset:0; z-index:80; display:grid; place-items:center; padding:16px; background:rgba(5,3,2,.72); backdrop-filter:blur(4px); animation:fadeIn .18s ease; }
+  .player-profile-card{ position:relative; width:min(420px,100%); overflow:hidden; border:1px solid rgba(232,196,119,.58); border-radius:9px; background:linear-gradient(145deg,#261b10,#110c08 65%); box-shadow:0 20px 70px rgba(0,0,0,.7),inset 0 0 35px rgba(200,155,60,.08); }
+  .profile-close{ position:absolute; top:10px; right:10px; z-index:2; width:28px; height:28px; border:1px solid rgba(232,196,119,.4); border-radius:50%; background:#160e09; color:var(--parchment); cursor:pointer; }
+  .profile-banner{ min-height:148px; display:flex; align-items:flex-end; gap:14px; padding:18px 21px; background:radial-gradient(circle at 70% 20%,rgba(200,155,60,.18),transparent 42%),linear-gradient(135deg,#2a1b0d,#100b07); border-bottom:1px solid var(--line); }
+  .profile-avatar{ width:118px; height:132px; object-fit:contain; object-position:bottom; filter:drop-shadow(0 8px 13px rgba(0,0,0,.7)); }
+  .profile-identity{ padding-bottom:10px; }
+  .profile-identity small{ color:var(--gold); font:10px 'Cinzel'; letter-spacing:1px; }
+  .profile-identity h2{ margin:5px 0 4px; color:var(--parchment); font:20px 'Cinzel'; }
+  .profile-identity p{ margin:0; color:var(--parchment-dim); font:10px 'JetBrains Mono'; }
+  .profile-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:7px; padding:15px; }
+  .profile-stat{ padding:9px 6px; text-align:center; border:1px solid var(--line); border-radius:4px; background:rgba(0,0,0,.17); }
+  .profile-stat small{ display:block; color:var(--parchment-dim); font:8px 'Cinzel'; letter-spacing:.6px; }
+  .profile-stat b{ display:block; margin-top:4px; color:var(--gold-bright); font:14px 'JetBrains Mono'; }
+
+  /* ---- RANKING GLOBAL: poder, puesto y ficha pública ---- */
+  .lb-dashboard{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:10px 0 8px; padding:10px 11px; border:1px solid rgba(232,196,119,.28); border-radius:8px; background:radial-gradient(circle at 18% 50%,rgba(200,155,60,.15),transparent 44%),linear-gradient(135deg,rgba(64,42,16,.68),rgba(17,11,7,.8)); }
+  .lb-dashboard small,.lb-dashboard b{ display:block; }
+  .lb-dashboard small{ color:var(--parchment-dim); font:8px 'JetBrains Mono'; letter-spacing:1px; }
+  .lb-dashboard b{ margin-top:2px; color:var(--gold-bright); font:700 11px 'Cinzel'; letter-spacing:.7px; }
+  .lb-dashboard > span{ padding:6px 8px; border:1px solid rgba(231,126,66,.4); border-radius:999px; color:#ff9954; background:rgba(70,25,9,.32); font:700 11px 'JetBrains Mono'; white-space:nowrap; }
+  .lb-dashboard em{ color:#c9b18a; font:8px 'JetBrains Mono'; font-style:normal; text-transform:uppercase; }
+  .lb-intro{ margin:7px 0 8px; padding:0 7px; font:9px 'JetBrains Mono'; }
+  button.lb-row{ min-height:64px; gap:10px; margin-bottom:5px; padding:8px 9px; border:1px solid rgba(200,155,60,.15); border-radius:8px; background:linear-gradient(105deg,rgba(45,30,15,.93),rgba(15,10,7,.76)); box-shadow:inset 0 1px 0 rgba(255,235,183,.035); }
+  button.lb-row:nth-of-type(even){ background:linear-gradient(105deg,rgba(50,33,16,.9),rgba(15,10,7,.75)); }
+  .lb-row .rank{ display:grid; place-items:center; flex:0 0 26px; width:26px; height:28px; padding:0; border-right:1px solid rgba(200,155,60,.17); color:#d4bb83; font:700 12px 'JetBrains Mono'; }
+  .lb-row.podium-1 .rank{ color:#ffe08a; text-shadow:0 0 11px rgba(255,211,85,.8); }
+  .lb-row.podium-2 .rank{ color:#d5e5f5; text-shadow:0 0 9px rgba(190,220,255,.55); }
+  .lb-row.podium-3 .rank{ color:#e5a36f; text-shadow:0 0 9px rgba(227,135,67,.55); }
+  .lb-row.podium-1{ border-color:rgba(255,211,85,.5); background:linear-gradient(105deg,rgba(101,69,20,.46),rgba(25,16,8,.8)); box-shadow:inset 3px 0 0 #ffda6e,0 0 18px rgba(200,155,60,.12); }
+  .lb-row.podium-2{ border-color:rgba(184,208,232,.3); }
+  .lb-row.podium-3{ border-color:rgba(198,125,72,.3); }
+  .lb-crest{ flex:0 0 40px; width:40px; height:40px; overflow:hidden; border-radius:12px; background:radial-gradient(circle,rgba(200,155,60,.22),rgba(10,7,5,.92)); }
+  .lb-crest img{ display:block; width:100%; height:100%; padding:3px; object-fit:contain; filter:drop-shadow(0 3px 4px rgba(0,0,0,.72)); }
+  .lb-player{ gap:4px; }
+  .lb-player strong{ color:#f3e3bc; font:700 13px 'Cinzel'; letter-spacing:.25px; }
+  .lb-player small{ font-size:8px; letter-spacing:.55px; }
+  .lb-power{ min-width:77px; gap:5px; }
+  .lb-power b{ color:#ff9255; font:700 11px 'JetBrains Mono'; }
+  .lb-view{ color:#e6c67b; font-size:8px; font-weight:700; }
+  button.lb-row.me{ border-color:rgba(98,213,163,.64); background:linear-gradient(105deg,rgba(22,83,58,.42),rgba(24,17,9,.82)); box-shadow:inset 3px 0 0 #65d8a7,0 0 16px rgba(67,196,137,.12); }
+  .lb-row:hover,.lb-row:focus-visible{ transform:translateY(-1px); border-color:rgba(232,196,119,.7); box-shadow:0 8px 17px rgba(0,0,0,.26),inset 0 0 18px rgba(232,196,119,.08); }
+
+  .player-profile-card{ width:min(520px,100%); border-radius:14px; background:radial-gradient(circle at 84% 13%,rgba(232,196,119,.15),transparent 30%),linear-gradient(145deg,#2a1d10,#120d09 68%); }
+  .profile-rank-ribbon{ position:absolute; top:16px; right:48px; z-index:3; padding:5px 8px; border:1px solid rgba(232,196,119,.36); border-radius:999px; color:#f2d682; background:rgba(25,16,8,.78); font:700 8px 'JetBrains Mono'; letter-spacing:.5px; }
+  .profile-close{ top:15px; right:15px; width:31px; height:31px; color:#f4d987; transition:.16s ease; }
+  .profile-close:hover{ transform:rotate(90deg); border-color:#efb659; background:#432414; }
+  .profile-banner{ min-height:195px; align-items:center; gap:18px; padding:27px 24px 20px; background:radial-gradient(circle at 77% 26%,rgba(232,196,119,.2),transparent 38%),linear-gradient(135deg,#342310,#100b07); }
+  .profile-avatar-shell{ align-self:flex-end; display:grid; place-items:end center; width:145px; height:156px; overflow:hidden; border:1px solid rgba(232,196,119,.3); border-radius:14px 14px 7px 7px; background:radial-gradient(circle at 50% 35%,rgba(200,155,60,.24),rgba(12,8,5,.22) 66%); box-shadow:inset 0 0 23px rgba(0,0,0,.5); }
+  .profile-avatar{ width:143px; height:157px; filter:drop-shadow(0 10px 14px rgba(0,0,0,.78)) drop-shadow(0 0 10px rgba(232,196,119,.18)); }
+  .profile-identity{ flex:1; min-width:0; padding:23px 0 0; }
+  .profile-identity small{ color:#ebc76e; font-size:9px; }
+  .profile-identity h2{ overflow:hidden; margin:6px 0 5px; color:#ffe4a0; font-size:25px; white-space:nowrap; text-overflow:ellipsis; }
+  .profile-identity p{ font-size:9px; line-height:1.55; }
+  .profile-power{ display:flex; align-items:baseline; gap:8px; margin-top:14px; padding-top:9px; border-top:1px solid rgba(232,196,119,.17); }
+  .profile-power span{ color:#bfa77e; font:8px 'JetBrains Mono'; letter-spacing:.65px; }
+  .profile-power b{ color:#ff9557; font:700 19px 'JetBrains Mono'; text-shadow:0 0 12px rgba(235,100,45,.25); }
+  .profile-combat-title{ margin:15px 16px 0; padding:0 0 8px; border-bottom:1px solid rgba(232,196,119,.18); color:#d6b971; font:700 9px 'Cinzel'; letter-spacing:1.2px; text-align:center; }
+  .profile-stats{ grid-template-columns:repeat(3,1fr); gap:9px; padding:12px 16px; }
+  .profile-stat{ min-height:61px; padding:10px 7px; border-color:rgba(232,196,119,.2); border-radius:8px; background:linear-gradient(145deg,rgba(68,46,19,.32),rgba(8,6,5,.35)); }
+  .profile-stat.attack b{ color:#ff8754; }.profile-stat.defense b{ color:#69bded; }.profile-stat.crit b{ color:#ef86bd; }
+  .profile-stat small{ font-size:8px; }.profile-stat b{ margin-top:6px; font-size:16px; }
+  .profile-summary{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; border-top:1px solid rgba(232,196,119,.17); background:rgba(0,0,0,.2); }
+  .profile-summary span{ display:flex; flex-direction:column; gap:3px; min-height:57px; padding:10px 8px; border-right:1px solid rgba(232,196,119,.13); color:#ead9b7; font:10px 'JetBrains Mono'; text-align:center; }
+  .profile-summary span:last-child{ border-right:0; }
+  .profile-summary b{ color:#a99775; font:8px 'Cinzel'; letter-spacing:.6px; }
+  .living-profile{ border-color:color-mix(in srgb,var(--profile-accent) 58%,#b88735); box-shadow:0 24px 76px rgba(0,0,0,.76),inset 0 0 42px color-mix(in srgb,var(--profile-accent) 10%,transparent); }
+  .living-profile .profile-banner{ background:radial-gradient(circle at 72% 28%,color-mix(in srgb,var(--profile-accent) 21%,transparent),transparent 40%),linear-gradient(135deg,#342310,#100b07); }
+  .living-profile .profile-avatar-shell{ position:relative; overflow:visible; border-color:color-mix(in srgb,var(--profile-accent) 62%,#d0a851); box-shadow:inset 0 0 23px rgba(0,0,0,.5),0 0 19px color-mix(in srgb,var(--profile-accent) 17%,transparent); }
+  .living-profile .profile-avatar{ overflow:hidden; border-radius:13px 13px 6px 6px; }
+  .profile-level-orb{ position:absolute; right:-12px; bottom:-11px; display:grid; place-items:center; width:43px; height:43px; border:2px solid var(--profile-accent); border-radius:50%; color:#fff0bf; background:#1b120b; box-shadow:0 0 0 3px rgba(10,7,5,.75),0 0 16px color-mix(in srgb,var(--profile-accent) 42%,transparent); font:700 15px 'JetBrains Mono'; }
+  .profile-level-orb small{ display:block; margin-top:-3px; color:var(--profile-accent); font:7px 'Cinzel'; letter-spacing:.2px; }
+  .profile-class-story{ display:block; min-height:30px; margin:9px 0 0; color:#c2ae8b; font:italic 9px/1.45 'JetBrains Mono'; }
+  .profile-journey{ display:grid; grid-template-columns:112px 1fr; align-items:center; gap:8px 11px; margin:0 16px; padding:10px 0; border-bottom:1px solid rgba(232,196,119,.15); }
+  .profile-journey > div:first-child small,.profile-journey > div:first-child b{ display:block; }
+  .profile-journey small{ color:#a99775; font:8px 'Cinzel'; letter-spacing:.7px; }.profile-journey b{ margin-top:3px; color:var(--profile-accent); font:700 10px 'JetBrains Mono'; }
+  .profile-leader-track{ height:8px; overflow:hidden; border:1px solid rgba(232,196,119,.2); border-radius:999px; background:#0e0a07; box-shadow:inset 0 1px 3px rgba(0,0,0,.7); }
+  .profile-leader-track span{ display:block; height:100%; min-width:4px; border-radius:inherit; background:linear-gradient(90deg,color-mix(in srgb,var(--profile-accent) 68%,#fff),var(--profile-accent)); box-shadow:0 0 10px color-mix(in srgb,var(--profile-accent) 55%,transparent); }
+  .profile-journey em{ grid-column:1/-1; color:#a9987c; font:8px 'JetBrains Mono'; font-style:normal; text-align:center; }
+  @media(max-width:480px){ .lb-dashboard{ align-items:flex-start; flex-direction:column; }.lb-power{ min-width:62px; }.lb-row .rank{ flex-basis:22px; width:22px; }.lb-crest{ flex-basis:35px; width:35px; height:35px; }.lb-player strong{ font-size:11px; }.lb-player small{ font-size:7px; }.profile-banner{ min-height:0; align-items:flex-end; padding:52px 15px 16px; gap:10px; }.profile-avatar-shell{ width:104px; height:125px; }.profile-avatar{ width:112px; height:128px; }.profile-identity h2{ font-size:19px; }.profile-power b{ font-size:16px; }.profile-rank-ribbon{ top:13px; left:15px; right:auto; }.profile-stats{ gap:6px; padding:10px; }.profile-summary span{ font-size:9px; } }
+
+  .stat-legend{ font-size:10.5px; color:var(--parchment-dim); line-height:1.7; margin:10px 0 6px; }
+  .stat-legend b{ color:var(--parchment); }
+
+  .shop-timer{
+    text-align:center; font-family:'JetBrains Mono'; font-size:11px; color:var(--parchment-dim);
+    margin-bottom:10px; letter-spacing:1px;
+  }
+  .shop-item{ background:var(--bg-panel-2); border:1px solid var(--line); border-radius:2px; padding:10px 12px; margin-bottom:8px; }
+  .shop-item.locked{ opacity:0.4; }
+  .shop-item[class*="rarity-"]{ position:relative; overflow:hidden; border-left:3px solid var(--rarity-color,#a9b3bd); box-shadow:inset 0 0 20px var(--rarity-glow,transparent); }
+  .shop-item[class*="rarity-"]::before{ content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(105deg,var(--rarity-glow,transparent),transparent 42%); opacity:.45; }
+  .shop-top{ display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px; }
+  .shop-top .iname{ font-family:'Cinzel'; letter-spacing:0.5px; }
+  .shop-top .irarity{ font-family:'JetBrains Mono'; font-size:9.5px; color:var(--parchment-dim); text-transform:uppercase; }
+  .shop-stat{ font-family:'JetBrains Mono'; font-size:11px; color:var(--parchment-dim); margin-bottom:8px; }
+  .shop-owned{ font-family:'JetBrains Mono'; font-size:10px; color:var(--parchment-dim); margin-bottom:6px; }
+  .shop-meta{ display:flex; justify-content:space-between; gap:8px; font:9px 'JetBrains Mono'; color:var(--parchment-dim); margin:-2px 0 8px; text-transform:uppercase; letter-spacing:.25px; }
+  .shop-meta b{ color:var(--gold-bright); font-weight:500; }
