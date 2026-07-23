@@ -28,7 +28,9 @@ const MAX_RUN_RELICS = 7;
 const FINAL_RUN_DEPTH = 40;
 // Economía permanente de la expedición. No modifica vida ni daño de combate.
 const RUN_ECONOMY = {
-  victoryGold: .42,
+  // El oro se concentra en salir vivo con una buena expedición, no en farmear
+  // rápidamente las primeras salas.
+  victoryGold: .22,
   bossEssenceBase: 3,
   eliteEssenceBase: 1,
   bossCoreChance: .65,
@@ -121,9 +123,9 @@ function awardCombatMastery(kind, monster){
   const telemetry = ensureRunTelemetry();
   const depth = Math.max(1, finiteNumber(runState.depth,1));
   const data = {
-    break:  { field:'guardBreaks', label:'RUPTURA PRECISA', detail:'Rompiste la guardia del enemigo', gold:Math.max(3,3+depth), essence:0 },
-    dodge:  { field:'strongDodges', label:'ESQUIVA PERFECTA', detail:'Evitaste un golpe fuerte', gold:Math.max(4,4+depth), essence:0 },
-    noHeal: { field:'noHealWins', label:'VICTORIA IMPECABLE', detail:'Ganaste el combate sin curarte', gold:Math.max(3,3+depth), essence:0 }
+    break:  { field:'guardBreaks', label:'RUPTURA PRECISA', detail:'Rompiste la guardia del enemigo', gold:Math.max(1,1+Math.floor(depth*.35)), essence:0 },
+    dodge:  { field:'strongDodges', label:'ESQUIVA PERFECTA', detail:'Evitaste un golpe fuerte', gold:Math.max(1,1+Math.floor(depth*.4)), essence:0 },
+    noHeal: { field:'noHealWins', label:'VICTORIA IMPECABLE', detail:'Ganaste el combate sin curarte', gold:Math.max(1,1+Math.floor(depth*.35)), essence:0 }
   }[kind];
   if(!data) return false;
   gainGold(data.gold);
@@ -673,7 +675,7 @@ function endBattle(result){
     showFeedback(isBoss ? '☠ JEFE DERROTADO' : '✦ VICTORIA', `+${exp} exp · +${gold} oro${runLoot ? ` · ${runLoot.summary}` : ''}`);
     addLog(`${isBoss?'☠ ¡Jefe derrotado! ':'Venciste a '}${battle.monster.name} (${tier.label}) — +${exp} exp, +${gold} oro`, 'win');
     if([5,10,20,35,50].includes(winStreak)){
-      const bonus = isRun ? Math.max(5, winStreak*5) : winStreak*20;
+      const bonus = isRun ? Math.max(2, Math.floor(winStreak*2)) : winStreak*20;
       gainGold(bonus);
       addLog(`🔥 Racha de ${winStreak} victorias seguidas — bono de +${bonus} oro`, 'level');
     }
@@ -1846,7 +1848,7 @@ function enterSelectedMapNode(){
     return;
   }
   if(node.type==='treasure'){
-    const gold = Math.max(12, Math.floor((22 + runState.depth*5) * (1 + perceptionLootBonus()*.25)));
+    const gold = Math.max(6, Math.floor((10 + runState.depth*2) * (1 + perceptionLootBonus()*.15)));
     runState.runGold = Math.max(0, finiteNumber(runState.runGold,0)) + gold;
     addLog(`Tesoro encontrado: +${gold} oro de expedición.`, 'win');
     showFeedback('⌘ TESORO', `+${gold} oro de expedición · se cobra al salir`, 'reward');
@@ -1892,7 +1894,7 @@ function chooseShrine(kind){
 function chooseEvent(kind){
   if(!runState || runState.phase!=='event') return;
   if(kind==='safe'){
-    const gold = Math.max(10, Math.floor(16 + runState.depth*3));
+    const gold = Math.max(5, Math.floor(8 + runState.depth));
     runState.runGold = Math.max(0, finiteNumber(runState.runGold,0)) + gold;
     addLog(`El viajero te entrega ${gold} oro de expedición.`, 'win');
     showFeedback('? VIAJERO', `+${gold} oro de expedición`, 'reward');
@@ -1916,7 +1918,7 @@ function chooseEvent(kind){
 function makeTrackingChoices(){
   const depth = runState ? runState.depth : 1;
   const essence = Math.max(1, 1 + Math.floor(depth/18));
-  const gold = Math.max(10, Math.round((20 + depth*4) * (1 + perceptionLootBonus()*.25)));
+  const gold = Math.max(5, Math.round((9 + depth*2) * (1 + perceptionLootBonus()*.15)));
   return [
     { id:'alpha', icon:'🐾', label:'Huellas pesadas', detail:'Bestia élite · gran botín', outcome:'elite' },
     { id:'cache', icon:'🪶', label:'Plumas brillantes', detail:`${gold} oro · ${essence} esencia`, outcome:'treasure', gold, essence },
@@ -1981,7 +1983,7 @@ function chooseMerchantOffer(id){
     state.materials.essence=(state.materials.essence||0)+essence;
     rewardText=`◇ +${essence} esencia`;
   } else {
-    const gold=Math.max(15,Math.round((35+runState.depth*6)*(1+perceptionLootBonus()*.25)));
+    const gold=Math.max(8,Math.round((15+runState.depth*3)*(1+perceptionLootBonus()*.15)));
     runState.runGold=Math.max(0,finiteNumber(runState.runGold,0))+gold; rewardText=`◉ +${gold} oro de expedición`;
   }
   Sound.reward();
@@ -2016,17 +2018,17 @@ function chooseScenarioEvent(choiceId){
     runState.mana = Math.min(runState.maxMana,runState.mana+amount);
     result = `+${runState.mana-before} maná`;
   } else if(choice.effect==='gather'){
-    const gold = Math.max(10, Math.round((12+runState.depth*2)*depthFactor));
+    const gold = Math.max(5, Math.round((6+runState.depth)*depthFactor));
     runState.runGold = Math.max(0, finiteNumber(runState.runGold,0))+gold; state.materials.essence = (state.materials.essence||0)+1;
     result = `+${gold} oro de expedición · +1 esencia`;
   } else if(choice.effect==='offering'){
     const cost = Math.max(1,Math.round(runState.maxHp*.12));
-    const gold = Math.max(14, Math.round((18+runState.depth*3)*depthFactor));
+    const gold = Math.max(7, Math.round((9+runState.depth*1.5)*depthFactor));
     runState.hp = Math.max(1,runState.hp-cost); runState.runGold = Math.max(0, finiteNumber(runState.runGold,0))+gold; state.materials.essence = (state.materials.essence||0)+1;
     result = `-${cost} vida · +${gold} oro de expedición · +1 esencia`;
   } else if(choice.effect==='coffer'){
     const cost = Math.max(1,Math.round(runState.maxHp*.08));
-    const gold = Math.max(18, Math.round((22+runState.depth*4)*depthFactor));
+    const gold = Math.max(9, Math.round((11+runState.depth*2)*depthFactor));
     runState.hp = Math.max(1,runState.hp-cost); runState.runGold = Math.max(0, finiteNumber(runState.runGold,0))+gold;
     result = `-${cost} vida · +${gold} oro de expedición`;
   } else if(choice.effect==='clarity'){
@@ -2035,7 +2037,7 @@ function chooseScenarioEvent(choiceId){
     runState.mana = Math.min(runState.maxMana,runState.mana+amount); state.materials.essence = (state.materials.essence||0)+1;
     result = `+${runState.mana-before} maná · +1 esencia`;
   } else if(choice.effect==='jackpot'){
-    const gold = Math.max(30, Math.round((35+runState.depth*5)*depthFactor));
+    const gold = Math.max(15, Math.round((17+runState.depth*2.5)*depthFactor));
     runState.runGold = Math.max(0, finiteNumber(runState.runGold,0))+gold; result = `+${gold} oro de expedición`;
   } else if(choice.effect==='relic'){
     const pool = relicsForCurrentClass().filter(relic=>!(runState.relics||[]).some(owned=>owned.id===relic.id));
@@ -2099,7 +2101,7 @@ function computeBountyRewards(tierKey, comboRank){
   const lvl = state.level;
   const heal = Math.round(maxHP() * Math.min(1, 0.22 * (1+m)));
   const mana = Math.round(maxMana() * Math.min(1, 0.22 * (1+m)));
-  const gold = Math.floor((45 + lvl*4) * (1+m));
+  const gold = Math.floor((18 + lvl*1.5) * (1+m));
   const statPoints = Math.max(1, Math.round(1 + m*2.5));
   return { heal, mana, gold, statPoints };
 }
@@ -2219,7 +2221,7 @@ function renderRunStatusBar(){
   const nodeInfo = MAP_NODE_TYPES[(runState.currentNode && runState.currentNode.type) || 'fight'] || MAP_NODE_TYPES.fight;
   const untilBoss = 5 - ((runState.depth - 1) % 5);
   const estimatedExp = Math.max(5, Math.round((7 + state.level * 2) * (1 + runState.depth * .11)));
-  const estimatedGold = Math.max(8, Math.round((11 + state.level * 3) * (1 + runState.depth * .13)));
+  const estimatedGold = Math.max(1, Math.round((11 + state.level * 3) * (1 + runState.depth * .13) * RUN_ECONOMY.victoryGold));
   const dangerLabel = nodeInfo.label || 'Combate';
   const weekly = activeWeeklyTrial();
   const bossLabel = untilBoss === 1 ? 'GUARDIÁN AHORA' : `JEFE EN ${untilBoss}`;
