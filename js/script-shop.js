@@ -53,6 +53,83 @@ function renderOptions(){
   return renderOptionsHub();
 }
 
+/* ================= AUXILIARES DEL HUB DE PERFIL =================
+   Estas funciones vivían solo en el script.js viejo (monolítico) y se
+   habían perdido al dividir el archivo: renderProfileHub() las necesita
+   para calcular antigüedad del aventurero, nivel de prestigio, el marco
+   decorativo del retrato y los anillos de progreso (logros/colección). */
+function adventurerDaysSince(){
+  const started = finiteNumber(state.createdAt, Date.now());
+  const days = Math.floor((Date.now() - started) / 86400000);
+  return Math.max(0, days);
+}
+function adventurerTenureLabel(){
+  const days = adventurerDaysSince();
+  if(days <= 0) return 'Aventurero desde hoy';
+  if(days === 1) return 'Aventurero desde hace 1 día';
+  return `Aventurero desde hace ${days} días`;
+}
+function profileHubStats(){
+  const catalog = bestiaryCatalog();
+  const completed = ACHIEVEMENTS.filter(a=>a.check(state));
+  return {
+    catalog,
+    completed,
+    discovered:catalog.filter(form=>state.bestiary && state.bestiary[form.type || form.name]).length,
+    equipped:Object.values(state.equipment||{}).filter(Boolean).length,
+    expNeed:expToNext(state.level),
+    runActive:!!(runState && runState.phase!=='ended')
+  };
+}
+
+const PRESTIGE_TITLES = [
+  { key:'common',    min:0,  label:'Aventurero Novato',       frameLevel:1 },
+  { key:'uncommon',  min:12, label:'Explorador del Bastión',  frameLevel:1 },
+  { key:'rare',      min:28, label:'Caza-Recompensas',        frameLevel:2 },
+  { key:'epic',      min:45, label:'Guardián Temido',         frameLevel:2 },
+  { key:'legendary', min:62, label:'Azote del Bastión',       frameLevel:3 },
+  { key:'mythic',    min:78, label:'Leyenda Viviente',        frameLevel:3 },
+  { key:'unique',    min:90, label:'Campeón Eterno',          frameLevel:4 },
+  { key:'ancestral', min:97, label:'Leyenda Ancestral',       frameLevel:4 }
+];
+function playerPrestigeTier(){
+  const levelPct = Math.min(1, (state.maxLevelEver||state.level||0) / LEVEL_CAP);
+  const resetPct = Math.min(1, (state.resets||0) / 10);
+  const completedCount = ACHIEVEMENTS.filter(a=>a.check(state)).length;
+  const achPct = ACHIEVEMENTS.length ? completedCount / ACHIEVEMENTS.length : 0;
+  const score = (levelPct*0.4 + resetPct*0.3 + achPct*0.3) * 100;
+  let tier = PRESTIGE_TITLES[0];
+  for(const t of PRESTIGE_TITLES){ if(score >= t.min) tier = t; }
+  const meta = ITEM_RARITIES[tier.key] || ITEM_RARITIES.common;
+  return { key:tier.key, label:tier.label, color:meta.color, glow:meta.glow, score, frameLevel:tier.frameLevel };
+}
+
+function classFrameOrnaments(level){
+  const gems = level>=2 ? `<span class="frame-gem tl"></span><span class="frame-gem tr"></span><span class="frame-gem bl"></span><span class="frame-gem br"></span>` : '';
+  const ring = level>=3 ? `<svg class="frame-ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"></circle>${Array.from({length:16}).map((_,i)=>`<line x1="50" y1="2" x2="50" y2="7" transform="rotate(${i*22.5} 50 50)"></line>`).join('')}</svg>` : '';
+  return ring + gems;
+}
+
+function hubProgressRing(current,total,icon){
+  const pct = total>0 ? Math.max(0,Math.min(100, current/total*100)) : 0;
+  const r = 27, c = 2*Math.PI*r;
+  const offset = c * (1 - pct/100);
+  return `<span class="hub-ring"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="ring-track" cx="32" cy="32" r="${r}"></circle><circle class="ring-fill" cx="32" cy="32" r="${r}" style="stroke-dasharray:${c.toFixed(2)};stroke-dashoffset:${offset.toFixed(2)}"></circle></svg><span class="hub-icon">${icon}</span><span class="hub-ring-pct">${Math.round(pct)}%</span></span>`;
+}
+
+const HUB_PARTICLES = [
+  {x:'6%',y:'82%',size:'3px',dur:'8.5s',delay:'0s'},
+  {x:'17%',y:'22%',size:'2px',dur:'10s',delay:'1.2s'},
+  {x:'32%',y:'68%',size:'3px',dur:'9.5s',delay:'2.8s'},
+  {x:'48%',y:'12%',size:'2px',dur:'11s',delay:'.4s'},
+  {x:'63%',y:'75%',size:'2px',dur:'9s',delay:'3.6s'},
+  {x:'78%',y:'30%',size:'3px',dur:'10.5s',delay:'1.9s'},
+  {x:'90%',y:'60%',size:'2px',dur:'8s',delay:'2.3s'}
+];
+function hubParticlesHTML(){
+  return `<div class="hub-particles" aria-hidden="true">${HUB_PARTICLES.map(p=>`<span style="--x:${p.x};--y:${p.y};--size:${p.size};--dur:${p.dur};--delay:${p.delay}"></span>`).join('')}</div>`;
+}
+
 /**
  * Dibuja el panel de perfil (hub) del héroe: resumen de nivel/clase/gremio,
  * antigüedad, prestigio, y accesos a las sub-vistas de perfil

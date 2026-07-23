@@ -1,5 +1,27 @@
 # Mapa de Forja Eterna para lectura por IA
 
+**Nota de reparación (última revisión):** este repo tenía `js/combat.js` y
+`js/script.js` (los monolitos viejos, pre-división) conviviendo con los
+archivos ya divididos, y `index.html` cargaba los monolitos — es decir, el
+juego real corría con la versión VIEJA sin ninguna de las mejoras hechas
+después de la división (incluida una limpieza de código muerto y un
+rebalanceo del botín de combates comunes). Se borraron ambos monolitos y se
+actualizó `index.html` para cargar los archivos divididos. De paso apareció
+un bug real: a los archivos divididos les faltaban 6 funciones que
+`renderProfileHub()` necesita (`profileHubStats`, `playerPrestigeTier`,
+`classFrameOrnaments`, `hubProgressRing`, `hubParticlesHTML`,
+`adventurerTenureLabel`) — sin ellas la pestaña Perfil rompía apenas se
+abría. Ya están restauradas en `js/script-shop.js`, junto a
+`renderProfileHub()` que las usa.
+
+**Pendiente sin resolver (encontrado de paso, no arreglado todavía):** los
+botones "Equipar"/"Eliminar" de un ítem en la mochila (`script-views.js`,
+dentro de `renderProfile`/la vista de héroe) llaman a
+`equipItemFromInventory(idx)` y `deleteItemFromInventory(idx)`, pero ninguna
+de las dos funciones existe en el proyecto — ni siquiera existían en el
+monolito viejo. Los botones no hacen nada al tocarlos. Falta averiguar cuál
+era la función real pensada para esto (o escribirla de cero) y cablearla ahí.
+
 Este documento es un **punto de entrada rápido** para cualquier IA (o persona) que
 necesite orientarse en el código sin tener que leer miles de líneas de JS de una.
 No reemplaza al código: da la forma general, dónde vive cada cosa, y cómo se
@@ -16,7 +38,7 @@ Si vas a modificar algo, la secuencia recomendada es:
 1. Leer este mapa para ubicar el archivo/función correcta (tabla de la
    sección 2, o el índice rápido "¿Dónde toco para...?" en la sección 5).
    Si ya sabés el nombre exacto de la función pero no en qué archivo vive,
-   buscala directo en **`INDICE-FUNCIONES.md`** (las 387 funciones del
+   buscala directo en **`INDICE-FUNCIONES.md`** (las 396 funciones del
    proyecto, alfabético, con archivo y número de línea).
 2. Abrir solo ese archivo chico (todos tienen menos de 700 líneas) en vez de
    buscar en un archivo grande.
@@ -92,7 +114,7 @@ eso el orden de `index.html` NO se puede reordenar libremente:
 | `js/script-ui-core.js` | `normalizeState`, asignación de puntos de stats, arena visual (SVGs de héroe/monstruo). Antes era la sección "SCRIPT PRINCIPAL (continuación)" de `script.js`. |
 | `js/script-views.js` | Control de vistas principales (tabs de héroe/gremio/perfil). |
 | `js/script-trade.js` | Comercio entre aventureros/jugadores. |
-| `js/script-shop.js` | Tienda y equipamiento. |
+| `js/script-shop.js` | Tienda y equipamiento. También el hub de perfil completo: `renderProfileHub()` y sus auxiliares (antigüedad del aventurero, nivel de prestigio, marco decorativo, anillos de progreso). |
 | `js/script-render.js` | Actualización de pantalla: `render()`, el refresco general de UI. |
 | `js/script-boot.js` | Arranque del juego: selección de personaje, boot general (`showGame`). Debe ser el último archivo cargado de todos. |
 

@@ -320,44 +320,6 @@ function guildSummaryMarkup(){
 /* ================= PERFIL Y LOGROS ================= */
 function renderProfile(){
   return renderProfileHub();
-  const box = document.getElementById('profileContent');
-  if(!box || !state) return;
-  const hero = currentClass();
-  const style = battleClassStyle();
-  const need = expToNext(state.level);
-  const expPct = state.level>=LEVEL_CAP ? 100 : Math.max(0, Math.min(100, finiteNumber(state.exp)/Math.max(1,need)*100));
-  const completed = ACHIEVEMENTS.filter(a=>a.check(state));
-  const claimed = completed.filter(a=>state.achievementsClaimed[a.id]).length;
-  const equipmentCount = Object.values(state.equipment||{}).filter(Boolean).length;
-  const catalog = bestiaryCatalog();
-  const discovered = catalog.filter(form=>state.bestiary && state.bestiary[form.type || form.name]).length;
-  const runActive = runState && runState.phase!=='ended';
-  const recentAchievements = ACHIEVEMENTS.slice(0,5);
-  box.style.setProperty('--profile-glow', style.glow || '#e8c477');
-  box.innerHTML = `
-    <section class="profile-hero">
-      <div class="profile-portrait"><img src="${style.image}" alt="${hero.label}" decoding="async"></div>
-      <div class="profile-summary">
-        <span class="profile-kicker">✦ REGISTRO DEL BASTIÓN · AVENTURERO ACTIVO</span>
-        <h2 class="profile-name">${escapeHtml(state.name)}</h2>
-        <div class="profile-classline">${classEmblem(state.characterClass)} <span>${hero.label}</span><small>· ${style.weapon}</small></div>
-        <p class="profile-description">${hero.description} Tu leyenda se construye en cada expedición, reliquia y guardián derrotado.</p>
-        <div class="profile-exp"><span>NIVEL ${state.level}</span><span>${state.level>=LEVEL_CAP?'NIVEL MÁXIMO':`${Math.floor(finiteNumber(state.exp))} / ${need} EXP`}</span><div class="bar exp"><div style="width:${expPct}%"></div></div></div>
-        <div class="profile-actions"><button id="profileHeroBtn">VER HÉROE Y EQUIPO</button><button id="profileCharactersBtn" class="profile-secondary">CAMBIAR PERSONAJE</button></div>
-      </div>
-    </section>
-    <section class="profile-metrics">
-      <article class="profile-metric"><small>⚡ PODER</small><b>${Math.round(power())}</b><em>fuerza actual</em></article>
-      <article class="profile-metric"><small>♛ RESETS</small><b>${state.resets || 0}</b><em>${availableStatResets()} disponible${availableStatResets()===1?'':'s'}</em></article>
-      <article class="profile-metric"><small>⚔ VICTORIAS</small><b>${state.totalWins || 0}</b><em>${state.totalBossWins || 0} guardianes</em></article>
-      <article class="profile-metric"><small>◉ TESORO</small><b>${Math.floor(finiteNumber(state.gold))}</b><em>oro disponible</em></article>
-    </section>
-    <section class="profile-columns">
-      <article class="profile-block"><h4>✦ HITOS DE TU LEYENDA</h4><div class="profile-achievements">${recentAchievements.map(a=>{ const done=a.check(state); const isClaimed=!!state.achievementsClaimed[a.id]; return `<div class="profile-achievement ${done?'done':''}"><span class="achievement-mark">${achievementGlyph(a.id)}</span><div><b>${escapeHtml(a.label)}</b><small>${done?(isClaimed?'Recompensa reclamada':'Listo para reclamar en el Gremio'):'Todavía en progreso'}</small></div><span class="achievement-status">${done?'✓':'—'}</span></div>`; }).join('')}</div></article>
-      <article class="profile-block"><h4>◈ PROGRESO DEL VIAJERO</h4><div class="profile-progress-list"><div class="profile-progress-row"><span>Mejor profundidad</span><b>⛏ ${state.maxHuntDepth || 0}</b></div><div class="profile-progress-row"><span>Bestiario descubierto</span><b>${discovered} / ${catalog.length}</b></div><div class="profile-progress-row"><span>Equipo equipado</span><b>${equipmentCount} / 7 piezas</b></div><div class="profile-progress-row"><span>Logros completados</span><strong>${completed.length} / ${ACHIEVEMENTS.length}</strong></div><div class="profile-progress-row"><span>Recompensas reclamadas</span><b>${claimed}</b></div></div><div class="profile-run-badge">${runActive ? `⚔ Expedición activa · profundidad ${runState.depth}` : '✦ Sin expedición activa · listo para cazar'}</div></article>
-    </section>`;
-  box.querySelector('#profileHeroBtn').addEventListener('click',()=>document.querySelector('.nav-btn[data-sec="secHero"]').click());
-  box.querySelector('#profileCharactersBtn').addEventListener('click',()=>document.getElementById('charactersBtn').click());
 }
 
 function achievementGlyph(id){
