@@ -1,0 +1,9 @@
+# Sólo código y recursos usados por el juego deben llegar a Vercel.
+tmp/
+assets/images/paperdoll/
+*-preview.jpg
+*.bak
+*.md
+*.sql
+*.txt
+publicacion/

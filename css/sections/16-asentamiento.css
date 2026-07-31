@@ -1,0 +1,180 @@
+/* ================= 16-ASENTAMIENTO.CSS =================
+   Aldea idle: header de sección, grilla de edificios con barras de
+   almacenamiento y botones de recolectar/mejorar.
+   ========================================================= */
+
+.settlement-main-panel{ padding:16px; border-radius:8px; }
+
+.settlement-section-header{
+  position:relative; display:flex; align-items:center; gap:14px; margin:-3px -3px 15px; padding:15px 17px;
+  overflow:hidden; border:1px solid rgba(194,150,90,.45); border-radius:6px;
+  background:radial-gradient(circle at 78% 50%,rgba(95,138,76,.18),transparent 32%),linear-gradient(125deg,#2b2013,#140f0a 66%);
+  box-shadow:inset 0 1px rgba(255,227,169,.08),0 8px 23px rgba(0,0,0,.25);
+}
+.settlement-section-header::after{ content:'🏘'; position:absolute; right:65px; color:rgba(255,204,120,.045); font-size:96px; transform:rotate(-10deg); }
+.settlement-section-sigil{
+  position:relative; z-index:1; flex:0 0 54px; width:54px; height:54px; display:grid; place-items:center;
+  border:1px solid #c2965a; border-radius:8px; color:#ffdc8a; font-size:25px;
+  background:linear-gradient(145deg,#4a3115,#20160a); box-shadow:inset 0 0 15px rgba(226,175,90,.2),0 0 18px rgba(194,150,90,.18);
+}
+.settlement-section-header small{ display:block; color:#d1a862; font:700 7px 'JetBrains Mono'; letter-spacing:1.6px; }
+.settlement-section-header h2{ margin:3px 0; color:#ffda89; font:700 19px 'Cinzel'; letter-spacing:2px; }
+.settlement-section-header p{ margin:0; color:#ad9b82; font:9px 'JetBrains Mono'; }
+.settlement-section-header > b{
+  position:relative; z-index:1; margin-left:auto; padding:5px 8px; border:1px solid rgba(194,150,90,.48); border-radius:12px;
+  color:#ffce8e; background:rgba(72,50,9,.6); font:700 7px 'JetBrains Mono'; white-space:nowrap;
+}
+
+.settlement-collect-all-btn{
+  display:block; width:100%; margin:12px 0 14px; padding:12px; border:1px solid var(--gold); border-radius:7px;
+  background:linear-gradient(180deg,#e8c477,#c2965a); color:#241705; font:700 12px 'Cinzel'; letter-spacing:1px;
+  cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.3),inset 0 1px rgba(255,255,255,.3);
+}
+.settlement-collect-all-btn:active{ transform:translateY(1px); }
+
+.settlement-grid{ display:block; }
+.settlement-buildings{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; }
+
+.settlement-overview{
+  margin:0 0 14px; padding:14px; border:1px solid rgba(194,150,90,.42); border-radius:9px;
+  background:
+    radial-gradient(circle at 86% 0,rgba(232,196,119,.13),transparent 30%),
+    linear-gradient(145deg,rgba(43,31,18,.98),rgba(15,11,8,.98));
+  box-shadow:inset 0 1px rgba(255,238,189,.07),0 10px 20px rgba(0,0,0,.24);
+}
+.settlement-overview-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:10px; border-bottom:1px solid rgba(194,150,90,.2); }
+.settlement-overview-head small,.settlement-focus small,.settlement-milestone-copy small{ display:block; color:#c2965a; font:700 7px 'JetBrains Mono'; letter-spacing:1.5px; }
+.settlement-overview-head h3{ margin:3px 0 0; padding:0; border:0; color:#f2d99d; font:700 15px 'Cinzel'; letter-spacing:.8px; }
+.settlement-builder{ padding:6px 9px; border:1px solid rgba(95,138,76,.5); border-radius:14px; color:#a9e39a; background:rgba(95,138,76,.1); font:700 8px 'JetBrains Mono'; white-space:nowrap; }
+.settlement-builder.busy{ border-color:rgba(232,196,119,.5); color:#f0cc76; background:rgba(194,150,90,.1); }
+.settlement-rate-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin:10px 0; }
+.settlement-rate-grid > span{ position:relative; display:grid; grid-template-columns:25px 1fr; grid-template-rows:auto auto; align-items:center; padding:8px; border:1px solid color-mix(in srgb,var(--resource-color) 35%,#34291c); border-radius:7px; background:rgba(0,0,0,.2); }
+.settlement-rate-grid i{ grid-row:1/3; font-style:normal; font-size:17px; filter:drop-shadow(0 0 5px color-mix(in srgb,var(--resource-color) 50%,transparent)); }
+.settlement-rate-grid b{ color:var(--resource-color); font:700 11px 'JetBrains Mono'; }
+.settlement-rate-grid small{ color:var(--parchment-dim); font:7px 'JetBrains Mono'; }
+.settlement-focus{ display:grid; grid-template-columns:170px 1fr; gap:10px; align-items:center; margin:0 0 11px; padding:10px; border:1px solid rgba(194,150,90,.18); border-radius:7px; background:rgba(0,0,0,.16); }
+.settlement-focus > div:first-child b{ display:block; margin-top:4px; color:var(--parchment); font:700 10px 'Cinzel'; line-height:1.35; }
+.settlement-focus-options{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+.settlement-focus-options button{ min-width:0; padding:7px 5px; border:1px solid rgba(194,150,90,.25); border-radius:6px; background:rgba(20,15,10,.8); color:var(--parchment-dim); cursor:pointer; transition:.2s ease; }
+.settlement-focus-options button:hover{ transform:translateY(-2px); border-color:#c2965a; color:#f3d791; }
+.settlement-focus-options button.active{ border-color:var(--gold-bright); color:#ffdc8a; background:linear-gradient(180deg,rgba(194,150,90,.22),rgba(62,42,15,.35)); box-shadow:0 0 13px rgba(232,196,119,.15),inset 0 0 0 1px rgba(255,232,174,.05); }
+.settlement-focus-options i{ display:block; font-style:normal; font-size:14px; }
+.settlement-focus-options b{ display:block; margin:2px 0; font:700 8px 'Cinzel'; }
+.settlement-focus-options small{ display:block; min-height:20px; color:inherit; font:6px/1.35 'JetBrains Mono'; letter-spacing:0; }
+.settlement-milestone{ padding:9px 10px; border:1px solid rgba(95,176,194,.22); border-radius:7px; background:linear-gradient(90deg,rgba(63,127,168,.08),rgba(194,150,90,.05)); }
+.settlement-milestone-copy{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.settlement-milestone-copy b{ color:#c9b796; font:700 8px 'JetBrains Mono'; }
+.settlement-milestone-track{ height:6px; margin:7px 0; overflow:hidden; border:1px solid rgba(255,255,255,.07); border-radius:5px; background:rgba(0,0,0,.4); }
+.settlement-milestone-track i{ display:block; height:100%; background:linear-gradient(90deg,#3f7fa8,#e8c477); box-shadow:0 0 8px rgba(232,196,119,.5); transition:width .35s ease; }
+.settlement-milestone-list{ display:flex; justify-content:space-between; gap:6px; }
+.settlement-milestone-list span{ flex:1; padding:5px 6px; border:1px solid rgba(255,255,255,.06); border-radius:5px; color:#766b5c; background:rgba(0,0,0,.15); }
+.settlement-milestone-list span.next{ border-color:rgba(232,196,119,.28); color:#bca678; }
+.settlement-milestone-list span.unlocked{ border-color:rgba(95,138,76,.36); color:#9ec792; }
+.settlement-milestone-list b,.settlement-milestone-list small{ display:block; font:700 7px 'JetBrains Mono'; }
+.settlement-milestone-list small{ margin-top:2px; font-weight:400; line-height:1.35; }
+
+.settlement-card{
+  position:relative; padding:14px; border:1px solid color-mix(in srgb,var(--b-color,#c2965a) 42%,#3a2f22);
+  border-radius:9px; background:radial-gradient(circle at 50% 0,color-mix(in srgb,var(--b-color,#c2965a) 14%,transparent),transparent 60%),
+  linear-gradient(150deg,rgba(40,30,18,.95),rgba(16,12,8,.97));
+  box-shadow:inset 0 1px rgba(255,238,189,.06),0 8px 15px rgba(0,0,0,.25);
+  transition:box-shadow .3s ease, transform .22s ease;
+}
+.settlement-card.reveal{ animation:tileReveal .34s ease both; }
+.settlement-card:hover{ transform:translateY(-4px); box-shadow:inset 0 1px rgba(255,238,189,.06),0 14px 22px rgba(0,0,0,.32),0 0 16px color-mix(in srgb,var(--b-color,#c2965a) 30%,transparent); }
+.settlement-grid .settlement-card:nth-child(2){animation-delay:.05s}
+.settlement-grid .settlement-card:nth-child(3){animation-delay:.1s}
+.settlement-grid .settlement-card:nth-child(4){animation-delay:.15s}
+.settlement-grid .settlement-card:nth-child(5){animation-delay:.2s}
+.settlement-grid .settlement-card:nth-child(6){animation-delay:.25s}
+.settlement-card.ready{
+  border-color:color-mix(in srgb,var(--b-color,#c2965a) 70%,#3a2f22);
+  animation:settlementReadyPulse 2.2s ease-in-out infinite;
+}
+@keyframes settlementReadyPulse{
+  0%,100%{ box-shadow:inset 0 1px rgba(255,238,189,.06),0 8px 15px rgba(0,0,0,.25),0 0 0 rgba(255,255,255,0); }
+  50%{ box-shadow:inset 0 1px rgba(255,238,189,.06),0 8px 15px rgba(0,0,0,.25),0 0 16px color-mix(in srgb,var(--b-color,#c2965a) 55%,transparent); }
+}
+.settlement-card.leveled{ animation:settlementLevelFlash .9s ease-out; }
+@keyframes settlementLevelFlash{
+  0%{ box-shadow:inset 0 1px rgba(255,238,189,.06),0 8px 15px rgba(0,0,0,.25),0 0 0 rgba(232,196,119,0); transform:scale(1); }
+  30%{ box-shadow:inset 0 1px rgba(255,238,189,.06),0 8px 15px rgba(0,0,0,.25),0 0 34px rgba(232,196,119,.85); transform:scale(1.035); }
+  100%{ box-shadow:inset 0 1px rgba(255,238,189,.06),0 8px 15px rgba(0,0,0,.25),0 0 0 rgba(232,196,119,0); transform:scale(1); }
+}
+.settlement-float{ font-size:13px !important; }
+.settlement-card-head{ display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+.settlement-card-icon{
+  position:relative; display:grid; place-items:center; flex:0 0 38px; width:38px; height:38px; border:1px solid var(--b-color,#c2965a);
+  border-radius:50%; font-size:19px; color:var(--b-color,#c2965a);
+  background:color-mix(in srgb,var(--b-color,#c2965a) 14%,transparent);
+  filter:drop-shadow(0 0 6px color-mix(in srgb,var(--b-color,#c2965a) 40%,transparent));
+  transition:box-shadow .3s ease;
+}
+.settlement-card-icon.tier-2{ border-width:2px; box-shadow:0 0 10px color-mix(in srgb,var(--b-color,#c2965a) 45%,transparent); }
+.settlement-card-icon.tier-3{ border-width:2px; border-color:var(--gold-bright); box-shadow:0 0 14px rgba(232,196,119,.55),0 0 4px color-mix(in srgb,var(--b-color,#c2965a) 60%,transparent); }
+.settlement-tier-badge{
+  position:absolute; top:-5px; right:-5px; display:grid; place-items:center; width:15px; height:15px; border-radius:50%;
+  background:radial-gradient(circle,var(--gold-bright),var(--gold)); color:#2a1c08; font:11px/1 'JetBrains Mono'; font-style:normal;
+  box-shadow:0 0 6px rgba(232,196,119,.7); border:1px solid rgba(0,0,0,.3);
+}
+.settlement-card-title h4{ margin:0; color:var(--parchment); font:700 13px 'Cinzel'; letter-spacing:.4px; }
+.settlement-card-title small{ color:var(--b-color,#c2965a); font:700 8px 'JetBrains Mono'; letter-spacing:1px; }
+.settlement-card-flavor{ margin:2px 0 10px; color:var(--parchment-dim); font:9px 'JetBrains Mono'; line-height:1.5; }
+
+.settlement-res-row{ display:grid; grid-template-columns:78px 1fr 62px; align-items:center; gap:8px; margin-bottom:6px; }
+.settlement-res-label{ color:var(--parchment-dim); font:8px 'JetBrains Mono'; }
+.settlement-res-bar{ position:relative; height:8px; border-radius:5px; overflow:hidden; background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.06); }
+.settlement-res-bar i{ display:block; height:100%; border-radius:5px 0 0 5px; transition:width .3s ease; box-shadow:0 0 6px currentColor; }
+.settlement-res-val{ color:var(--parchment-dim); font:700 8px 'JetBrains Mono'; text-align:right; }
+.settlement-res-val.full{ color:var(--gold-bright); text-shadow:0 0 6px rgba(232,196,119,.5); }
+
+.settlement-collect-btn{
+  display:block; width:100%; margin:8px 0 6px; padding:9px; border:1px solid var(--green); border-radius:6px;
+  background:rgba(95,138,76,.16); color:#a9e39a; font:700 10px 'JetBrains Mono'; letter-spacing:.5px; cursor:pointer;
+  transition:transform .12s ease;
+}
+.settlement-collect-btn:disabled{ border-color:var(--line); background:rgba(0,0,0,.2); color:var(--parchment-dim); cursor:default; opacity:.6; }
+.settlement-collect-btn:not(:disabled):active{ transform:scale(.95); }
+
+.settlement-card-relic{ background:radial-gradient(circle at 50% 0,rgba(185,142,240,.16),transparent 60%),linear-gradient(150deg,rgba(40,30,18,.95),rgba(16,12,8,.97)); }
+.settlement-relic-bonus{
+  margin:0 0 10px; padding:8px 10px; border:1px solid rgba(185,142,240,.4); border-radius:6px;
+  background:rgba(185,142,240,.08); color:#d9bdf9; font:700 9px 'JetBrains Mono'; letter-spacing:.3px; line-height:1.6;
+}
+
+.settlement-upgrade-bar{ height:5px; margin-bottom:6px; border-radius:4px; overflow:hidden; background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.06); }
+.settlement-upgrade-bar i{ display:block; height:100%; background:linear-gradient(90deg,var(--ember),var(--gold-bright)); box-shadow:0 0 6px var(--gold); transition:width 1s linear; }
+.settlement-upgrade-btn{
+  display:block; width:100%; padding:9px; border:1px solid var(--gold); border-radius:6px;
+  background:rgba(200,155,60,.14); color:var(--gold-bright); font:700 10px 'JetBrains Mono'; letter-spacing:.3px; cursor:pointer;
+  transition:transform .12s ease;
+}
+.settlement-upgrade-btn:disabled{ border-color:var(--line); background:rgba(0,0,0,.2); color:var(--parchment-dim); cursor:default; opacity:.7; }
+.settlement-upgrade-btn:not(:disabled):active{ transform:scale(.95); }
+.settlement-upgrade-btn.building{ animation:settlementBuildPulse 1.6s ease-in-out infinite; }
+@keyframes settlementBuildPulse{ 0%,100%{ opacity:.7; } 50%{ opacity:1; } }
+
+@media(max-width:620px){
+  .settlement-section-header{ align-items:flex-start; }
+  .settlement-section-header > b{ display:none; }
+  .settlement-section-sigil{ flex-basis:42px; width:42px; height:42px; }
+  .settlement-section-header h2{ font-size:15px; }
+  .settlement-buildings{ grid-template-columns:1fr; }
+  .settlement-res-row{ grid-template-columns:64px 1fr 54px; }
+  .settlement-overview{ padding:10px; }
+  .settlement-overview-head{ align-items:flex-start; }
+  .settlement-overview-head h3{ font-size:12px; }
+  .settlement-builder{ max-width:46%; white-space:normal; text-align:center; line-height:1.35; }
+  .settlement-rate-grid{ grid-template-columns:repeat(2,1fr); }
+  .settlement-focus{ grid-template-columns:1fr; }
+  .settlement-focus-options{ grid-template-columns:repeat(2,1fr); }
+  .settlement-focus-options small{ min-height:0; }
+  .settlement-milestone-copy{ display:block; }
+  .settlement-milestone-copy b{ display:block; margin-top:4px; }
+  .settlement-milestone-list{ display:grid; grid-template-columns:1fr; }
+}
+@media (prefers-reduced-motion: reduce){
+  .settlement-upgrade-btn.building{ animation:none; }
+  .settlement-card.ready{ animation:none; box-shadow:0 0 0 2px color-mix(in srgb,var(--b-color,#c2965a) 55%,transparent); }
+  .settlement-card.leveled{ animation:none; }
+}

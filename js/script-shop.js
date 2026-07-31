@@ -114,7 +114,7 @@ function hubProgressRing(current,total,icon){
   const pct = total>0 ? Math.max(0,Math.min(100, current/total*100)) : 0;
   const r = 27, c = 2*Math.PI*r;
   const offset = c * (1 - pct/100);
-  return `<span class="hub-ring"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="ring-track" cx="32" cy="32" r="${r}"></circle><circle class="ring-fill" cx="32" cy="32" r="${r}" style="stroke-dasharray:${c.toFixed(2)};stroke-dashoffset:${offset.toFixed(2)}"></circle></svg><span class="hub-icon">${icon}</span><span class="hub-ring-pct">${Math.round(pct)}%</span></span>`;
+  return `<span class="hub-ring"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="ring-track" cx="32" cy="32" r="${r}"></circle><circle class="ring-fill" cx="32" cy="32" r="${r}" style="stroke-dasharray:${c.toFixed(2)};stroke-dashoffset:${offset.toFixed(2)};--ring-offset:${offset.toFixed(2)};--ring-c:${c.toFixed(2)}"></circle></svg><span class="hub-icon">${icon}</span><span class="hub-ring-pct">${Math.round(pct)}%</span></span>`;
 }
 
 const HUB_PARTICLES = [
@@ -141,23 +141,76 @@ function renderProfileHub(){
   const box=document.getElementById('profileContent');
   if(!box || !state) return;
   const hero=currentClass();
-  const style=activeHeroVisual();
+  const style=activeHeroAppearance();
   const data=profileHubStats();
   const prestige = playerPrestigeTier();
+  const cardCatalog=window.CardCodex?.catalog?.(state.characterClass)||[];
+  const cardDiscovered=new Set(window.CardCodex?.discovered?.(state.characterClass)||[]);
+  const cardFound=cardCatalog.filter(card=>cardDiscovered.has(card.key)).length;
   const home = activeProfileView==='home';
-  box.className='panel hub-shell profile-hall';
+  box.className='panel hub-shell profile-hall profile-v2-root';
   box.style.setProperty('--profile-glow', style.glow || '#e8c477');
   const particles = hubParticlesHTML();
   const head = `<div class="hub-head"><div class="hub-emblem ${style.isSubclass?'has-subclass-art':''}">${style.isSubclass&&style.image?`<img src="${style.image}" alt="${style.label}" decoding="async">`:hero.icon}</div><h2>${home?'EL SANTUARIO DEL AVENTURERO':escapeHtml(state.name)}</h2><p>${home?'Elegí qué parte de tu leyenda querés consultar. Cada registro tiene su propio espacio.':`${style.baseLabel} · ${style.label} · Nivel ${state.level} · ${style.weapon}`}</p>${home?`<span class="hub-identity" style="--prestige-color:${prestige.color}">${classEmblem(state.characterClass)} ${escapeHtml(state.name)} · <b>${style.isSubclass?style.label+' · ':''}${prestige.label}</b> · Poder ${Math.round(power())}</span>`:''}</div>`;
   if(home){
-    box.innerHTML = `${particles}${head}<div class="hub-menu">
-      <button class="hub-tile primary" data-profile-view="identity" style="--hub-color:${style.glow}"><span class="hub-icon ${style.isSubclass?'hub-subclass-icon':''}">${style.isSubclass&&style.image?`<img src="${style.image}" alt="">`:hero.icon}</span><b>MI FICHA</b><small>Nombre, clase, nivel, experiencia y el poder actual de tu aventurero.</small><span class="hub-pill">${style.isSubclass?style.label:'VER PERFIL'}</span></button>
-      <button class="hub-tile primary" data-profile-view="progress" style="--hub-color:#d7a64d"><span class="hub-icon">✦</span><b>PROGRESO</b><small>Victorias, profundidad alcanzada, resets y camino de la expedición.</small><span class="hub-pill">${state.totalWins||0} VICTORIAS</span></button>
-      <button class="hub-tile has-ring" data-profile-view="achievements" style="--hub-color:#e7c05e">${hubProgressRing(data.completed.length,ACHIEVEMENTS.length,'♛')}<b>LOGROS</b><small>${data.completed.length}/${ACHIEVEMENTS.length} hitos completados</small></button>
-      <button class="hub-tile has-ring" data-profile-view="collection" style="--hub-color:#b8954c">${hubProgressRing(data.discovered,data.catalog.length,'◈')}<b>COLECCIÓN</b><small>${data.discovered}/${data.catalog.length} criaturas registradas</small></button>
-      <button class="hub-tile" data-profile-action="hero" style="--hub-color:#cf8a69"><span class="hub-icon">🛡</span><b>HÉROE</b><small>Equipo, mochila y estadísticas</small></button>
-      <button class="hub-tile" data-profile-action="characters" style="--hub-color:#c49355"><span class="hub-icon">👥</span><b>PERSONAJES</b><small>Elegí o administrá tus héroes</small></button>
-    </div>`;
+    const expPct=state.level>=LEVEL_CAP?100:Math.max(0,Math.min(100,finiteNumber(state.exp)/Math.max(1,data.expNeed)*100));
+    const portrait=style.image||hero.image||'';
+    box.innerHTML = `${particles}<section class="profile-v2-home">
+      <header class="profile-v2-topbar">
+        <div><small>ARCHIVO PERSONAL</small><strong>SANTUARIO DEL AVENTURERO</strong></div>
+        <div class="profile-v2-top-actions">
+          <span class="profile-v2-save">◆ PROGRESO PROTEGIDO</span>
+          <button type="button" data-profile-action="hero">VOLVER AL JUEGO →</button>
+        </div>
+      </header>
+      <div class="profile-v2-stage">
+        <article class="profile-v2-showcase">
+          <div class="profile-v2-aura" aria-hidden="true"></div>
+          <div class="profile-v2-character">
+            ${portrait?`<img class="${style.paperDoll?'paperdoll-profile-art':''}" src="${portrait}" alt="${escapeHtml(style.label)}" decoding="async">`:`<span>${hero.icon}</span>`}
+            ${(style.paperDollLayers||[]).map(layer=>`<img class="profile-paperdoll-layer profile-paperdoll-layer-${layer.slot}" src="${layer.image}" alt="" decoding="async">`).join('')}
+            <i class="profile-v2-level">${state.level}</i>
+          </div>
+          <div class="profile-v2-legend">
+            <span class="profile-v2-kicker">✦ ${escapeHtml(style.baseLabel)}${style.isSubclass?` · ${escapeHtml(style.label)}`:''}</span>
+            <span class="profile-appearance-tag"><small>ASPECTO ACTUAL</small><b>${escapeHtml(style.appearanceLabel)}</b></span>
+            <h1>${escapeHtml(state.name)}</h1>
+            <p>${escapeHtml(style.isSubclass?style.description:hero.description)}</p>
+            <div class="profile-v2-exp-head"><span>NIVEL ${state.level}</span><b>${state.level>=LEVEL_CAP?'NIVEL MÁXIMO':`${Math.floor(finiteNumber(state.exp))} / ${data.expNeed} EXP`}</b></div>
+            <div class="profile-v2-exp"><i style="width:${expPct}%"></i></div>
+            <div class="profile-v2-quickstats">
+              <span><small>PODER</small><b>${Math.round(power())}</b></span>
+              <span><small>ORO</small><b>${Math.floor(finiteNumber(state.gold))}</b></span>
+              <span><small>RENACERES</small><b>${state.resets||0}</b></span>
+            </div>
+          </div>
+        </article>
+        <nav class="profile-v2-destinations" aria-label="Apartados del perfil">
+          <button class="profile-v2-destination featured" data-profile-view="identity" style="--profile-accent:#e6b958">
+            <span class="profile-v2-dest-icon">♜</span><span><small>IDENTIDAD</small><b>MI FICHA</b><em>Clase, historia, nivel y equipamiento característico.</em></span><i>01</i>
+          </button>
+          <button class="profile-v2-destination featured" data-profile-view="progress" style="--profile-accent:#e87943">
+            <span class="profile-v2-dest-icon">✦</span><span><small>TRAYECTORIA</small><b>PROGRESO</b><em>Victorias, profundidad, racha y próximos objetivos.</em></span><i>${state.totalWins||0}</i>
+          </button>
+          <button class="profile-v2-destination" data-profile-view="achievements" style="--profile-accent:#e9c963">
+            ${hubProgressRing(data.completed.length,ACHIEVEMENTS.length,'♛')}<span><small>LEGADO</small><b>LOGROS</b><em>${data.completed.length} de ${ACHIEVEMENTS.length} hitos completados.</em></span><i>03</i>
+          </button>
+          <button class="profile-v2-destination" data-profile-view="collection" style="--profile-accent:#62c99a">
+            ${hubProgressRing(data.discovered,data.catalog.length,'◈')}<span><small>ARCHIVO</small><b>COLECCIÓN</b><em>${data.discovered} de ${data.catalog.length} criaturas registradas.</em></span><i>04</i>
+          </button>
+          <button class="profile-v2-destination card-codex-entry" data-profile-view="cards" style="--profile-accent:#c38cff">
+            ${hubProgressRing(cardFound,Math.max(1,cardCatalog.length),'✦')}<span><small>ARSENAL DE ${escapeHtml(style.baseLabel)}</small><b>CÓDICE DE CARTAS</b><em>${cardFound} de ${cardCatalog.length} cartas descubiertas durante tus cacerías.</em></span><i>05</i>
+          </button>
+          <button class="profile-v2-destination compact" data-profile-action="hero" style="--profile-accent:#6aaed1">
+            <span class="profile-v2-dest-icon">🛡</span><span><b>HÉROE Y EQUIPO</b><em>${data.equipped}/7 piezas equipadas.</em></span><i>→</i>
+          </button>
+          <button class="profile-v2-destination compact" data-profile-action="characters" style="--profile-accent:#b889e4">
+            <span class="profile-v2-dest-icon">♟</span><span><b>PERSONAJES</b><em>Administrá tus aventureros.</em></span><i>→</i>
+          </button>
+        </nav>
+      </div>
+      <footer class="profile-v2-footer"><span>ARMA CARACTERÍSTICA · <b>${escapeHtml(style.weapon)}</b></span><span>${escapeHtml(prestige.label)} · ${adventurerTenureLabel()}</span></footer>
+    </section>`;
   } else if(activeProfileView==='identity'){
     const pct=state.level>=LEVEL_CAP?100:Math.max(0,Math.min(100,finiteNumber(state.exp)/Math.max(1,data.expNeed)*100));
     box.innerHTML=`${particles}${head}<section class="hub-detail"><button class="hub-back" data-profile-back>← VOLVER AL PERFIL</button><div class="hub-detail-portrait"><div class="class-frame frame-lv${prestige.frameLevel}" style="--prestige-color:${prestige.color}">${classFrameOrnaments(prestige.frameLevel)}<img src="${style.image}" alt="${style.label}" decoding="async"><span class="class-frame-level" title="Nivel">${state.level}</span></div><div class="hub-detail-copy"><b>${escapeHtml(state.name)}</b><div class="prestige-title" style="--prestige-color:${prestige.color}">✦ ${style.isSubclass?`${style.baseLabel} · ${style.label} · `:''}${prestige.label}</div><p>${style.isSubclass?style.description:hero.description}</p><p>Arma característica: <b>${style.weapon}</b></p><p class="hub-tenure">⏳ ${adventurerTenureLabel()}</p><div class="profile-exp"><span>NIVEL ${state.level}</span><span>${state.level>=LEVEL_CAP?'NIVEL MÁXIMO':`${Math.floor(finiteNumber(state.exp))} / ${data.expNeed} EXP`}</span><div class="bar exp"><div style="width:${pct}%"></div></div></div></div></div><div class="hub-detail-grid"><div class="hub-detail-stat" style="--stat-color:#e8622c"><small>PODER</small><b>${Math.round(power())}</b></div><div class="hub-detail-stat" style="--stat-color:#e8c477"><small>ORO</small><b>${Math.floor(finiteNumber(state.gold))}</b></div><div class="hub-detail-stat" style="--stat-color:#5fb0dd"><small>RESETS</small><b>${state.resets||0}</b></div></div><div class="hub-action-row"><button data-profile-action="hero">ABRIR HÉROE Y EQUIPO</button><button class="profile-secondary" data-profile-action="characters">CAMBIAR PERSONAJE</button></div></section>`;
@@ -169,9 +222,37 @@ function renderProfileHub(){
     box.innerHTML=`${particles}${head}<section class="hub-detail"><button class="hub-back" data-profile-back>← VOLVER AL PERFIL</button><h3 class="hub-detail-title">PROGRESO DE EXPEDICIÓN</h3><p class="hub-detail-sub">Los hitos que definen el camino de tu aventurero.</p><div class="hub-detail-grid"><div class="hub-detail-stat" style="--stat-color:#e8622c"><small>VICTORIAS</small><b>${state.totalWins||0}</b></div><div class="hub-detail-stat" style="--stat-color:#ef6666"><small>GUARDIANES</small><b>${state.totalBossWins||0}</b></div><div class="hub-detail-stat" style="--stat-color:#7bc9c9"><small>MEJOR PROFUNDIDAD</small><b>${state.maxHuntDepth||0}</b></div><div class="hub-detail-stat" style="--stat-color:#5fb0dd"><small>RESETS</small><b>${state.resets||0}</b></div><div class="hub-detail-stat" style="--stat-color:#7bc981"><small>DISPONIBLES</small><b>${availableStatResets()}</b></div><div class="hub-detail-stat" style="--stat-color:#ff8445"><small>RACHA</small><b>${winStreak}</b></div></div>${nextQuestHTML}<div class="profile-run-badge">${data.runActive?`⚔ Expedición en curso · profundidad ${runState.depth}`:'✦ No hay expedición activa. Podés preparar una nueva cacería.'}</div><div class="hub-action-row"><button data-profile-action="hunt">IR A CACERÍA</button></div></section>`;
   } else if(activeProfileView==='achievements'){
     box.innerHTML=`${particles}${head}<section class="hub-detail"><button class="hub-back" data-profile-back>← VOLVER AL PERFIL</button><h3 class="hub-detail-title">SALÓN DE LOGROS</h3><p class="hub-detail-sub">${data.completed.length} de ${ACHIEVEMENTS.length} hitos completados.</p><div class="hub-detail-list">${ACHIEVEMENTS.map(a=>{const done=a.check(state),claimed=!!state.achievementsClaimed[a.id];return `<div class="profile-achievement ${done?'done':''}"><span class="achievement-mark">${achievementGlyph(a.id)}</span><div><b>${escapeHtml(a.label)}</b><small>${done?(claimed?'Recompensa reclamada':'Disponible para reclamar en Gremio'):'Aún no completado'}</small></div><span class="achievement-status">${done?'✓':'—'}</span></div>`;}).join('')}</div><div class="hub-action-row"><button data-profile-action="guild">ABRIR LOGROS DEL GREMIO</button></div></section>`;
-  } else {
+  } else if(activeProfileView==='collection'){
     const materials=state.materials||{};
     box.innerHTML=`${particles}${head}<section class="hub-detail"><button class="hub-back" data-profile-back>← VOLVER AL PERFIL</button><h3 class="hub-detail-title">COLECCIÓN DEL VIAJERO</h3><p class="hub-detail-sub">Registros de criaturas, piezas equipadas y materiales de forja.</p><div class="hub-detail-grid"><div class="hub-detail-stat" style="--stat-color:#7bc981"><small>BESTIARIO</small><b>${data.discovered}/${data.catalog.length}</b></div><div class="hub-detail-stat" style="--stat-color:#b9c4d6"><small>EQUIPO</small><b>${data.equipped}/7</b></div><div class="hub-detail-stat" style="--stat-color:#9fd3f0"><small>ESENCIA</small><b>${Math.floor(finiteNumber(materials.essence))}</b></div><div class="hub-detail-stat" style="--stat-color:#c58bff"><small>NÚCLEOS</small><b>${Math.floor(finiteNumber(materials.bossCore))}</b></div><div class="hub-detail-stat" style="--stat-color:#e8c477"><small>PIEZAS</small><b>${(state.ownedEquipment||[]).length}</b></div><div class="hub-detail-stat" style="--stat-color:#e0796a"><small>TROFEOS</small><b>${Object.keys(materials.bossTrophies||{}).length}</b></div></div><div class="hub-action-row"><button data-profile-action="guild">ABRIR BESTIARIO</button><button data-profile-action="hero">VER EQUIPO</button><button data-profile-action="forge">IR A HERRERÍA</button></div></section>`;
+  } else {
+    const families=['TODAS',...new Set(cardCatalog.map(card=>card.family||'OTRAS'))];
+    const classLabel=escapeHtml(style.baseLabel||hero.label||'AVENTURERO');
+    const percent=cardCatalog.length?Math.round(cardFound/cardCatalog.length*100):0;
+    const cardsHTML=cardCatalog.map((card,index)=>{
+      const found=cardDiscovered.has(card.key);
+      const family=escapeHtml(card.family||'OTRAS');
+      const art=card.art?`<img src="assets/images/cards/${escapeHtml(card.art)}" alt="${found?escapeHtml(card.name):'Carta desconocida'}" loading="lazy" decoding="async">`:`<span class="card-codex-glyph">${found?escapeHtml(card.icon||'✦'):'?'}</span>`;
+      return `<article class="card-codex-card ${found?'discovered':'locked'}" data-card-family="${family}" style="--card-index:${index}">
+        <div class="card-codex-art">${art}<span class="card-codex-lock">${found?'':'◆'}</span></div>
+        <div class="card-codex-meta"><span>${found?escapeHtml(card.rarity||card.family||'CARTA'):'REGISTRO OCULTO'}</span><i>${String(index+1).padStart(2,'0')}</i></div>
+        <h4>${found?escapeHtml(card.name):'CARTA DESCONOCIDA'}</h4>
+        <p>${found?escapeHtml(card.desc||'Carta registrada.'):'Encontrala en una mano, recompensa o tienda de la Cacería.'}</p>
+        <footer><b>${found?family:'???'}</b><em>${found?(card.mana?`${Math.round(card.mana)} MANÁ`:(String(card.tag||'').toUpperCase()==='TÁCTICA'?'TÁCTICA':'GRATIS')):'BLOQUEADA'}</em></footer>
+      </article>`;
+    }).join('');
+    box.innerHTML=`${particles}${head}<section class="hub-detail card-codex-view">
+      <button class="hub-back" data-profile-back>← VOLVER AL PERFIL</button>
+      <header class="card-codex-header">
+        <div><small>ARCHIVO DE COMBATE · ${classLabel}</small><h3>CÓDICE DE CARTAS</h3><p>Las cartas toman color al encontrarlas por primera vez en una cacería.</p></div>
+        <div class="card-codex-progress"><strong>${cardFound}<span>/${cardCatalog.length}</span></strong><small>DESCUBIERTAS</small></div>
+      </header>
+      <div class="card-codex-meter"><i style="width:${percent}%"></i><span>${percent}% COMPLETADO</span></div>
+      <nav class="card-codex-filters" aria-label="Filtrar cartas">${families.map((family,index)=>`<button class="${index===0?'active':''}" data-card-filter="${escapeHtml(family)}">${escapeHtml(family)}</button>`).join('')}</nav>
+      <div class="card-codex-grid">${cardsHTML||'<div class="card-codex-empty">Esta clase todavía no posee cartas registradas.</div>'}</div>
+      <aside class="card-codex-hint"><span>◆</span><div><b>¿CÓMO SE DESCUBREN?</b><p>Entrá a Cacería. Una carta queda registrada al aparecer en tu mano o entre las ofertas del Mercader.</p></div></aside>
+      <div class="hub-action-row"><button data-profile-action="hunt">EXPLORAR EN CACERÍA →</button></div>
+    </section>`;
   }
   const frameEl = box.querySelector('.class-frame');
   if(frameEl){
@@ -187,8 +268,14 @@ function renderProfileHub(){
     }
   }
   box.querySelectorAll('[data-profile-view]').forEach(button=>button.addEventListener('click',()=>{ activeProfileView=button.dataset.profileView; Sound.click(); renderProfileHub(); }));
+  box.querySelectorAll('[data-card-filter]').forEach(button=>button.addEventListener('click',()=>{
+    const filter=button.dataset.cardFilter;
+    box.querySelectorAll('[data-card-filter]').forEach(item=>item.classList.toggle('active',item===button));
+    box.querySelectorAll('[data-card-family]').forEach(card=>card.hidden=filter!=='TODAS' && card.dataset.cardFamily!==filter);
+    Sound.click();
+  }));
   box.querySelectorAll('[data-profile-back]').forEach(button=>button.addEventListener('click',()=>{ activeProfileView='home'; Sound.click(); renderProfileHub(); }));
-  box.querySelectorAll('[data-profile-action]').forEach(button=>button.addEventListener('click',()=>{ const action=button.dataset.profileAction; if(action==='characters'){ document.getElementById('charactersBtn').click(); return; } const section={hero:'secHero',hunt:'secHunt',guild:'secGuild',forge:'secForge'}[action]; if(section) document.querySelector(`.nav-btn[data-sec="${section}"]`).click(); }));
+  box.querySelectorAll('[data-profile-action]').forEach(button=>button.addEventListener('click',()=>{ const action=button.dataset.profileAction; if(action==='characters'){ document.getElementById('charactersBtn').click(); return; } const section={hero:'secHero',guild:'secGuild',forge:'secForge',hunt:'secCardHunt'}[action]; if(section) document.querySelector(`.nav-btn[data-sec="${section}"]`)?.click(); }));
 }
 
 function renderOptionsHub(){
@@ -303,4 +390,3 @@ function unequipItem(slotName) {
   saveState();
   render();
 }
-

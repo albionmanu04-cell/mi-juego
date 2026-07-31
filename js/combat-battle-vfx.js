@@ -7,6 +7,14 @@
    ================================================================= */
 
 /* ================= FEEDBACK Y EFECTOS VISUALES ================= */
+function clearCombatVisuals(){
+  const arena = document.getElementById('arena');
+  if(!arena) return;
+  arena.querySelectorAll('.dmg-float,.combat-warning,.combat-finisher,.spark,.assassin-fx,.node-choice-spark,.class-attack-vfx,.combat-vfx').forEach(el=>el.remove());
+  arena.classList.remove('assassin-strike','assassin-skill','boss-phase-two','reward-flash','skill-flash');
+  arena.querySelectorAll('.fighter').forEach(fighter=>fighter.classList.remove('dodging','phase-two'));
+}
+
 function spawnFloatText(side, text, cls, stackIndex=0){
   const arena = document.getElementById('arena');
   if(!arena) return;
@@ -239,4 +247,3 @@ function playAssassinAttackEffect(isSkill){
 function playClassAttackEffect(isSkill){
   playClassAttackSprite(isSkill);
 }
-

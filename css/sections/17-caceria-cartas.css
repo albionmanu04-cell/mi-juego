@@ -1,0 +1,2990 @@
+/* Cacería de cartas: modo inmersivo de pantalla completa, optimizado para táctil. */
+#secCardHunt.cardspire-section{display:none}
+body.card-hunt-open{overflow:hidden}
+body.card-hunt-open #secCardHunt.cardspire-section{display:block!important;position:fixed;inset:0;z-index:9999;margin:0;padding:0;overflow:auto;background:#090806;color:#f5e5bd;font-family:Spectral,serif}
+.cardspire-shell{min-height:100dvh;background:radial-gradient(circle at 50% 35%,rgba(136,78,30,.27),transparent 34%),linear-gradient(160deg,#08090e 0%,#17100f 50%,#070808 100%);position:relative;overflow:hidden}
+.cardspire-shell:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.22;background-image:linear-gradient(rgba(230,184,77,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(230,184,77,.06) 1px,transparent 1px);background-size:52px 52px;mask-image:radial-gradient(ellipse at center,#000,transparent 78%)}
+.cardspire-hud{height:74px;padding:0 clamp(15px,4vw,68px);border-bottom:1px solid rgba(222,172,69,.28);display:flex;align-items:center;justify-content:space-between;gap:20px;background:rgba(9,7,7,.78);backdrop-filter:blur(12px);position:relative;z-index:2}
+.cardspire-back,.cardspire-end{border:1px solid rgba(230,184,77,.55);background:linear-gradient(135deg,#21150b,#0d0b0c);color:#f4d378;min-height:38px;border-radius:7px;padding:0 15px;font:700 11px Cinzel,serif;letter-spacing:.06em;cursor:pointer}
+.cardspire-hud-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.cardspire-reset{min-height:38px;padding:0 13px;border:1px solid rgba(207,91,59,.62);border-radius:7px;background:linear-gradient(135deg,rgba(83,27,20,.92),rgba(25,11,10,.96));color:#f3a27e;font:700 10px Cinzel,serif;letter-spacing:.06em;cursor:pointer;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.cardspire-reset:hover{border-color:#f07b51;box-shadow:0 0 18px rgba(221,73,38,.22);transform:translateY(-1px)}
+.cardspire-reset:focus-visible{outline:2px solid #f0b54d;outline-offset:3px}
+.cardspire-title{text-align:center;display:grid;gap:3px;font-family:Cinzel,serif}.cardspire-title small{font:700 9px JetBrains Mono,monospace;letter-spacing:.16em;color:#b49763}.cardspire-title b{font-size:13px;letter-spacing:.1em}.cardspire-resources{display:flex;gap:10px;font:700 11px JetBrains Mono,monospace}.cardspire-resources span{padding:7px 9px;border:1px solid rgba(218,178,95,.23);border-radius:999px;background:#130f0d}
+.cardspire-main{width:min(1180px,100%);margin:auto;padding:clamp(18px,3vw,42px);min-height:calc(100dvh - 74px);display:grid;align-items:center;position:relative;z-index:1}
+.cardspire-intro,.cardspire-result,.cardspire-event{width:min(720px,100%);margin:auto;padding:clamp(34px,6vw,78px);border:1px solid rgba(224,180,75,.46);border-radius:18px;text-align:center;background:linear-gradient(145deg,rgba(38,25,19,.94),rgba(12,14,19,.94));box-shadow:0 25px 90px rgba(0,0,0,.55),inset 0 0 80px rgba(172,102,25,.08)}
+.cardspire-seal,.result-icon,.event-mark{width:76px;height:76px;border:1px solid #dcae4e;border-radius:50%;display:grid;place-items:center;margin:0 auto 18px;font:36px Cinzel,serif;color:#f7cf69;box-shadow:0 0 28px rgba(245,180,51,.22)}
+.cardspire-kicker,.cardspire-intro p,.cardspire-event>p,.cardspire-result>p{font:700 10px JetBrains Mono,monospace;letter-spacing:.16em;color:#d4a94c}.cardspire-intro h2,.cardspire-result h2,.cardspire-event h2{margin:10px 0 14px;font:clamp(30px,5vw,58px)/1.05 Cinzel,serif;color:#f5d07a}.cardspire-intro>p:not(.cardspire-kicker),.cardspire-event>span,.cardspire-result>span{display:block;max-width:510px;margin:0 auto 28px;color:#c7baa0;font-size:18px}
+.cardspire-primary{border:0;border-bottom:3px solid #9c6418;border-radius:8px;padding:16px 24px;background:linear-gradient(#f1c65b,#b8751d);color:#1d1209;font:800 12px Cinzel,serif;letter-spacing:.12em;cursor:pointer;box-shadow:0 9px 30px rgba(221,149,41,.25)}.cardspire-primary b{margin-left:12px;font-size:18px}.cardspire-features{margin-top:36px;display:flex;justify-content:center;gap:20px;flex-wrap:wrap;color:#bba273;font:10px JetBrains Mono,monospace}
+.cardspire-map-view{width:100%;background:linear-gradient(140deg,rgba(38,27,18,.9),rgba(11,16,18,.88)),url('../../assets/images/fondo bosque.webp') center/cover;border:1px solid rgba(225,179,61,.48);border-radius:18px;padding:clamp(22px,4vw,48px);box-shadow:0 22px 70px rgba(0,0,0,.45)}.cardspire-map-copy{text-align:center}.cardspire-map-copy p{margin:0;font:700 10px JetBrains Mono,monospace;letter-spacing:.16em;color:#d4a94c}.cardspire-map-copy h2{margin:7px 0;font:clamp(28px,4vw,45px) Cinzel,serif}.cardspire-map-copy span{color:#beb197}.cardspire-map{max-width:860px;margin:30px auto 14px;display:grid;gap:16px;position:relative}.cardspire-map:before{content:"";position:absolute;top:35px;bottom:35px;left:50%;border-left:1px dashed rgba(229,182,72,.45)}.cardspire-map-row{display:flex;justify-content:space-around;gap:18px;position:relative}.cardspire-map-row.current{filter:drop-shadow(0 0 12px rgba(239,188,62,.3))}.cardspire-map-row.passed{opacity:.4}.cardspire-node{width:132px;min-height:118px;display:grid;place-items:center;align-content:center;gap:5px;border:1px solid rgba(230,200,127,.35);border-radius:15px;color:#dccba9;background:rgba(10,12,13,.82);cursor:pointer;transition:.2s;touch-action:manipulation}.cardspire-node:not(:disabled):hover,.cardspire-node:not(:disabled):focus{transform:translateY(-5px);border-color:#f3c255;background:#291c12}.cardspire-node:disabled{cursor:not-allowed}.cardspire-node i{font:28px Spectral,serif;font-style:normal}.cardspire-node b{font:700 12px Cinzel,serif}.cardspire-node small{font:700 9px JetBrains Mono,monospace;color:#d7ac51}.cardspire-node.elite{border-color:#a860d1}.cardspire-node.boss{border-color:#e55c43}.cardspire-node.rest{border-color:#72c589}.cardspire-node.treasure{border-color:#e4b852}.cardspire-legend{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:22px;font:10px JetBrains Mono,monospace;color:#bca477}.cardspire-legend span{padding:6px 9px;border:1px solid rgba(219,185,108,.2);border-radius:999px}
+.cardspire-choice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:28px}.cardspire-choice-grid button{min-height:155px;border:1px solid rgba(235,187,74,.45);border-radius:12px;color:#f3d688;background:linear-gradient(145deg,#2a1d12,#131517);font-family:Cinzel,serif;cursor:pointer}.cardspire-choice-grid i,.cardspire-choice-grid b,.cardspire-choice-grid small{display:block}.cardspire-choice-grid i{font-style:normal;font-size:32px;margin-bottom:10px}.cardspire-choice-grid b{font-size:15px}.cardspire-choice-grid small{margin-top:7px;color:#b8aa91;font:11px Spectral,serif}
+.cardspire-sanctuary{position:relative;overflow:hidden;background:radial-gradient(circle at 50% 10%,rgba(237,199,102,.17),transparent 34%),linear-gradient(145deg,rgba(42,28,17,.97),rgba(10,14,18,.97))}
+.cardspire-sanctuary:before{content:"";position:absolute;inset:13px;border:1px solid rgba(240,205,117,.13);border-radius:13px;pointer-events:none}
+.sanctuary-choices button{position:relative;overflow:hidden;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.sanctuary-choices button:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.09),transparent 42%);opacity:0;transition:opacity .2s ease}
+.sanctuary-choices button:hover,.sanctuary-choices button:focus-visible{transform:translateY(-5px);border-color:#f2c65e;box-shadow:0 16px 35px rgba(0,0,0,.32)}
+.sanctuary-choices button:hover:after,.sanctuary-choices button:focus-visible:after{opacity:1}
+.sanctuary-choices strong{display:block;margin-top:12px;font:800 12px JetBrains Mono,monospace;letter-spacing:.08em}
+.sanctuary-choices .sanctuary-life,.sanctuary-choices button:first-child strong{color:#71d894;text-shadow:0 0 16px rgba(76,213,125,.4)}
+.sanctuary-choices .sanctuary-mana,.sanctuary-choices button:last-child strong{color:#70c9ff;text-shadow:0 0 16px rgba(74,178,240,.42)}
+.cardspire-treasure{
+  width:min(760px,100%);
+  min-height:590px;
+  margin:auto;
+  padding:clamp(34px,5vw,62px);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+  text-align:center;
+  border:1px solid rgba(231,180,62,.56);
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 50% 46%,rgba(235,164,37,.22),transparent 31%),
+    linear-gradient(145deg,rgba(44,29,13,.97),rgba(10,10,11,.97));
+  box-shadow:0 28px 100px rgba(0,0,0,.62),inset 0 0 90px rgba(179,99,17,.1);
+}
+.cardspire-treasure::before{
+  content:"";
+  position:absolute;
+  inset:14px;
+  pointer-events:none;
+  border:1px solid rgba(238,196,96,.16);
+  border-radius:14px;
+}
+.cardspire-treasure>p{
+  margin:0;
+  color:#d7aa4b;
+  font:800 10px JetBrains Mono,monospace;
+  letter-spacing:.2em;
+}
+.cardspire-treasure>h2{
+  margin:9px 0 10px;
+  color:#f5d27c;
+  font:clamp(31px,5vw,56px)/1.04 Cinzel,serif;
+  text-shadow:0 0 24px rgba(237,177,54,.25);
+}
+.cardspire-treasure>span{
+  max-width:540px;
+  margin:0 auto 24px;
+  color:#c8b99a;
+  font-size:17px;
+}
+.treasure-chest{
+  width:min(310px,76vw);
+  min-height:310px;
+  padding:20px;
+  display:grid;
+  place-items:center;
+  gap:4px;
+  position:relative;
+  border:0;
+  background:transparent;
+  color:#ffe19a;
+  cursor:pointer;
+  transition:transform .22s ease,filter .22s ease;
+  animation:treasure-float 2.4s ease-in-out infinite;
+}
+.treasure-chest::before{
+  content:"";
+  position:absolute;
+  inset:16%;
+  z-index:-1;
+  border-radius:50%;
+  background:rgba(236,164,43,.18);
+  filter:blur(24px);
+  animation:treasure-pulse 1.45s ease-in-out infinite;
+}
+.treasure-chest:hover,.treasure-chest:focus-visible{transform:scale(1.045);filter:brightness(1.16)}
+.treasure-chest:focus-visible{outline:2px solid #f2bd51;outline-offset:3px;border-radius:50%}
+.treasure-chest img{width:250px;max-width:100%;filter:drop-shadow(0 17px 18px rgba(0,0,0,.68))}
+.treasure-chest b{
+  padding:8px 16px;
+  border:1px solid rgba(238,188,74,.5);
+  border-radius:999px;
+  background:rgba(17,11,7,.78);
+  font:800 11px Cinzel,serif;
+  letter-spacing:.14em;
+}
+.cardspire-treasure.opened{animation:treasure-open-room .46s ease both}
+.treasure-reward{
+  min-width:min(390px,88vw);
+  margin:17px auto 24px;
+  padding:22px 28px;
+  display:grid;
+  gap:5px;
+  border:1px solid rgba(240,187,61,.58);
+  border-radius:15px;
+  background:linear-gradient(145deg,rgba(83,48,14,.72),rgba(21,14,10,.9));
+  box-shadow:0 0 34px rgba(231,158,32,.18),inset 0 0 24px rgba(245,191,65,.08);
+}
+.treasure-reward small{color:#c9a75f;font:800 9px JetBrains Mono,monospace;letter-spacing:.15em}
+.treasure-reward strong{color:#ffcf5a;font:900 clamp(32px,6vw,58px) Cinzel,serif;text-shadow:0 0 20px rgba(255,190,48,.38)}
+.treasure-reward span{color:#d2c19e;font:11px JetBrains Mono,monospace}
+.treasure-burst{height:70px;display:flex;align-items:center;justify-content:center;gap:25px;color:#ffd66b}
+.treasure-burst i{font-style:normal;font-size:24px;animation:treasure-spark .8s ease-in-out infinite alternate}
+.treasure-burst i:nth-child(2){font-size:45px;animation-delay:.16s}
+.treasure-burst i:nth-child(3){animation-delay:.3s}
+@keyframes treasure-float{50%{transform:translateY(-8px)}}
+@keyframes treasure-pulse{50%{transform:scale(1.16);opacity:.72}}
+@keyframes treasure-spark{to{transform:translateY(-8px) rotate(18deg);filter:drop-shadow(0 0 9px #ffc64d)}}
+@keyframes treasure-open-room{0%{filter:brightness(2);transform:scale(.985)}100%{filter:brightness(1);transform:scale(1)}}
+.cardspire-combat{width:100%;display:grid;gap:18px}.cardspire-fighters{display:grid;grid-template-columns:1fr 100px 1fr;align-items:center;gap:20px;min-height:230px;padding:25px;border:1px solid rgba(228,177,56,.36);border-radius:18px;background:linear-gradient(90deg,rgba(16,27,33,.86),rgba(34,21,17,.82)),url('../../assets/images/fondo bosque.webp') center/cover}.fighter{display:flex;gap:18px;align-items:center}.fighter.enemy{justify-content:flex-end;text-align:right}.fighter-art,.enemy-symbol{width:122px;height:155px;border-radius:14px;display:grid;place-items:center;background:rgba(3,4,5,.5);border:1px solid rgba(239,191,76,.35);overflow:hidden}.fighter-art img{width:100%;height:100%;object-fit:contain}.fighter-art span,.enemy-symbol{font-size:64px}.fighter small{display:block;color:#d4ac56;font:700 10px JetBrains Mono,monospace;letter-spacing:.12em}.fighter b{display:block;margin:5px 0 10px;font:700 18px Cinzel,serif}.fighter span{font:10px JetBrains Mono,monospace;color:#d3c4a4}.fighter em{display:inline-block;margin-top:9px;padding:5px 7px;border:1px solid #bf6e35;border-radius:5px;color:#ffb060;font:700 9px JetBrains Mono,monospace;font-style:normal}.bar{height:8px;width:190px;max-width:100%;background:#1a1110;border:1px solid rgba(239,207,137,.22);overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#a52d2d,#f06445)}.bar.enemyhp i{background:linear-gradient(90deg,#b3562c,#e8a13c)}.cardspire-versus{text-align:center;font:34px Cinzel,serif;color:#f1ca69;text-shadow:0 0 20px #b66e25}.cardspire-versus small{display:block;font:700 9px JetBrains Mono,monospace;color:#c5ae84}.cardspire-turn{display:flex;align-items:center;justify-content:center;gap:12px}.cardspire-turn>span{padding:9px 12px;border:1px solid rgba(232,190,91,.28);border-radius:7px;background:#15100e;font:700 10px JetBrains Mono,monospace;color:#c5af83}.cardspire-turn b{color:#f2c35d;font-size:14px}.cardspire-end{margin-left:8px;background:linear-gradient(135deg,#b54f30,#641f20);border-color:#e68d58;color:#fff0d0}.cardspire-hand-wrap{overflow-x:auto;padding:14px 3px 18px}.cardspire-hand{min-width:max-content;display:flex;justify-content:center;gap:12px}.cardspire-card{width:172px;min-height:205px;padding:17px 14px 13px;border:1px solid rgba(214,177,84,.55);border-radius:12px;background:linear-gradient(160deg,#3b2a19,#16181d);color:#f1dfb8;text-align:left;position:relative;cursor:pointer;transition:.18s;touch-action:manipulation}.cardspire-card:hover{transform:translateY(-10px);border-color:#ffcf66}.cardspire-card.block{background:linear-gradient(160deg,#183044,#10161c);border-color:#5da8dc}.cardspire-card.spell{background:linear-gradient(160deg,#342052,#151323);border-color:#b082ee}.cardspire-card.heal{background:linear-gradient(160deg,#1c473c,#101b18);border-color:#71d29b}.cardspire-card.locked{opacity:.42;filter:grayscale(.45);cursor:not-allowed}.card-cost{position:absolute;top:10px;left:10px;width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:#d8a638;color:#251406;font:900 13px JetBrains Mono,monospace}.cardspire-card i{display:block;text-align:center;font-style:normal;font-size:38px;margin:23px 0 11px}.cardspire-card b{display:block;text-align:center;font:700 13px Cinzel,serif}.cardspire-card small{display:block;margin-top:11px;text-align:center;color:#c4b89f;font:12px/1.3 Spectral,serif}.cardspire-card em{position:absolute;bottom:10px;right:12px;color:#77bde2;font:9px JetBrains Mono,monospace;font-style:normal}.cardspire-notes{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;font:10px JetBrains Mono,monospace;color:#bcaa86}.cardspire-notes span{padding:6px 10px;border-left:2px solid #d5a744;background:rgba(18,14,11,.7)}.cardspire-result.win .result-icon{color:#78e5a2;border-color:#70d494}.cardspire-result.loss .result-icon{color:#df7770;border-color:#ca5851}
+.cardspire-battle-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 14px;border:1px solid rgba(227,176,59,.28);border-radius:9px;background:rgba(19,14,11,.72);font:700 9px JetBrains Mono,monospace;letter-spacing:.06em;color:#d0b071}.cardspire-battle-top .affinity{color:#e6c468}.cardspire-battle-top .affinity small{display:inline;color:#a89a81;font:9px Spectral,serif;letter-spacing:0}.cardspire-fighters{position:relative}.cardspire-impact{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;padding:9px 16px;border-radius:999px;background:rgba(10,8,8,.9);border:1px solid #e2ae47;box-shadow:0 0 30px rgba(236,181,56,.4);display:flex;gap:7px;align-items:center;pointer-events:none;animation:cardspire-impact .65s ease both}.cardspire-impact i{font-style:normal;font-size:17px}.cardspire-impact b{font:800 11px JetBrains Mono,monospace;color:#ffe0a2}.cardspire-impact.enemy{border-color:#d85c44}.cardspire-impact.enemy b{color:#ffb7a5}@keyframes cardspire-impact{0%{opacity:0;transform:translate(-50%,-37%) scale(.75)}35%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}100%{opacity:.92;transform:translate(-50%,-56%) scale(1)}}.fighter em.intent-charge{border-color:#ed5549;color:#ffc0a5;animation:cardspire-danger 1.1s infinite}.fighter em.intent-guard{border-color:#63a9d7;color:#a7d9ff}@keyframes cardspire-danger{50%{box-shadow:0 0 14px rgba(239,83,62,.65)}}.cardspire-hand-label{margin:0;text-align:center;color:#bba477;font:700 9px JetBrains Mono,monospace;letter-spacing:.14em}
+.cardspire-card.bash{background:linear-gradient(160deg,#44201a,#1d1313);border-color:#df7c4c}.cardspire-card.strength{background:linear-gradient(160deg,#452d18,#1c1712);border-color:#e2b04b}.card-tag{position:absolute;right:10px;top:11px;color:#cdb47d;font:700 7px JetBrains Mono,monospace;letter-spacing:.11em}.cardspire-card.bash .card-tag{color:#ffb085}.cardspire-card.strength .card-tag{color:#ffe17d}.combat-states{min-height:20px;margin-top:5px;display:flex;gap:4px;flex-wrap:wrap}.combat-states span{padding:3px 5px!important;border:1px solid rgba(217,181,89,.32);border-radius:4px;background:rgba(9,8,7,.66);color:#e7c66e!important;font:700 8px JetBrains Mono,monospace!important;white-space:nowrap}.enemy-states{justify-content:flex-end}.enemy-states span{border-color:#d27657;color:#ffb09d!important}
+#secCardHunt .cardspire-fighters{grid-template-columns:minmax(260px,1fr) 110px minmax(260px,1fr)!important;min-height:300px;padding:30px 42px!important}
+#secCardHunt .cardspire-fighters .fighter{display:grid!important;width:100%!important;min-width:0!important;align-items:center!important;gap:18px!important}
+#secCardHunt .cardspire-fighters .fighter.hero{grid-template-columns:126px minmax(0,1fr)!important;text-align:left!important;justify-content:start!important}
+#secCardHunt .cardspire-fighters .fighter.enemy{grid-template-columns:minmax(0,1fr) 126px!important;text-align:right!important;justify-content:end!important}
+#secCardHunt .cardspire-fighters .fighter-sheet{width:100%!important;min-width:0!important;display:block!important}
+#secCardHunt .cardspire-fighters .enemy-symbol{justify-self:end;background:radial-gradient(circle,rgba(135,55,32,.28),rgba(5,5,6,.62));box-shadow:0 0 26px rgba(206,109,42,.17)}
+#secCardHunt .cardspire-fighters .enemy-symbol img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 10px 8px rgba(0,0,0,.58));transform:scale(1.12)}
+@media(max-width:700px){#secCardHunt .cardspire-fighters{grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr)!important;min-height:194px;padding:13px 9px!important}#secCardHunt .cardspire-fighters .fighter.hero{grid-template-columns:1fr!important;gap:5px!important}#secCardHunt .cardspire-fighters .fighter.enemy{grid-template-columns:1fr!important;gap:5px!important}#secCardHunt .cardspire-fighters .fighter.hero .fighter-art{order:2}#secCardHunt .cardspire-fighters .fighter.enemy .enemy-symbol{order:2}#secCardHunt .cardspire-fighters .fighter-sheet{width:100%}#secCardHunt .cardspire-fighters .enemy-symbol img{transform:scale(1.05)}}
+@media(max-width:700px){.cardspire-hud{height:auto;min-height:62px;padding:9px 12px;gap:8px;flex-wrap:wrap}.cardspire-title{order:3;width:100%}.cardspire-resources{margin-left:auto;gap:5px}.cardspire-resources span{padding:5px 6px;font-size:9px}.cardspire-back{padding:0 10px;font-size:9px}.cardspire-main{padding:14px;min-height:calc(100dvh - 92px);align-items:start}.cardspire-intro,.cardspire-result,.cardspire-event{margin:18px auto;padding:30px 18px;border-radius:13px}.cardspire-intro h2,.cardspire-result h2,.cardspire-event h2{font-size:31px}.cardspire-intro>p:not(.cardspire-kicker),.cardspire-event>span,.cardspire-result>span{font-size:16px}.cardspire-map-view{padding:19px 12px;border-radius:13px}.cardspire-map{gap:11px;margin-top:22px}.cardspire-map-row{gap:7px}.cardspire-node{width:31vw;min-height:88px;border-radius:11px}.cardspire-node i{font-size:23px}.cardspire-node b{font-size:10px}.cardspire-node small{font-size:8px}.cardspire-legend{font-size:8px;gap:5px}.cardspire-legend span{padding:4px 6px}.cardspire-choice-grid{grid-template-columns:1fr}.cardspire-choice-grid button{min-height:105px}.cardspire-fighters{grid-template-columns:1fr 34px 1fr;gap:8px;padding:12px 8px;min-height:190px}.fighter{gap:6px;align-items:flex-start}.fighter.hero,.fighter.enemy{display:grid;grid-template-columns:1fr}.fighter.enemy{justify-items:end}.fighter-art,.enemy-symbol{width:70px;height:86px;border-radius:9px}.fighter-art span,.enemy-symbol{font-size:40px}.fighter b{font-size:11px}.fighter small{font-size:7px}.fighter span{font-size:8px;white-space:nowrap}.fighter em{font-size:7px}.bar{width:118px;height:6px}.cardspire-versus{font-size:20px}.cardspire-versus small{font-size:6px}.cardspire-turn{justify-content:space-between;flex-wrap:wrap}.cardspire-turn>span{font-size:8px;padding:7px}.cardspire-end{margin-left:auto;font-size:9px;padding:0 9px}.cardspire-hand{justify-content:flex-start}.cardspire-card{width:145px;min-height:184px;padding:13px 10px}.cardspire-card:hover{transform:none}.cardspire-card i{font-size:33px;margin:21px 0 9px}.cardspire-card b{font-size:11px}.cardspire-card small{font-size:11px}.cardspire-notes{justify-content:flex-start;font-size:8px}.cardspire-seal,.result-icon,.event-mark{width:58px;height:58px;font-size:28px}.cardspire-features{gap:9px;font-size:8px}}
+@media(max-width:700px){
+  .cardspire-treasure{min-height:calc(100dvh - 125px);padding:30px 18px;border-radius:14px}
+  .cardspire-treasure>h2{font-size:32px}
+  .cardspire-treasure>span{font-size:15px}
+  .treasure-chest{width:235px;min-height:250px}
+  .treasure-chest img{width:205px}
+  .treasure-reward{min-width:100%;padding:18px}
+}
+@media(prefers-reduced-motion:reduce){
+  .treasure-chest,.treasure-chest::before,.treasure-burst i,.cardspire-treasure.opened{animation:none!important}
+}
+@media(max-width:700px){.cardspire-battle-top{padding:7px 8px;gap:5px;align-items:flex-start;flex-wrap:wrap;font-size:7px}.cardspire-battle-top .affinity{width:100%}.cardspire-battle-top .affinity small{font-size:9px}.cardspire-impact{padding:6px 9px;white-space:nowrap}.cardspire-impact b{font-size:8px}.cardspire-hand-label{font-size:8px}.fighter em.intent-charge{animation-duration:.8s}}
+
+/* Ilustraciones del mazo inicial del Guerrero. Mantienen costo y texto siempre legibles. */
+.cardspire-card.illustrated{overflow:hidden}
+.cardspire-card.illustrated .card-cost{z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.55)}
+.card-art{display:block;height:86px;margin:18px -5px 9px;border:1px solid rgba(247,204,102,.34);border-radius:8px;overflow:hidden;background:#0d0d0c;box-shadow:inset 0 0 18px rgba(0,0,0,.72)}
+.card-art img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 30%;filter:saturate(.88) contrast(1.06)}
+.cardspire-card.illustrated b{position:relative;text-shadow:0 1px 5px #080604}
+@media(max-width:700px){.cardspire-card .card-art{height:66px;margin:17px -2px 7px}}
+
+/* Fichas de duelo: el aventurero y la criatura se leen como cartas de encuentro. */
+#secCardHunt .cardspire-fighters .fighter-card{
+  position:relative;padding:12px;border:1px solid rgba(231,184,76,.38);border-radius:16px;
+  background:linear-gradient(135deg,rgba(7,11,13,.7),rgba(55,30,15,.5));
+  box-shadow:inset 0 0 28px rgba(0,0,0,.36),0 12px 28px rgba(0,0,0,.2);
+}
+
+/* Senda ilustrada: lectura táctil, nodos revelados y ficha de decisión. */
+#secCardHunt .cardspire-map-view{
+  padding:clamp(24px,3vw,42px);
+  background-image:
+    radial-gradient(circle at 50% 12%,rgba(213,158,55,.13),transparent 28%),
+    linear-gradient(180deg,rgba(10,7,5,.32),rgba(8,5,4,.76)),
+    var(--cardspire-scene);
+}
+#secCardHunt .cardspire-map-copy{
+  max-width:620px;
+  margin:0 auto;
+  padding:4px 110px 0;
+}
+#secCardHunt .cardspire-map-copy h2{
+  margin:5px 0 2px;
+  color:#f1d597;
+  text-shadow:0 3px 24px rgba(219,153,42,.22);
+}
+#secCardHunt .cardspire-map-board{
+  position:relative;
+  width:min(980px,100%);
+  height:590px;
+  margin:22px auto 20px;
+  overflow:hidden;
+  border:1px solid rgba(220,169,62,.36);
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 50% 48%,rgba(142,91,30,.08),rgba(8,6,5,.28) 67%),
+    linear-gradient(180deg,rgba(13,8,5,.1),rgba(10,6,4,.4)),
+    url('../../assets/images/caceria-map/senda-fondo-v2.webp') center/cover no-repeat;
+  box-shadow:
+    inset 0 0 80px rgba(0,0,0,.6),
+    inset 0 0 0 6px rgba(24,15,9,.42),
+    0 20px 55px rgba(0,0,0,.35);
+}
+#secCardHunt .cardspire-map-board::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  border-radius:inherit;
+  background:
+    linear-gradient(90deg,rgba(6,4,3,.55),transparent 16% 84%,rgba(6,4,3,.55)),
+    linear-gradient(180deg,rgba(6,4,3,.38),transparent 17% 84%,rgba(6,4,3,.48));
+}
+#secCardHunt .cardspire-map-routes{
+  position:absolute;
+  inset:18px 6% 14px;
+  z-index:1;
+  width:88%;
+  height:calc(100% - 32px);
+  overflow:visible;
+  filter:drop-shadow(0 0 5px rgba(240,186,68,.28));
+}
+#secCardHunt .cardspire-map-routes path{
+  fill:none;
+  stroke:rgba(202,151,56,.4);
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-dasharray:4 9;
+  vector-effect:non-scaling-stroke;
+  animation:route-dash 16s linear infinite;
+}
+#secCardHunt .cardspire-map{
+  position:relative;
+  z-index:2;
+  width:88%;
+  height:100%;
+  max-width:none;
+  margin:0 auto;
+  padding:15px 0;
+  display:grid;
+  grid-template-rows:repeat(5,1fr);
+  gap:0;
+}
+#secCardHunt .cardspire-map::before{display:none}
+#secCardHunt .cardspire-map-row{
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(var(--route-columns,4),minmax(0,1fr));
+  align-items:center;
+  justify-items:center;
+  padding:0 2%;
+}
+#secCardHunt .cardspire-map-row.single{
+  grid-template-columns:1fr;
+}
+#secCardHunt .cardspire-node{
+  position:relative;
+  z-index:2;
+  width:108px;
+  min-height:104px;
+  padding:5px 7px 7px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  overflow:visible;
+}
+#secCardHunt .cardspire-node::before{
+  content:"";
+  position:absolute;
+  top:1px;
+  left:50%;
+  width:78px;
+  height:78px;
+  z-index:0;
+  border:1px solid rgba(218,174,79,.34);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(23,15,10,.88),rgba(4,4,4,.92));
+  box-shadow:0 7px 22px rgba(0,0,0,.5);
+  transform:translateX(-50%);
+  transition:.22s ease;
+}
+#secCardHunt .cardspire-node .node-portrait{
+  position:relative;
+  z-index:1;
+  width:70px;
+  height:70px;
+  display:block;
+  flex:0 0 70px;
+  padding:3px;
+  box-sizing:border-box;
+  border:1px solid rgba(235,192,98,.44);
+  border-radius:50%;
+  overflow:hidden;
+  background:radial-gradient(circle,rgba(75,48,19,.88),rgba(5,5,5,.96));
+  box-shadow:inset 0 0 14px rgba(0,0,0,.48),0 0 0 3px rgba(23,14,8,.68);
+}
+#secCardHunt .cardspire-node .node-portrait img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:contain;
+  object-position:center;
+  border-radius:inherit;
+  transition:filter .22s ease,transform .22s ease,opacity .22s ease;
+}
+#secCardHunt .cardspire-node .node-portrait i{
+  display:none;
+}
+#secCardHunt .cardspire-node b{
+  position:relative;
+  z-index:1;
+  margin-top:1px;
+  color:#d9c28e;
+  font-size:10px;
+  letter-spacing:.06em;
+  text-shadow:0 2px 6px #000;
+}
+#secCardHunt .cardspire-node small{
+  position:relative;
+  z-index:1;
+  font-size:7px;
+  letter-spacing:.14em;
+}
+#secCardHunt .cardspire-node:not(:disabled):hover,
+#secCardHunt .cardspire-node:not(:disabled):focus,
+#secCardHunt .cardspire-node.selected{
+  transform:translateY(-3px);
+  background:transparent;
+}
+#secCardHunt .cardspire-node:not(:disabled):hover::before,
+#secCardHunt .cardspire-node:not(:disabled):focus::before,
+#secCardHunt .cardspire-node.selected::before{
+  border-color:#f3c75e;
+  background:radial-gradient(circle,rgba(88,53,17,.8),rgba(7,5,4,.94));
+  box-shadow:0 0 0 4px rgba(222,166,47,.1),0 0 24px rgba(240,182,55,.5);
+}
+#secCardHunt .cardspire-node:not(:disabled):hover .node-portrait img,
+#secCardHunt .cardspire-node:not(:disabled):focus .node-portrait img,
+#secCardHunt .cardspire-node.selected .node-portrait img{
+  transform:scale(1.06);
+}
+#secCardHunt .cardspire-node.selected small{color:#ffe08a}
+#secCardHunt .cardspire-node.elite::before{border-color:rgba(193,77,73,.64)}
+#secCardHunt .cardspire-node.rest::before{border-color:rgba(81,171,111,.56)}
+#secCardHunt .cardspire-node.event::before{border-color:rgba(145,96,183,.58)}
+#secCardHunt .cardspire-node.treasure::before,
+#secCardHunt .cardspire-node.shop::before{border-color:rgba(221,175,65,.6)}
+#secCardHunt .cardspire-node.boss::before{border-color:rgba(226,78,50,.78)}
+#secCardHunt .cardspire-map-row.future .cardspire-node{
+  opacity:.48;
+}
+#secCardHunt .cardspire-map-row.future .node-portrait img{
+  filter:grayscale(1) brightness(.13) contrast(1.5);
+}
+#secCardHunt .cardspire-map-row.future .cardspire-node b{color:#6f6759}
+#secCardHunt .cardspire-map-row.passed{opacity:1}
+#secCardHunt .cardspire-map-row.passed .cardspire-node{opacity:.14}
+#secCardHunt .cardspire-map-row.passed .cardspire-node.visited{
+  opacity:.72;
+  filter:drop-shadow(0 0 8px rgba(225,176,58,.28));
+}
+#secCardHunt .cardspire-map-row.passed .node-portrait img{
+  filter:sepia(.7) grayscale(.7) brightness(.45);
+}
+#secCardHunt .cardspire-map-row.passed .cardspire-node.visited .node-portrait img{
+  filter:sepia(.28) brightness(.72) saturate(.8);
+}
+#secCardHunt .cardspire-map-row.passed .cardspire-node.visited::before{
+  border-color:rgba(230,185,74,.56);
+  box-shadow:0 0 0 3px rgba(218,160,45,.07),0 0 17px rgba(222,171,55,.18);
+}
+#secCardHunt .cardspire-map-row.current .cardspire-node.unreachable{
+  opacity:.17;
+  filter:grayscale(1);
+  cursor:not-allowed;
+  transform:none;
+  box-shadow:none;
+}
+#secCardHunt .cardspire-map-row.current .cardspire-node.unreachable::before{
+  border-color:rgba(124,112,91,.25);
+  background:rgba(8,8,8,.74);
+  box-shadow:none;
+}
+#secCardHunt .cardspire-map-row.current .cardspire-node.unreachable .node-portrait img{
+  filter:grayscale(1) brightness(.14) contrast(1.35);
+}
+#secCardHunt .cardspire-map-row.current .cardspire-node.unreachable b,
+#secCardHunt .cardspire-map-row.current .cardspire-node.unreachable small{color:#5f584c}
+#secCardHunt .route-traveler{
+  --traveler-x:50%;
+  position:absolute;
+  top:-4px;
+  left:var(--traveler-x);
+  z-index:5;
+  display:grid;
+  justify-items:center;
+  color:#ffe28b;
+  pointer-events:none;
+  transform:translateX(-50%);
+  filter:drop-shadow(0 0 7px rgba(255,198,70,.8));
+  transition:left .32s ease;
+  animation:route-traveler-in .45s ease both;
+}
+#secCardHunt .route-traveler i{
+  width:22px;
+  height:22px;
+  display:grid;
+  place-items:center;
+  border:1px solid #edbc4b;
+  border-radius:50%;
+  background:#1a1009;
+  font:12px Spectral,serif;
+  font-style:normal;
+}
+#secCardHunt .route-traveler small{
+  margin-top:1px;
+  font:700 6px JetBrains Mono,monospace;
+  letter-spacing:.14em;
+}
+#secCardHunt .route-node-info{
+  width:min(980px,100%);
+  min-height:112px;
+  margin:0 auto;
+  padding:12px;
+  display:grid;
+  grid-template-columns:82px minmax(190px,1fr) minmax(280px,.9fr) auto;
+  align-items:center;
+  gap:16px;
+  border:1px solid rgba(218,164,53,.48);
+  border-radius:15px;
+  background:
+    radial-gradient(circle at 15% 50%,rgba(185,113,26,.13),transparent 28%),
+    linear-gradient(125deg,rgba(34,23,15,.96),rgba(12,9,8,.97));
+  box-shadow:inset 0 0 32px rgba(0,0,0,.25),0 15px 36px rgba(0,0,0,.28);
+  animation:route-info-in .24s ease both;
+}
+#secCardHunt .route-node-info>img{
+  width:82px;
+  height:82px;
+  object-fit:cover;
+  border:1px solid rgba(241,195,88,.48);
+  border-radius:50%;
+  box-shadow:0 0 20px rgba(216,156,41,.18);
+}
+#secCardHunt .route-node-info>div>small{
+  color:#d19d3d;
+  font:700 7px JetBrains Mono,monospace;
+  letter-spacing:.18em;
+}
+#secCardHunt .route-node-info h3{
+  margin:3px 0;
+  color:#f0d08a;
+  font:700 19px Cinzel,serif;
+}
+#secCardHunt .route-node-info p{
+  margin:0;
+  color:#b7a88d;
+  font:13px Spectral,serif;
+}
+#secCardHunt .route-node-info dl{
+  margin:0;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(120px,1fr));
+  gap:8px;
+}
+#secCardHunt .route-node-info dl div{
+  min-height:54px;
+  padding:8px 10px;
+  border:1px solid rgba(210,170,84,.18);
+  border-radius:9px;
+  background:rgba(4,4,4,.3);
+}
+#secCardHunt .route-node-info dt{
+  color:#8d7c60;
+  font:700 7px JetBrains Mono,monospace;
+  letter-spacing:.13em;
+}
+#secCardHunt .route-node-info dd{
+  margin:4px 0 0;
+  color:#e4c77e;
+  font:700 10px Cinzel,serif;
+}
+#secCardHunt .route-node-info>button{
+  min-width:184px;
+  min-height:54px;
+  padding:10px 14px;
+  border:1px solid #d9a83e;
+  border-radius:9px;
+  color:#f6dc9d;
+  background:linear-gradient(180deg,#5d3518,#2c180e);
+  font:700 10px Cinzel,serif;
+  letter-spacing:.07em;
+  cursor:pointer;
+  box-shadow:0 7px 18px rgba(0,0,0,.28);
+}
+#secCardHunt .route-node-info>button:hover,
+#secCardHunt .route-node-info>button:focus{
+  filter:brightness(1.18);
+  transform:translateY(-1px);
+}
+#secCardHunt .route-node-info.empty{
+  grid-template-columns:52px 1fr;
+  min-height:84px;
+}
+#secCardHunt .route-node-info.empty>span{
+  width:44px;
+  height:44px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(227,181,75,.4);
+  border-radius:50%;
+  color:#e9bb52;
+  background:rgba(14,9,6,.65);
+}
+#secCardHunt .cardspire-legend{
+  max-width:980px;
+  margin:16px auto 0;
+}
+#secCardHunt .cardspire-legend span{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:rgba(10,7,6,.66);
+}
+#secCardHunt .cardspire-legend img{
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  object-fit:cover;
+  filter:saturate(.8);
+}
+@keyframes route-dash{to{stroke-dashoffset:-130}}
+@keyframes route-traveler-in{
+  from{opacity:0;transform:translate(-50%,14px) scale(.7)}
+  to{opacity:1;transform:translate(-50%,0) scale(1)}
+}
+@keyframes route-info-in{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@media(max-width:760px){
+  #secCardHunt .cardspire-map-view{
+    padding:76px 8px 18px;
+  }
+  #secCardHunt .cardspire-map-copy{
+    padding:0 8px;
+  }
+  #secCardHunt .cardspire-map-copy h2{font-size:28px}
+  #secCardHunt .cardspire-map-copy span{font-size:11px}
+  #secCardHunt .cardspire-map-board{
+    height:455px;
+    margin:16px auto 12px;
+    border-radius:13px;
+    background-position:center;
+  }
+  #secCardHunt .cardspire-map-routes{
+    inset:12px 1% 10px;
+    width:98%;
+    height:calc(100% - 22px);
+  }
+  #secCardHunt .cardspire-map{
+    width:98%;
+    padding:10px 0;
+  }
+  #secCardHunt .cardspire-map-row{
+    gap:0;
+    padding:0;
+  }
+  #secCardHunt .cardspire-node{
+    width:100%;
+    min-width:0;
+    min-height:80px;
+    padding:2px 2px 4px;
+  }
+  #secCardHunt .cardspire-node::before{
+    top:0;
+    right:auto;
+    bottom:auto;
+    left:50%;
+    width:56px;
+    height:56px;
+  }
+  #secCardHunt .cardspire-node .node-portrait{
+    width:50px;
+    height:50px;
+    flex-basis:50px;
+    padding:2px;
+  }
+  #secCardHunt .cardspire-node b{
+    max-width:100%;
+    overflow:hidden;
+    font-size:7.5px;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  #secCardHunt .cardspire-node small{font-size:5.5px}
+  #secCardHunt .route-traveler{top:-7px}
+  #secCardHunt .route-node-info{
+    padding:10px;
+    grid-template-columns:58px minmax(0,1fr);
+    gap:9px;
+  }
+  #secCardHunt .route-node-info>img{
+    width:58px;
+    height:58px;
+  }
+  #secCardHunt .route-node-info h3{font-size:15px}
+  #secCardHunt .route-node-info p{font-size:11px;line-height:1.3}
+  #secCardHunt .route-node-info dl{
+    grid-column:1/3;
+    grid-template-columns:1fr 1.35fr;
+  }
+  #secCardHunt .route-node-info dl div{min-height:48px;padding:7px}
+  #secCardHunt .route-node-info>button{
+    grid-column:1/3;
+    width:100%;
+    min-height:46px;
+  }
+  #secCardHunt .route-node-info.empty{
+    min-height:76px;
+    grid-template-columns:42px 1fr;
+  }
+  #secCardHunt .cardspire-legend{
+    justify-content:flex-start;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    padding-bottom:4px;
+    scrollbar-width:none;
+  }
+  #secCardHunt .cardspire-legend::-webkit-scrollbar{display:none}
+  #secCardHunt .cardspire-legend span{
+    flex:0 0 auto;
+    font-size:7px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #secCardHunt .cardspire-map-routes path,
+  #secCardHunt .route-traveler,
+  #secCardHunt .route-node-info{animation:none}
+}
+#secCardHunt .cardspire-fighters .fighter-card.class-warrior{--fighter-accent:#e0ad4f;--fighter-glow:rgba(224,173,79,.22)}
+#secCardHunt .cardspire-fighters .fighter-card.class-archer{--fighter-accent:#70c989;--fighter-glow:rgba(61,176,100,.22)}
+#secCardHunt .cardspire-fighters .fighter-card.class-mage{--fighter-accent:#8b70e7;--fighter-glow:rgba(132,92,229,.25)}
+#secCardHunt .cardspire-fighters .fighter-card.class-priest{--fighter-accent:#f1d88b;--fighter-glow:rgba(237,200,104,.24)}
+#secCardHunt .cardspire-fighters .fighter-card.class-assassin{--fighter-accent:#d5619b;--fighter-glow:rgba(206,65,133,.24)}
+#secCardHunt .cardspire-fighters .fighter-card.class-tamer{--fighter-accent:#4fc9b2;--fighter-glow:rgba(52,182,155,.23)}
+#secCardHunt .cardspire-fighters .fighter-card.hero{border-color:var(--fighter-accent,#e0ad4f)}
+#secCardHunt .cardspire-fighters .fighter-card.enemy-card.elite{border-color:#ae70df;background:linear-gradient(135deg,rgba(24,11,34,.74),rgba(56,29,69,.52))}
+#secCardHunt .cardspire-fighters .fighter-card.enemy-card.boss{border-color:#e66845;background:linear-gradient(135deg,rgba(43,12,9,.74),rgba(77,25,14,.52))}
+#secCardHunt .cardspire-fighters .fighter-card .fighter-art,
+#secCardHunt .cardspire-fighters .fighter-card .enemy-symbol{
+  position:relative;width:126px;height:166px;overflow:hidden;border-radius:13px;
+  background:radial-gradient(circle at 50% 28%,var(--fighter-glow,rgba(216,111,42,.2)),rgba(6,8,9,.88) 73%);
+  border-color:var(--fighter-accent,#d6964c);box-shadow:0 0 22px var(--fighter-glow,rgba(206,109,42,.17)),inset 0 0 20px rgba(0,0,0,.64);
+}
+#secCardHunt .cardspire-fighters .fighter-card.enemy-card .enemy-symbol{--fighter-accent:#db914c;--fighter-glow:rgba(207,91,38,.2)}
+#secCardHunt .cardspire-fighters .fighter-card.enemy-card.elite .enemy-symbol{--fighter-accent:#ae70df;--fighter-glow:rgba(148,78,209,.26)}
+#secCardHunt .cardspire-fighters .fighter-card.enemy-card.boss .enemy-symbol{--fighter-accent:#f36d49;--fighter-glow:rgba(226,55,34,.28)}
+#secCardHunt .cardspire-fighters .fighter-card .fighter-art img,
+#secCardHunt .cardspire-fighters .fighter-card .enemy-symbol img{filter:drop-shadow(0 11px 9px rgba(0,0,0,.7));}
+#secCardHunt .fighter-frame-label{position:absolute;left:7px;bottom:7px;z-index:2;padding:3px 5px;border:1px solid color-mix(in srgb,var(--fighter-accent,#d6964c),#fff 20%);border-radius:4px;background:rgba(8,8,7,.84);color:var(--fighter-accent,#dfb35d);font:700 7px JetBrains Mono,monospace;letter-spacing:.1em}
+#secCardHunt .fighter-kicker{display:flex;align-items:center;justify-content:space-between;gap:7px;margin-bottom:2px}
+#secCardHunt .fighter-role{padding:3px 5px;border:1px solid rgba(230,187,93,.26);border-radius:999px;color:#d9bd7c!important;font:700 7px JetBrains Mono,monospace!important;letter-spacing:.04em;white-space:nowrap}
+#secCardHunt .threat-elite{color:#d4a2ff!important;border-color:rgba(193,118,245,.45)}
+#secCardHunt .threat-boss{color:#ff9a72!important;border-color:rgba(238,94,53,.5)}
+#secCardHunt .fighter-card .fighter-health{display:block;margin-top:5px;color:#e9d5a7!important;font:700 9px JetBrains Mono,monospace!important;letter-spacing:.04em}
+#secCardHunt .fighter-card .bar{width:100%;max-width:230px;border-radius:999px;box-shadow:0 0 10px rgba(0,0,0,.4)}
+#secCardHunt .fighter-card.enemy-card .bar{margin-left:auto}
+#secCardHunt .fighter-card .combat-states{margin-top:8px}
+#secCardHunt .fighter-card .combat-states:empty{display:none}
+#secCardHunt .fighter-card.enemy-card .fighter-kicker{justify-content:flex-end}
+
+@media(max-width:700px){
+  #secCardHunt .cardspire-fighters .fighter-card{padding:6px;border-radius:10px;background:linear-gradient(135deg,rgba(8,12,13,.66),rgba(49,29,16,.48))}
+  #secCardHunt .cardspire-fighters .fighter-card .fighter-art,
+  #secCardHunt .cardspire-fighters .fighter-card .enemy-symbol{width:76px;height:92px;border-radius:9px}
+  #secCardHunt .fighter-frame-label{left:3px;bottom:3px;padding:2px 3px;font-size:5px}
+  #secCardHunt .fighter-role{max-width:70px;overflow:hidden;text-overflow:ellipsis;font-size:5px!important}
+  #secCardHunt .fighter-card .fighter-health{font-size:7px!important}
+  #secCardHunt .fighter-card .fighter-kicker{gap:3px}
+}
+
+/* Feedback de turno: movimiento corto, estados reconocibles y tensión ante golpes cargados. */
+#secCardHunt .cardspire-combat{position:relative}
+#secCardHunt .cardspire-combat::after{content:"";position:absolute;inset:42px 0 132px;pointer-events:none;opacity:0;transition:opacity .25s;background:radial-gradient(ellipse at center,rgba(239,184,76,.12),transparent 58%)}
+#secCardHunt .cardspire-combat:has(.intent-charge)::after{opacity:1;background:radial-gradient(ellipse at 74% 40%,rgba(215,62,38,.22),transparent 60%);animation:cardspire-tension 1.25s ease-in-out infinite}
+#secCardHunt .cardspire-combat:has(.intent-charge) .cardspire-battle-top{border-color:rgba(237,91,64,.72);box-shadow:0 0 17px rgba(206,62,39,.16)}
+#secCardHunt .cardspire-combat:has(.intent-charge) .cardspire-end{box-shadow:0 0 19px rgba(238,80,49,.3)}
+
+#secCardHunt .cardspire-combat.hero-action .fighter.hero{animation:cardspire-hero-lunge .6s cubic-bezier(.22,.75,.35,1) both}
+#secCardHunt .cardspire-combat.hero-action .fighter.enemy .enemy-symbol{animation:cardspire-hit .55s ease both}
+#secCardHunt .cardspire-combat.enemy-action .fighter.enemy{animation:cardspire-enemy-lunge .6s cubic-bezier(.22,.75,.35,1) both}
+#secCardHunt .cardspire-combat.enemy-action .fighter.hero .fighter-art{animation:cardspire-hit .55s ease both}
+#secCardHunt .cardspire-combat.enter-action .fighter.hero{animation:cardspire-enter-left .58s ease-out both}
+#secCardHunt .cardspire-combat.enter-action .fighter.enemy{animation:cardspire-enter-right .58s ease-out both}
+#secCardHunt .cardspire-combat.hero-action .cardspire-impact{border-color:#f0c352;box-shadow:0 0 34px rgba(251,199,77,.55)}
+#secCardHunt .cardspire-combat.enemy-action .cardspire-impact{border-color:#f06b4d;box-shadow:0 0 34px rgba(238,79,53,.5)}
+
+#secCardHunt .cardspire-card:not(.locked){box-shadow:0 9px 18px rgba(0,0,0,.28),inset 0 1px rgba(255,235,180,.05)}
+#secCardHunt .cardspire-card:not(.locked)::before{content:"";position:absolute;inset:0;border-radius:inherit;opacity:0;pointer-events:none;background:linear-gradient(125deg,transparent 20%,rgba(255,239,177,.17),transparent 55%);transition:opacity .18s}
+#secCardHunt .cardspire-card:not(.locked):hover::before{opacity:1}
+#secCardHunt .cardspire-card:not(.locked):hover{box-shadow:0 18px 30px rgba(0,0,0,.38),0 0 18px rgba(240,188,81,.16)}
+#secCardHunt .cardspire-card:not(.locked):active{transform:translateY(-15px) scale(.96);filter:brightness(1.17);transition-duration:.08s}
+#secCardHunt .cardspire-card.attack .card-cost,#secCardHunt .cardspire-card.bash .card-cost{background:#dc7641}
+#secCardHunt .cardspire-card.block .card-cost{background:#5ea9dd}
+#secCardHunt .cardspire-card.strength .card-cost{background:#e1b63e}
+#secCardHunt .cardspire-card[data-card^="warrior-"]{--deck-accent:#e0ad4f;border-color:color-mix(in srgb,#e0ad4f 68%,#5c351d)}
+#secCardHunt .cardspire-card[data-card^="archer-"]{--deck-accent:#70d58c;border-color:#4d9e68;background:linear-gradient(160deg,#183b2a,#111a16)}
+#secCardHunt .cardspire-card[data-card^="mage-"]{--deck-accent:#9675f4;border-color:#7c61ce;background:linear-gradient(160deg,#2d2150,#151323)}
+#secCardHunt .cardspire-card[data-card^="priest-"]{--deck-accent:#f0d17a;border-color:#d4b75f;background:linear-gradient(160deg,#493c20,#1d1911)}
+#secCardHunt .cardspire-card[data-card^="assassin-"]{--deck-accent:#d86da7;border-color:#aa4d7f;background:linear-gradient(160deg,#3f1e38,#19111a)}
+#secCardHunt .cardspire-card[data-card^="tamer-"]{--deck-accent:#52d2af;border-color:#369f83;background:linear-gradient(160deg,#173e36,#101b18)}
+#secCardHunt .cardspire-card[data-card] em{padding:3px 6px;border:1px solid color-mix(in srgb,var(--deck-accent,#77bde2) 55%,transparent);border-radius:999px;background:rgba(5,8,9,.72);color:var(--deck-accent,#77bde2);font-weight:800}
+#secCardHunt .cardspire-card[data-card^="archer-"] .card-cost,
+#secCardHunt .cardspire-card[data-card^="tamer-"] .card-cost{background:#56bd82}
+#secCardHunt .cardspire-card[data-card^="mage-"] .card-cost{background:#8567de;color:#fff}
+#secCardHunt .cardspire-card[data-card^="priest-"] .card-cost{background:#e6c55d}
+#secCardHunt .cardspire-card[data-card^="assassin-"] .card-cost{background:#c65a94;color:#fff}
+
+#secCardHunt .combat-states span{position:relative;box-shadow:inset 0 0 8px rgba(0,0,0,.24)}
+#secCardHunt .hero-states span:first-child{color:#8edaff!important;border-color:#4b9fc4;background:rgba(35,95,124,.24)}
+#secCardHunt .hero-states span:nth-child(2){color:#ffd879!important;border-color:#d49f3c;background:rgba(130,82,20,.22)}
+#secCardHunt .enemy-states span:first-child{color:#bfe6ff!important;border-color:#518fcb;background:rgba(35,72,121,.25)}
+#secCardHunt .enemy-states span:nth-child(2){color:#ff9ed8!important;border-color:#cc609a;background:rgba(112,30,82,.28)}
+#secCardHunt .fighter-card .intent-charge{position:relative;padding-left:21px!important;background:linear-gradient(90deg,rgba(125,22,18,.52),rgba(41,10,9,.72));letter-spacing:.035em}
+#secCardHunt .fighter-card .intent-charge::before{content:"✦";position:absolute;left:7px;top:4px;color:#ff7960;animation:cardspire-pulse .75s ease-in-out infinite}
+#secCardHunt .fighter-card .intent-guard{background:linear-gradient(90deg,rgba(20,68,104,.42),rgba(10,22,35,.76))}
+
+@keyframes cardspire-hero-lunge{0%{transform:translateX(0)}42%{transform:translateX(17px) scale(1.015)}72%{transform:translateX(-4px)}100%{transform:translateX(0)}}
+@keyframes cardspire-enemy-lunge{0%{transform:translateX(0)}42%{transform:translateX(-17px) scale(1.015)}72%{transform:translateX(4px)}100%{transform:translateX(0)}}
+@keyframes cardspire-enter-left{0%{opacity:0;transform:translateX(-28px)}100%{opacity:1;transform:translateX(0)}}
+@keyframes cardspire-enter-right{0%{opacity:0;transform:translateX(28px)}100%{opacity:1;transform:translateX(0)}}
+@keyframes cardspire-hit{0%,100%{filter:none}22%{filter:brightness(2.1) saturate(1.6);transform:translateX(5px)}48%{filter:brightness(.75) saturate(.7);transform:translateX(-6px)}70%{transform:translateX(3px)}}
+@keyframes cardspire-tension{50%{filter:brightness(1.4);opacity:.72}}
+@keyframes cardspire-pulse{50%{transform:scale(1.35);text-shadow:0 0 10px #ff7457}}
+
+@media(max-width:700px){
+  #secCardHunt .cardspire-combat::after{inset:35px 0 116px}
+  #secCardHunt .cardspire-card:not(.locked):active{transform:scale(.97)}
+  #secCardHunt .fighter-card .intent-charge{padding-left:15px!important}
+  #secCardHunt .fighter-card .intent-charge::before{left:4px;top:2px}
+}
+
+/* Lenguaje visual propio de cada familia de cartas. */
+#secCardHunt .cardspire-fighters::after{content:"";position:absolute;z-index:3;left:18%;top:18%;width:64%;height:64%;pointer-events:none;opacity:0}
+#secCardHunt .cardspire-impact .skill-fx-layer{position:absolute;inset:-20px;border-radius:inherit;z-index:-1;pointer-events:none}
+
+/* Guerrero: cortes de acero, choque de escudo y grito de guerra. */
+#secCardHunt .skill-slash .cardspire-fighters::after,
+#secCardHunt .skill-breaker .cardspire-fighters::after{
+  opacity:1;background:linear-gradient(118deg,transparent 43%,rgba(255,224,145,.95) 47%,#fff 49%,rgba(238,116,46,.8) 51%,transparent 56%);
+  filter:drop-shadow(0 0 10px #f4b34d);animation:fx-warrior-slash .58s ease-out both
+}
+#secCardHunt .skill-breaker .cardspire-fighters::after{background:linear-gradient(70deg,transparent 40%,rgba(255,91,44,.9) 46%,#fff1c7 49%,rgba(255,149,48,.8) 52%,transparent 58%)}
+#secCardHunt .skill-shield .fighter.hero::after{content:"";position:absolute;z-index:4;left:39px;top:50%;width:105px;height:105px;border:4px double #82c8ef;clip-path:polygon(50% 0,91% 18%,84% 73%,50% 100%,16% 73%,9% 18%);background:rgba(55,142,202,.12);box-shadow:0 0 26px #54aeda;animation:fx-shield .62s ease-out both;pointer-events:none}
+#secCardHunt .skill-warcry .cardspire-fighters{animation:fx-warcry .65s ease-out both}
+
+/* Arquero: proyectiles visibles, lluvia de flechas y marca. */
+#secCardHunt .skill-arrow .cardspire-fighters::after,
+#secCardHunt .skill-volley .cardspire-fighters::after{
+  opacity:1;left:23%;top:45%;width:55%;height:3px;background:linear-gradient(90deg,transparent,#dfffd7 20%,#78e486 72%,transparent);
+  box-shadow:0 0 10px #5ad67b;animation:fx-arrow .55s cubic-bezier(.15,.8,.35,1) both
+}
+#secCardHunt .skill-volley .cardspire-fighters::after{height:42px;background:repeating-linear-gradient(168deg,transparent 0 9px,#a8f2a9 10px 12px,transparent 13px 20px)}
+#secCardHunt .skill-mark .fighter.enemy::after{content:"◎";position:absolute;z-index:4;right:52px;top:42%;color:#ffdb69;font-size:72px;line-height:1;text-shadow:0 0 17px #d39a24;animation:fx-mark .65s ease-out both;pointer-events:none}
+#secCardHunt .skill-wind .fighter.hero{filter:drop-shadow(-18px 0 8px rgba(90,217,156,.4));animation:fx-wind .62s ease-out both}
+
+/* Alquimia de Caza: corrosión acumulable, ráfagas y detonaciones. */
+#secCardHunt .cardspire-card[data-card*="corrosive"],
+#secCardHunt .cardspire-card[data-card*="poison"],
+#secCardHunt .cardspire-card[data-card*="caustic"],
+#secCardHunt .cardspire-card[data-card*="catalyst"],
+#secCardHunt .cardspire-card[data-card*="emerald"]{
+  border-color:#69df80;
+  box-shadow:0 9px 18px rgba(0,0,0,.3),inset 0 0 18px rgba(80,205,104,.08);
+}
+#secCardHunt .skill-acid-arrow .cardspire-fighters::after,
+#secCardHunt .skill-needles .cardspire-fighters::after,
+#secCardHunt .skill-acid-rain .cardspire-fighters::after{
+  opacity:1;left:25%;top:39%;width:55%;height:55px;
+  background:repeating-linear-gradient(171deg,transparent 0 12px,#dbffd9 13px 14px,#50e66a 15px 17px,transparent 18px 28px);
+  filter:drop-shadow(0 0 10px #42e15f);animation:fx-acid-barrage .62s ease-out both
+}
+#secCardHunt .skill-acid-arrow .cardspire-fighters::after{height:4px;background:linear-gradient(90deg,transparent,#eaffd8 24%,#48e466 76%,transparent)}
+#secCardHunt .skill-needles .cardspire-fighters::after{height:36px;background:repeating-linear-gradient(176deg,transparent 0 7px,#caffc5 8px 9px,#4ee66a 10px 11px,transparent 12px 19px)}
+#secCardHunt .skill-catalyst .fighter.enemy::after,
+#secCardHunt .skill-acid-storm .fighter.enemy::after{
+  content:"";position:absolute;z-index:4;right:17px;top:18%;width:150px;height:150px;border-radius:50%;
+  background:repeating-conic-gradient(from 12deg,transparent 0 12deg,#dcffd8 13deg 15deg,#42dd5c 16deg 19deg,transparent 20deg 34deg);
+  box-shadow:0 0 42px rgba(68,226,95,.72),inset 0 0 24px rgba(158,255,139,.44);
+  animation:fx-acid-detonate .72s ease-out both;pointer-events:none
+}
+#secCardHunt .skill-acid-storm .cardspire-fighters::after{
+  opacity:1;left:30%;top:10%;width:56%;height:75%;
+  border:5px solid rgba(74,229,101,.75);border-left-color:transparent;border-radius:50%;
+  filter:drop-shadow(0 0 12px #46d85e);animation:fx-acid-storm .78s ease-out both
+}
+#secCardHunt .enemy-states .acid-state{color:#9cff9f!important;border-color:#43b85d;background:rgba(28,104,43,.3)}
+
+/* Acecho del Cazador: lectura de la presa, precisión y remate. */
+#secCardHunt .cardspire-card[data-card*="archer-hunter-"]{
+  border-color:#dcb95a;
+  background:linear-gradient(160deg,#211d17 0%,#151617 58%,#17130f 100%);
+  box-shadow:0 9px 18px rgba(0,0,0,.34),inset 0 0 22px rgba(220,185,90,.08);
+}
+#secCardHunt .cardspire-card[data-card*="hunter-shadow"]{border-color:#7aa9c7;background:linear-gradient(160deg,#15212a,#111318 62%,#18151a)}
+#secCardHunt .cardspire-card[data-card*="hunter-sentence"]{border-color:#cf7047;background:linear-gradient(160deg,#2a1713,#171313 60%,#21130f)}
+#secCardHunt .enemy-states .marked-state{color:#ffe08a!important;border-color:#d2a53c;background:rgba(103,71,19,.34);box-shadow:0 0 12px rgba(231,181,62,.18)}
+#secCardHunt .skill-prey-mark .fighter.enemy::after{
+  content:"";position:absolute;z-index:4;right:18px;top:13%;width:154px;height:154px;border-radius:50%;
+  background:repeating-radial-gradient(circle,transparent 0 20px,rgba(255,220,116,.92) 21px 23px,transparent 24px 38px);
+  border:2px solid #e3ba50;box-shadow:0 0 25px rgba(226,176,59,.62),inset 0 0 24px rgba(238,185,54,.2);
+  animation:fx-hunter-mark .75s ease-out both;pointer-events:none
+}
+#secCardHunt .skill-hawk-eye .fighter.hero::after{
+  content:"◉";position:absolute;z-index:4;left:44px;top:38%;width:106px;height:106px;border-radius:50%;
+  display:grid;place-items:center;color:#fff2b9;font-size:54px;border:2px solid #e2ba5a;
+  background:radial-gradient(circle,rgba(255,222,115,.23),rgba(17,26,34,.3) 56%,transparent 70%);
+  box-shadow:0 0 28px rgba(229,187,79,.62);animation:fx-hawk-eye .68s ease-out both;pointer-events:none
+}
+#secCardHunt .skill-piercing-arrow .cardspire-fighters::after{
+  opacity:1;left:20%;top:44%;width:67%;height:6px;
+  background:linear-gradient(90deg,transparent 0,#a7c8df 13%,#fff8d1 48%,#fff 63%,#e6af45 76%,transparent 100%);
+  box-shadow:0 0 12px #f3cf78,0 0 25px rgba(129,190,230,.48);
+  animation:fx-piercing-arrow .6s cubic-bezier(.13,.82,.28,1) both
+}
+#secCardHunt .skill-shadow-step .fighter.hero{
+  filter:drop-shadow(-25px 0 10px rgba(119,171,204,.56)) drop-shadow(-48px 0 14px rgba(73,99,132,.28));
+  animation:fx-shadow-step .7s ease-out both
+}
+#secCardHunt .skill-hunter-sentence .cardspire-fighters::after{
+  opacity:1;left:62%;top:7%;width:164px;height:78%;
+  background:linear-gradient(92deg,transparent 43%,rgba(255,239,179,.85) 48%,#fff 50%,rgba(224,151,52,.82) 53%,transparent 59%);
+  filter:drop-shadow(0 0 14px #e6a43c);animation:fx-hunter-sentence .78s ease-in both
+}
+#secCardHunt .skill-hunter-sentence .fighter.enemy::after{
+  content:"";position:absolute;z-index:4;right:28px;top:20%;width:130px;height:130px;border-radius:50%;
+  border:3px solid #dc6047;box-shadow:0 0 30px #d35137,inset 0 0 22px rgba(218,72,48,.38);
+  background:repeating-conic-gradient(transparent 0 38deg,#f0bb62 39deg 41deg,transparent 42deg 83deg);
+  animation:fx-hunter-mark .72s ease-out both;pointer-events:none
+}
+
+/* Maestro de Trampas: hierro, cuero y mecanismos que reaccionan al turno rival. */
+#secCardHunt .cardspire-card[data-card*="archer-trap-"]{
+  border-color:#b98242;
+  background:
+    linear-gradient(145deg,rgba(113,73,31,.17),transparent 42%),
+    linear-gradient(160deg,#211a13 0%,#151515 62%,#17120f 100%);
+  box-shadow:0 9px 18px rgba(0,0,0,.36),inset 0 0 22px rgba(183,129,62,.09);
+}
+#secCardHunt .cardspire-card[data-card*="trap-snare"]{border-color:#89949b}
+#secCardHunt .cardspire-card[data-card*="trap-net"]{border-color:#8ea267}
+#secCardHunt .cardspire-card[data-card*="trap-decoy"]{border-color:#d66d3c;background:linear-gradient(160deg,#2a1810,#181411 62%,#21130d)}
+#secCardHunt .cardspire-card[data-card*="trap-mastery"]{border-color:#e1b84d;box-shadow:0 9px 18px rgba(0,0,0,.36),inset 0 0 25px rgba(226,182,74,.13)}
+#secCardHunt .skill-trap-spikes .fighter.enemy::after{
+  content:"";position:absolute;z-index:4;right:12px;bottom:8%;width:170px;height:92px;pointer-events:none;
+  background:repeating-conic-gradient(from 15deg at 50% 100%,transparent 0 9deg,#d4b17d 10deg 15deg,#5f5141 16deg 21deg,transparent 22deg 39deg);
+  filter:drop-shadow(0 0 7px #d2943e);transform-origin:50% 100%;animation:fx-trap-spikes .68s ease-out both
+}
+#secCardHunt .skill-trap-snare .fighter.enemy::after{
+  content:"";position:absolute;z-index:4;right:20px;bottom:9%;width:145px;height:72px;border:10px solid #81888c;border-radius:50%;pointer-events:none;
+  background:repeating-conic-gradient(from 0deg,transparent 0 15deg,#d5bb83 16deg 20deg,transparent 21deg 45deg);
+  box-shadow:0 0 22px rgba(208,164,86,.55),inset 0 0 18px rgba(0,0,0,.8);animation:fx-trap-snare .66s cubic-bezier(.18,.83,.3,1.28) both
+}
+#secCardHunt .skill-trap-net .fighter.enemy::after{
+  content:"";position:absolute;z-index:4;right:7px;top:8%;width:185px;height:185px;border-radius:46% 54% 48% 52%;pointer-events:none;
+  background:
+    repeating-linear-gradient(38deg,transparent 0 17px,rgba(206,184,130,.85) 18px 20px,transparent 21px 36px),
+    repeating-linear-gradient(142deg,transparent 0 17px,rgba(139,159,93,.88) 18px 20px,transparent 21px 36px);
+  filter:drop-shadow(0 0 9px #9fa663);animation:fx-trap-net .72s ease-out both
+}
+#secCardHunt .skill-trap-decoy .fighter.enemy::after{
+  content:"";position:absolute;z-index:4;right:8px;top:5%;width:205px;height:205px;border-radius:50%;pointer-events:none;
+  background:repeating-conic-gradient(from 8deg,transparent 0 9deg,#fff0a8 10deg 12deg,#f67532 13deg 18deg,transparent 19deg 32deg);
+  box-shadow:0 0 42px rgba(241,94,35,.72),inset 0 0 38px rgba(255,185,59,.46);
+  animation:fx-trap-decoy .72s ease-out both
+}
+#secCardHunt .skill-trap-mastery .fighter.hero::after{
+  content:"⚙";position:absolute;z-index:4;left:30px;top:24%;width:130px;height:130px;display:grid;place-items:center;border:2px solid #d6ad50;border-radius:50%;
+  color:#ffe3a0;font-size:72px;background:radial-gradient(circle,rgba(216,171,69,.2),rgba(37,26,16,.42) 57%,transparent 70%);
+  box-shadow:0 0 28px rgba(224,176,69,.58);animation:fx-trap-mastery .78s ease-out both;pointer-events:none
+}
+
+/* Elección de Ojo de Halcón. */
+#secCardHunt .hunter-choice-backdrop{position:fixed;z-index:1200;inset:0;display:grid;place-items:center;padding:24px;background:rgba(4,7,9,.84);backdrop-filter:blur(9px)}
+#secCardHunt .hunter-choice-panel{width:min(860px,94vw);padding:28px;border:1px solid #c79b3c;border-radius:18px;text-align:center;background:radial-gradient(circle at 50% 0,rgba(102,128,148,.18),transparent 42%),linear-gradient(150deg,#191b1d,#100f0e 70%);box-shadow:0 24px 80px #000,inset 0 0 36px rgba(210,170,71,.07);animation:hunter-choice-in .28s ease-out both}
+#secCardHunt .hunter-choice-eye{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 8px;border:1px solid #e0b855;border-radius:50%;color:#ffe393;font-size:29px;box-shadow:0 0 22px rgba(224,184,85,.35)}
+#secCardHunt .hunter-choice-panel>small{color:#dbb85d;letter-spacing:4px;font-weight:900}
+#secCardHunt .hunter-choice-panel h3{margin:8px 0 4px;color:#f8e5b5;font-size:clamp(23px,3vw,35px)}
+#secCardHunt .hunter-choice-panel p{margin:0 0 20px;color:#aaa092;line-height:1.55}
+#secCardHunt .hunter-choice-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+#secCardHunt .hunter-choice-card{min-height:235px;padding:9px 9px 14px;border:1px solid #8f7134;border-radius:12px;color:#e8d5a5;background:#17140f;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:.2s ease}
+#secCardHunt .hunter-choice-card:hover{transform:translateY(-7px);border-color:#f0c65e;box-shadow:0 14px 28px #000,0 0 22px rgba(224,181,72,.2)}
+#secCardHunt .hunter-choice-card img{width:100%;height:124px;object-fit:cover;border-radius:8px;border:1px solid rgba(224,184,86,.45)}
+#secCardHunt .hunter-choice-card>b{font-family:Georgia,serif;font-size:16px;text-transform:uppercase}
+#secCardHunt .hunter-choice-card>small{color:#b8ad99;line-height:1.35}
+#secCardHunt .cardspire-end:disabled{opacity:.45;cursor:not-allowed}
+
+/* Mago: energía arcana, runas y nova expansiva. */
+#secCardHunt .skill-arcane .cardspire-fighters::after,
+#secCardHunt .skill-nova .cardspire-fighters::after{
+  opacity:1;left:63%;top:34%;width:78px;height:78px;border-radius:50%;
+  background:radial-gradient(circle,#fff 0 8%,#6ccfff 15%,#6842ee 43%,rgba(85,30,180,.18) 65%,transparent 72%);
+  box-shadow:0 0 35px #7657ff;animation:fx-arcane .62s ease-out both
+}
+#secCardHunt .skill-nova .cardspire-fighters::after{width:150px;height:150px;left:59%;top:21%;animation-name:fx-nova}
+#secCardHunt .skill-rune .fighter.hero::after{content:"✧";position:absolute;z-index:4;left:43px;top:44%;width:95px;height:95px;border:2px solid #8bdcff;border-radius:50%;display:grid;place-items:center;color:#c8f2ff;font-size:55px;box-shadow:0 0 24px #5174ff,inset 0 0 18px #3b70b8;animation:fx-rune .7s ease-out both;pointer-events:none}
+#secCardHunt .skill-surge .fighter.hero{filter:drop-shadow(0 0 18px rgba(128,83,255,.75));animation:fx-surge .68s ease-out both}
+#secCardHunt .skill-echoes .cardspire-fighters::after{
+  opacity:1;left:36%;top:34%;width:45%;height:76px;
+  background:
+    radial-gradient(circle at 72% 24%,#fff 0 4%,#77d8ff 7%,#7654f1 18%,transparent 29%),
+    radial-gradient(circle at 91% 76%,#fff 0 4%,#77d8ff 7%,#7654f1 18%,transparent 29%);
+  filter:drop-shadow(0 0 12px #7059ff);animation:fx-echoes .66s ease-out both
+}
+#secCardHunt .skill-fracture .fighter.enemy::after{
+  content:"";position:absolute;z-index:4;right:34px;top:28%;width:112px;height:112px;border-radius:50%;
+  background:repeating-conic-gradient(from 12deg,transparent 0 12deg,#d599ff 13deg 15deg,transparent 16deg 34deg);
+  border:2px solid rgba(201,133,255,.8);box-shadow:0 0 28px #8c45df,inset 0 0 24px rgba(124,55,194,.5);
+  animation:fx-fracture .7s ease-out both;pointer-events:none
+}
+
+/* Sacerdote: destellos, sanación y juicio solar. */
+#secCardHunt .skill-holy .cardspire-fighters::after,
+#secCardHunt .skill-judgement .cardspire-fighters::after{
+  opacity:1;left:65%;top:24%;width:115px;height:115px;border-radius:50%;
+  background:repeating-conic-gradient(from 0deg,#fff4bb 0 3deg,transparent 4deg 20deg);
+  filter:drop-shadow(0 0 13px #f2cc63);animation:fx-holy .62s ease-out both
+}
+#secCardHunt .skill-judgement .cardspire-fighters::after{width:165px;height:165px;left:60%;top:16%}
+#secCardHunt .skill-aegis .fighter.hero::after{content:"✙";position:absolute;z-index:4;left:41px;top:43%;width:100px;height:100px;border:3px solid #ffe69a;border-radius:50%;display:grid;place-items:center;color:#fff1bd;font-size:49px;background:rgba(255,220,117,.11);box-shadow:0 0 28px #e8bd4d;animation:fx-shield .65s ease-out both;pointer-events:none}
+#secCardHunt .skill-heal .fighter.hero{filter:drop-shadow(0 0 20px rgba(105,245,156,.72));animation:fx-heal .72s ease-out both}
+#secCardHunt .skill-consecration .fighter.hero::after{
+  content:"";
+  position:absolute;
+  z-index:3;
+  left:-5%;
+  bottom:-17px;
+  width:110%;
+  height:74px;
+  border:2px solid rgba(255,225,139,.9);
+  border-radius:50%;
+  background:repeating-conic-gradient(from 10deg,rgba(255,236,171,.18) 0 5deg,transparent 6deg 18deg);
+  box-shadow:0 0 16px #e9b944,inset 0 0 25px rgba(255,221,119,.25);
+  animation:fx-consecration .82s ease-out both;
+  pointer-events:none
+}
+@keyframes fx-consecration{
+  0%{opacity:0;transform:scale(.45) rotate(-14deg)}
+  45%{opacity:1;transform:scale(1.08) rotate(3deg)}
+  100%{opacity:0;transform:scale(1.25) rotate(8deg)}
+}
+
+/* Asesino: humo, cortes púrpura y ráfagas de dagas. */
+#secCardHunt .skill-shadow .cardspire-fighters::after,
+#secCardHunt .skill-daggers .cardspire-fighters::after,
+#secCardHunt .skill-bleed .cardspire-fighters::after{
+  opacity:1;background:repeating-linear-gradient(125deg,transparent 0 18px,rgba(217,84,255,.9) 20px 22px,#fff 23px,transparent 26px 43px);
+  filter:drop-shadow(0 0 11px #9c43e8);animation:fx-shadow .58s ease-out both
+}
+#secCardHunt .skill-daggers .cardspire-fighters::after{background:repeating-linear-gradient(112deg,transparent 0 12px,#efe0ff 13px 15px,#a543dd 16px 19px,transparent 20px 32px)}
+#secCardHunt .skill-bleed .cardspire-fighters::after{filter:hue-rotate(305deg) drop-shadow(0 0 12px #e53668)}
+#secCardHunt .skill-smoke .fighter.hero{filter:blur(.4px) drop-shadow(-18px 0 12px rgba(127,67,174,.72));animation:fx-smoke .65s ease-out both}
+#secCardHunt .skill-poison .fighter.enemy::after{
+  content:"☠";position:absolute;z-index:5;right:22px;top:18%;width:142px;height:142px;border-radius:50%;
+  display:grid;place-items:center;color:#d9ffbf;font-size:68px;
+  background:radial-gradient(circle,rgba(91,229,76,.42),rgba(26,106,35,.24) 48%,transparent 72%);
+  border:2px solid rgba(117,238,91,.76);box-shadow:0 0 36px rgba(79,230,73,.65),inset 0 0 26px rgba(161,255,132,.25);
+  animation:fx-assassin-poison .72s ease-out both;pointer-events:none
+}
+#secCardHunt .skill-execution .cardspire-fighters::after{
+  opacity:1;left:28%;top:8%;width:52%;height:82%;
+  background:linear-gradient(104deg,transparent 43%,rgba(221,75,126,.88) 47%,#fff0fa 49%,rgba(133,59,225,.9) 51%,transparent 56%);
+  filter:drop-shadow(0 0 16px #ba3c91);animation:fx-assassin-execution .72s cubic-bezier(.14,.75,.28,1) both
+}
+#secCardHunt .enemy-states .poison-state{
+  color:#baff9e!important;border-color:#5cbd58;background:rgba(31,101,35,.32);
+  box-shadow:inset 0 0 10px rgba(98,235,82,.12),0 0 9px rgba(72,212,62,.14)
+}
+
+/* Domador: el Vínculo carga a la manada y culmina en una embestida alfa. */
+#secCardHunt .skill-whip .cardspire-fighters::after{opacity:1;left:27%;top:30%;width:49%;height:43%;border-top:5px solid #70e3ad;border-radius:50%;filter:drop-shadow(0 0 9px #43bf8a);animation:fx-whip .6s ease-out both}
+#secCardHunt .skill-beast .cardspire-fighters::after{opacity:1;left:60%;top:25%;width:130px;height:130px;background:repeating-linear-gradient(105deg,transparent 0 21px,#bcffd7 23px 27px,transparent 29px 43px);filter:drop-shadow(0 0 12px #45d08b);animation:fx-beast .62s ease-out both}
+#secCardHunt .skill-beastguard .fighter.hero::after{content:"♞";position:absolute;z-index:4;left:43px;top:44%;width:98px;height:98px;border:3px solid #58d39b;border-radius:50%;display:grid;place-items:center;color:#a9ffd6;font-size:48px;background:rgba(38,124,86,.16);box-shadow:0 0 28px #39a977;animation:fx-shield .65s ease-out both;pointer-events:none}
+#secCardHunt .skill-packbite .cardspire-fighters::after{opacity:1;left:45%;top:22%;width:38%;height:58%;background:linear-gradient(68deg,transparent 42%,#baffd8 46%,#48d697 49%,transparent 54%),linear-gradient(112deg,transparent 42%,#e9fff2 46%,#48d697 49%,transparent 54%);filter:drop-shadow(0 0 13px #36bc7f);animation:fx-packbite .62s cubic-bezier(.18,.78,.27,1) both}
+#secCardHunt .skill-howl .cardspire-fighters{animation:fx-howl .68s ease-out both}
+#secCardHunt .skill-alpha-charge .cardspire-fighters::after{opacity:1;left:35%;top:7%;width:53%;height:87%;background:radial-gradient(circle at 69% 49%,rgba(239,255,220,.98) 0 3%,rgba(76,226,142,.78) 4% 14%,transparent 34%),repeating-radial-gradient(ellipse at 60% 50%,transparent 0 19px,rgba(95,233,157,.2) 21px 24px,transparent 27px 39px);filter:drop-shadow(0 0 22px #3bd087);animation:fx-alpha-charge .76s cubic-bezier(.12,.82,.22,1) both}
+
+@keyframes fx-warrior-slash{0%{opacity:0;transform:translate(-26%,-14%) scale(.6)}35%{opacity:1}100%{opacity:0;transform:translate(28%,12%) scale(1.12)}}
+@keyframes fx-hunter-mark{0%{opacity:0;transform:scale(1.7) rotate(-18deg)}45%{opacity:1}100%{opacity:0;transform:scale(.72) rotate(5deg)}}
+@keyframes fx-hawk-eye{0%{opacity:0;transform:scale(.35) rotate(-24deg)}45%{opacity:1;transform:scale(1.08)}100%{opacity:0;transform:scale(1.35)}}
+@keyframes fx-piercing-arrow{0%{opacity:0;transform:translateX(-45%) scaleX(.2)}25%{opacity:1}100%{opacity:0;transform:translateX(42%) scaleX(1.18)}}
+@keyframes fx-shadow-step{0%{opacity:1;transform:translateX(0)}38%{opacity:.2;transform:translateX(-34px)}64%{opacity:.08;transform:translateX(50px)}100%{opacity:1;transform:translateX(0)}}
+@keyframes fx-hunter-sentence{0%{opacity:0;transform:translateY(-36%) scaleY(.25)}30%{opacity:1}76%{opacity:1;transform:translateY(0) scaleY(1)}100%{opacity:0;transform:translateY(12%) scaleY(1.18)}}
+@keyframes fx-trap-spikes{0%{opacity:0;transform:scaleY(.05)}45%{opacity:1;transform:scaleY(1.15)}100%{opacity:0;transform:scaleY(.9) translateY(-12px)}}
+@keyframes fx-trap-snare{0%{opacity:0;transform:scaleX(1.35) scaleY(.18)}48%{opacity:1;transform:scaleX(.72) scaleY(1.1)}100%{opacity:0;transform:scale(.83)}}
+@keyframes fx-trap-net{0%{opacity:0;transform:translateY(-70%) scale(1.45) rotate(-12deg)}50%{opacity:1;transform:translateY(0) scale(.92) rotate(4deg)}100%{opacity:0;transform:scale(.78)}}
+@keyframes fx-trap-decoy{0%{opacity:0;transform:scale(.1) rotate(-32deg)}46%{opacity:1;transform:scale(1.04)}100%{opacity:0;transform:scale(1.62) rotate(18deg)}}
+@keyframes fx-trap-mastery{0%{opacity:0;transform:scale(.35) rotate(-120deg)}52%{opacity:1;transform:scale(1.08) rotate(18deg)}100%{opacity:0;transform:scale(1.25) rotate(95deg)}}
+@keyframes hunter-choice-in{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
+
+@media(max-width:700px){
+  #secCardHunt .hunter-choice-backdrop{padding:10px;align-items:end}
+  #secCardHunt .hunter-choice-panel{max-height:92vh;overflow:auto;padding:18px 12px;border-radius:16px 16px 0 0}
+  #secCardHunt .hunter-choice-cards{grid-template-columns:1fr}
+  #secCardHunt .hunter-choice-card{min-height:0;display:grid;grid-template-columns:88px 1fr;text-align:left}
+  #secCardHunt .hunter-choice-card img{grid-row:1/3;width:88px;height:88px}
+}
+@keyframes fx-shield{0%{opacity:0;transform:scale(.35) rotate(-22deg)}55%{opacity:1;transform:scale(1.12)}100%{opacity:0;transform:scale(1)}}
+@keyframes fx-warcry{45%{filter:brightness(1.35);box-shadow:inset 0 0 70px rgba(255,177,55,.24)}}
+@keyframes fx-arrow{0%{opacity:0;transform:translateX(-65%)}22%{opacity:1}100%{opacity:0;transform:translateX(62%)}}
+@keyframes fx-mark{0%{opacity:0;transform:scale(1.8) rotate(-35deg)}60%{opacity:1;transform:scale(.9)}100%{opacity:0;transform:scale(1)}}
+@keyframes fx-wind{45%{opacity:.35;transform:translateX(18px)}}
+@keyframes fx-acid-barrage{0%{opacity:0;transform:translate(-48%,-12%) scale(.72)}35%{opacity:1}100%{opacity:0;transform:translate(43%,18%) scale(1.08)}}
+@keyframes fx-acid-detonate{0%{opacity:0;transform:scale(.18) rotate(-38deg)}48%{opacity:1;transform:scale(1.08)}100%{opacity:0;transform:scale(1.55) rotate(28deg)}}
+@keyframes fx-acid-storm{0%{opacity:0;transform:scale(.35) rotate(-95deg)}50%{opacity:1}100%{opacity:0;transform:scale(1.25) rotate(145deg)}}
+@keyframes fx-arcane{0%{opacity:0;transform:translateX(-260%) scale(.25)}60%{opacity:1;transform:translateX(0) scale(1)}100%{opacity:0;transform:scale(1.45)}}
+@keyframes fx-nova{0%{opacity:0;transform:scale(.15)}55%{opacity:1}100%{opacity:0;transform:scale(1.7)}}
+@keyframes fx-rune{0%{opacity:0;transform:scale(.4) rotate(-90deg)}55%{opacity:1}100%{opacity:0;transform:scale(1.15) rotate(80deg)}}
+@keyframes fx-surge{50%{filter:brightness(1.5) drop-shadow(0 0 28px #805cff);transform:translateY(-5px)}}
+@keyframes fx-echoes{0%{opacity:0;transform:translateX(-70%) scale(.35)}42%{opacity:1}100%{opacity:0;transform:translateX(32%) scale(1.25)}}
+@keyframes fx-fracture{0%{opacity:0;transform:scale(1.65) rotate(-28deg)}55%{opacity:1;transform:scale(.92)}100%{opacity:0;transform:scale(1.15) rotate(18deg)}}
+@keyframes fx-holy{0%{opacity:0;transform:scale(.3) rotate(-35deg)}55%{opacity:1}100%{opacity:0;transform:scale(1.5) rotate(22deg)}}
+@keyframes fx-heal{0%{opacity:.4;transform:translateY(4px)}50%{filter:brightness(1.55) drop-shadow(0 0 30px #67ec96);transform:translateY(-5px)}100%{opacity:1}}
+@keyframes fx-shadow{0%{opacity:0;transform:translate(-20%,-8%) scale(.65)}40%{opacity:1}100%{opacity:0;transform:translate(24%,9%) scale(1.18)}}
+@keyframes fx-smoke{45%{opacity:.22;transform:translateX(22px) scale(.95)}}
+@keyframes fx-assassin-poison{0%{opacity:0;transform:scale(.2) rotate(-24deg)}48%{opacity:1;transform:scale(1.08)}100%{opacity:0;transform:scale(1.45) rotate(14deg)}}
+@keyframes fx-assassin-execution{0%{opacity:0;transform:translate(-35%,-12%) scale(.42)}34%{opacity:1}70%{opacity:1;transform:translate(15%,5%) scale(1.08)}100%{opacity:0;transform:translate(30%,9%) scale(1.3)}}
+@keyframes fx-whip{0%{opacity:0;transform:rotate(-26deg) scale(.45)}45%{opacity:1}100%{opacity:0;transform:rotate(23deg) scale(1.2)}}
+@keyframes fx-beast{0%{opacity:0;transform:translateX(-90%) scale(.65)}55%{opacity:1}100%{opacity:0;transform:translateX(15%) scale(1.2)}}
+@keyframes fx-howl{45%{filter:brightness(1.35) saturate(1.4);box-shadow:inset 0 0 72px rgba(51,213,139,.2)}}
+@keyframes fx-packbite{0%{opacity:0;transform:translateX(-28%) scale(.58)}42%{opacity:1}100%{opacity:0;transform:translateX(18%) scale(1.18)}}
+@keyframes fx-alpha-charge{0%{opacity:0;transform:translateX(-42%) scale(.42)}38%{opacity:1}72%{opacity:1;transform:translateX(3%) scale(1.08)}100%{opacity:0;transform:translateX(13%) scale(1.25)}}
+
+@media(max-width:700px){
+  #secCardHunt .skill-shield .fighter.hero::after,
+  #secCardHunt .skill-rune .fighter.hero::after,
+  #secCardHunt .skill-aegis .fighter.hero::after,
+  #secCardHunt .skill-beastguard .fighter.hero::after{left:2px;top:14%;width:72px;height:72px;font-size:34px}
+  #secCardHunt .skill-mark .fighter.enemy::after{right:3px;top:22%;font-size:54px}
+  #secCardHunt .skill-arcane .cardspire-fighters::after{left:61%;top:35%;width:54px;height:54px}
+  #secCardHunt .skill-nova .cardspire-fighters::after{left:57%;top:22%;width:95px;height:95px}
+  #secCardHunt .skill-echoes .cardspire-fighters::after{left:42%;top:37%;width:43%;height:56px}
+  #secCardHunt .skill-fracture .fighter.enemy::after{right:2px;top:20%;width:76px;height:76px}
+}
+@media(prefers-reduced-motion:reduce){
+  #secCardHunt .cardspire-combat *,#secCardHunt .cardspire-combat::after{animation:none!important;transition:none!important}
+}
+@media(max-width:700px){
+  .cardspire-hud-actions{gap:5px}
+  .cardspire-hud-actions .cardspire-back,.cardspire-reset{min-height:34px;padding:0 8px;font-size:8px}
+}
+
+/* Coste único de combate: solo las tácticas consumen maná. */
+#secCardHunt .cardspire-card.tactical-card .card-cost{
+  width:auto;
+  min-width:34px;
+  padding:0 7px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#326f9b,#173b62);
+  color:#dff5ff;
+  border:1px solid rgba(122,205,255,.72);
+  box-shadow:0 0 13px rgba(62,157,218,.28);
+  font-size:11px;
+}
+#secCardHunt .cardspire-card.free-card .card-cost{
+  background:linear-gradient(135deg,#4d7b49,#243c27);
+  color:#e2f7d2;
+  border:1px solid rgba(137,205,116,.64);
+  box-shadow:0 0 11px rgba(89,164,75,.2);
+}
+#secCardHunt .cardspire-card.free-card em{color:#8ed37c;font-weight:800}
+#secCardHunt .cardspire-card.tactical-card em{color:#7fcaf1;font-weight:800}
+#secCardHunt .cardspire-card.tactical-card.locked .card-cost{
+  background:#34282b;
+  color:#d88989;
+  border-color:#98504f;
+  box-shadow:none;
+}
+
+/* Lectura lateral inmediata: daño rojo y bloqueo azul. */
+#secCardHunt .cardspire-hand{gap:19px;padding-left:18px;padding-right:6px}
+#secCardHunt .card-side-stat{
+  position:absolute;
+  left:-15px;
+  top:52%;
+  z-index:5;
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  pointer-events:none;
+  font:900 13px JetBrains Mono,monospace;
+  color:#fff;
+  text-shadow:0 1px 3px rgba(0,0,0,.8);
+}
+#secCardHunt .card-side-stat.damage{
+  background:radial-gradient(circle at 35% 28%,#ff7967,#b52829 62%,#5e111a);
+  border:2px solid #ff9a7a;
+  box-shadow:0 0 0 3px rgba(35,8,10,.78),0 0 15px rgba(221,48,43,.52);
+}
+#secCardHunt .card-side-stat.defense{
+  width:42px;
+  height:42px;
+  left:-18px;
+  flex-direction:column;
+  gap:0;
+  background:radial-gradient(circle at 35% 26%,#72c7ff,#226ba7 60%,#102d56);
+  border:2px solid #91d8ff;
+  box-shadow:0 0 0 3px rgba(7,19,35,.8),0 0 15px rgba(45,145,215,.48);
+}
+#secCardHunt .card-side-stat.defense i{
+  display:block;
+  margin:0;
+  padding:0;
+  font-size:14px;
+  line-height:13px;
+  font-style:normal;
+}
+#secCardHunt .card-side-stat.defense b{
+  display:block;
+  margin:0;
+  padding:0;
+  font:900 10px/10px JetBrains Mono,monospace;
+  color:#fff;
+  text-align:center;
+}
+#secCardHunt .card-side-stat.healing{
+  width:42px;
+  height:42px;
+  left:7px;
+  bottom:8px;
+  flex-direction:column;
+  gap:0;
+  background:radial-gradient(circle at 35% 26%,#9ff0a5,#368a4c 60%,#143d27);
+  border:2px solid #bff8b9;
+  box-shadow:0 0 0 3px rgba(8,31,18,.82),0 0 15px rgba(72,201,101,.48);
+}
+#secCardHunt .card-side-stat.healing i{
+  display:block;
+  margin:0;
+  padding:0;
+  font:900 13px/12px serif;
+  color:#fff;
+}
+#secCardHunt .card-side-stat.healing b{
+  display:block;
+  margin:0;
+  padding:0;
+  font:900 9px/9px JetBrains Mono,monospace;
+  color:#fff;
+}
+#secCardHunt .faith-readiness{
+  color:#ffe69a!important;
+  border-color:rgba(230,197,93,.62)!important;
+  background:linear-gradient(135deg,rgba(107,78,20,.45),rgba(30,23,10,.68))!important;
+  box-shadow:inset 0 0 12px rgba(239,204,101,.12);
+}
+#secCardHunt .hero-states .faith-state{
+  color:#ffe69a!important;
+  border-color:rgba(230,197,93,.68)!important;
+  background:rgba(111,78,17,.3)!important;
+  box-shadow:inset 0 0 10px rgba(255,221,120,.12),0 0 8px rgba(223,179,61,.12);
+}
+#secCardHunt .combo-readiness{
+  color:#ffb8e4!important;
+  border-color:rgba(211,91,166,.65)!important;
+  background:linear-gradient(135deg,rgba(102,32,79,.5),rgba(28,14,28,.72))!important;
+  box-shadow:inset 0 0 12px rgba(229,91,184,.13);
+}
+#secCardHunt .hero-states .combo-state{
+  color:#ffc0e8!important;
+  border-color:rgba(214,87,169,.7)!important;
+  background:rgba(103,28,79,.33)!important;
+  box-shadow:inset 0 0 10px rgba(241,104,193,.13),0 0 8px rgba(188,60,145,.14);
+}
+#secCardHunt .bond-readiness{
+  color:#baffdc!important;
+  border-color:rgba(75,214,145,.68)!important;
+  background:linear-gradient(135deg,rgba(24,100,69,.52),rgba(9,30,23,.74))!important;
+  box-shadow:inset 0 0 12px rgba(84,231,159,.15),0 0 9px rgba(50,190,125,.1);
+}
+#secCardHunt .hero-states .bond-state{
+  color:#c8ffe3!important;
+  border-color:rgba(77,219,149,.72)!important;
+  background:rgba(22,101,67,.34)!important;
+  box-shadow:inset 0 0 10px rgba(94,241,169,.15),0 0 8px rgba(50,191,126,.14);
+}
+@media(max-width:700px){
+  #secCardHunt .cardspire-hand{gap:17px;padding-left:16px}
+  #secCardHunt .card-side-stat{left:-12px;width:32px;height:32px;font-size:11px}
+  #secCardHunt .card-side-stat.defense{left:-14px;width:37px;height:37px}
+  #secCardHunt .card-side-stat.defense i{font-size:12px;line-height:11px}
+  #secCardHunt .card-side-stat.defense b{font-size:9px;line-height:9px}
+}
+
+/* Los valores pertenecen a la carta: esquina inferior izquierda, sin desbordar. */
+#secCardHunt .cardspire-hand{
+  gap:12px;
+  padding-left:3px;
+  padding-right:3px;
+}
+#secCardHunt .cardspire-card{
+  padding-bottom:48px;
+  overflow:hidden;
+}
+#secCardHunt .card-side-stat,
+#secCardHunt .card-side-stat.defense{
+  left:9px;
+  right:auto;
+  top:auto;
+  bottom:9px;
+  transform:none;
+  z-index:8;
+}
+#secCardHunt .card-side-stat.defense{
+  left:7px;
+}
+@media(max-width:700px){
+  #secCardHunt .cardspire-hand{
+    gap:12px;
+    padding-left:3px;
+  }
+  #secCardHunt .cardspire-card{
+    padding-bottom:43px;
+  }
+  #secCardHunt .card-side-stat,
+  #secCardHunt .card-side-stat.defense{
+    left:7px;
+    top:auto;
+    bottom:7px;
+  }
+  #secCardHunt .card-side-stat.defense{
+    left:5px;
+  }
+}
+
+/* Pulido de precisión: una única retícula final para evitar desalineaciones. */
+#secCardHunt .cardspire-hud{
+  height:72px;
+  display:grid;
+  grid-template-columns:minmax(220px,1fr) auto minmax(220px,1fr);
+  align-items:center;
+  gap:18px;
+  box-sizing:border-box;
+}
+#secCardHunt .cardspire-hud-actions{justify-self:start}
+#secCardHunt .cardspire-title{justify-self:center;min-width:190px}
+#secCardHunt .cardspire-resources{
+  justify-self:end;
+  justify-content:flex-end;
+  align-items:center;
+}
+#secCardHunt .cardspire-resources span{
+  min-width:72px;
+  box-sizing:border-box;
+  text-align:center;
+}
+#secCardHunt .cardspire-main{
+  width:min(1240px,100%);
+  padding:clamp(18px,2.6vw,34px);
+  box-sizing:border-box;
+}
+#secCardHunt .cardspire-combat{
+  gap:14px;
+  align-content:center;
+}
+#secCardHunt .cardspire-battle-top{
+  min-height:36px;
+  display:grid;
+  grid-template-columns:minmax(150px,1fr) auto minmax(260px,1fr);
+  align-items:center;
+  gap:16px;
+  box-sizing:border-box;
+}
+#secCardHunt .cardspire-battle-top>span:nth-child(2){text-align:center}
+#secCardHunt .cardspire-battle-top .affinity{text-align:right}
+#secCardHunt .cardspire-fighters{
+  grid-template-columns:minmax(0,1fr) 92px minmax(0,1fr)!important;
+  gap:22px!important;
+  min-height:288px;
+  padding:28px 34px!important;
+  box-sizing:border-box;
+}
+#secCardHunt .cardspire-fighters .fighter-card{
+  width:100%;
+  min-height:194px;
+  box-sizing:border-box;
+  align-self:center;
+  overflow:hidden;
+}
+#secCardHunt .cardspire-fighters .fighter-card.hero{
+  grid-template-columns:126px minmax(0,1fr)!important;
+}
+#secCardHunt .cardspire-fighters .fighter-card.enemy{
+  grid-template-columns:minmax(0,1fr) 126px!important;
+}
+#secCardHunt .fighter-card .fighter-sheet{
+  min-height:166px;
+  display:grid!important;
+  grid-template-rows:auto minmax(38px,auto) 8px auto minmax(22px,auto) minmax(28px,auto);
+  align-content:center;
+  gap:5px;
+}
+#secCardHunt .fighter-card .fighter-kicker{margin:0}
+#secCardHunt .fighter-card .fighter-sheet>b{
+  min-height:38px;
+  margin:0!important;
+  display:flex!important;
+  align-items:center;
+  line-height:1.12;
+}
+#secCardHunt .fighter-card.enemy-card .fighter-sheet>b{justify-content:flex-end}
+#secCardHunt .fighter-card .fighter-health{margin:0!important}
+#secCardHunt .fighter-card .combat-states{
+  min-height:22px;
+  margin:0;
+  align-content:start;
+}
+#secCardHunt .fighter-card .combat-states:empty{
+  display:block;
+  visibility:hidden;
+}
+#secCardHunt .fighter-card em{
+  min-height:28px;
+  margin:0;
+  display:inline-flex;
+  align-items:center;
+  justify-self:start;
+  box-sizing:border-box;
+}
+#secCardHunt .fighter-card.enemy-card em{justify-self:end}
+#secCardHunt .cardspire-versus{
+  width:92px;
+  min-height:92px;
+  display:grid;
+  place-content:center;
+  align-self:center;
+  line-height:1;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(94,55,22,.34),rgba(11,9,8,.1) 68%,transparent 70%);
+}
+#secCardHunt .cardspire-versus small{margin-top:8px}
+#secCardHunt .cardspire-turn{
+  min-height:42px;
+  gap:12px;
+}
+#secCardHunt .cardspire-turn>span,
+#secCardHunt .cardspire-turn .cardspire-end{
+  min-height:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+}
+#secCardHunt .cardspire-turn .cardspire-end{margin:0}
+#secCardHunt .cardspire-hand-label{
+  min-height:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+#secCardHunt .cardspire-hand-wrap{
+  margin-inline:auto;
+  padding:10px 12px 16px;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(214,165,62,.55) rgba(13,10,9,.62);
+}
+#secCardHunt .cardspire-hand{
+  justify-content:center;
+  align-items:stretch;
+  gap:12px;
+}
+#secCardHunt .cardspire-card{
+  flex:0 0 172px;
+  width:172px;
+  height:284px;
+  min-height:284px;
+  grid-template-rows:88px 38px minmax(0,1fr);
+  gap:6px;
+  padding:42px 10px 44px;
+  border-radius:13px;
+  scroll-snap-align:center;
+}
+#secCardHunt .cardspire-card .card-art,
+#secCardHunt .cardspire-card>i:not(.card-side-stat i){height:88px}
+#secCardHunt .cardspire-card>b{
+  min-height:38px;
+  line-height:1.12;
+}
+#secCardHunt .cardspire-card>small{
+  width:100%;
+  max-height:58px;
+  line-height:1.25;
+}
+#secCardHunt .cardspire-card .card-cost{
+  top:10px;
+  left:10px;
+  min-height:25px;
+  box-sizing:border-box;
+}
+#secCardHunt .cardspire-card .card-tag{
+  top:13px;
+  right:10px;
+  line-height:1;
+}
+#secCardHunt .card-side-stat,
+#secCardHunt .card-side-stat.defense{
+  left:9px;
+  bottom:8px;
+  width:37px;
+  height:37px;
+}
+#secCardHunt .cardspire-notes{
+  width:min(820px,100%);
+  min-height:34px;
+  margin-inline:auto;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:stretch;
+  gap:10px;
+}
+#secCardHunt .cardspire-notes span{
+  min-height:34px;
+  display:flex;
+  align-items:center;
+  box-sizing:border-box;
+}
+#secCardHunt .cardspire-map-copy{
+  min-height:88px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+#secCardHunt .cardspire-map-board{margin-block:20px}
+#secCardHunt .cardspire-map-row{min-height:20%}
+#secCardHunt .cardspire-node{
+  box-sizing:border-box;
+  transform-origin:center;
+}
+#secCardHunt .route-node-info{
+  grid-template-columns:82px minmax(190px,1.1fr) minmax(270px,1fr) 190px;
+  gap:14px;
+  box-sizing:border-box;
+}
+#secCardHunt .route-node-info>button{
+  width:190px;
+  min-width:190px;
+  box-sizing:border-box;
+}
+#secCardHunt .cardspire-legend span{
+  min-height:34px;
+  box-sizing:border-box;
+}
+#secCardHunt button:focus-visible{
+  outline:2px solid #f2c158;
+  outline-offset:3px;
+}
+
+@media(max-width:900px){
+  #secCardHunt .cardspire-hud{
+    grid-template-columns:minmax(170px,1fr) auto minmax(170px,1fr);
+    padding-inline:18px;
+  }
+  #secCardHunt .cardspire-fighters{
+    grid-template-columns:minmax(0,1fr) 64px minmax(0,1fr)!important;
+    gap:12px!important;
+    padding:22px 18px!important;
+  }
+  #secCardHunt .cardspire-versus{width:64px;min-height:64px;font-size:27px}
+  #secCardHunt .route-node-info{
+    grid-template-columns:72px minmax(0,1fr) minmax(250px,1fr);
+  }
+  #secCardHunt .route-node-info>img{width:72px;height:72px}
+  #secCardHunt .route-node-info>button{
+    grid-column:1/-1;
+    width:100%;
+    min-width:0;
+    min-height:46px;
+  }
+}
+
+@media(max-width:700px){
+  #secCardHunt .cardspire-hud{
+    height:auto;
+    min-height:94px;
+    grid-template-columns:1fr 1fr;
+    gap:8px 10px;
+    padding:9px 10px;
+  }
+  #secCardHunt .cardspire-hud-actions{grid-column:1;grid-row:1}
+  #secCardHunt .cardspire-resources{
+    grid-column:2;
+    grid-row:1;
+    gap:4px;
+  }
+  #secCardHunt .cardspire-resources span{
+    min-width:0;
+    padding:5px 6px;
+  }
+  #secCardHunt .cardspire-title{
+    grid-column:1/-1;
+    grid-row:2;
+    width:100%;
+    min-width:0;
+  }
+  #secCardHunt .cardspire-main{
+    min-height:calc(100dvh - 94px);
+    padding:12px 9px 22px;
+  }
+  #secCardHunt .cardspire-combat{gap:10px}
+  #secCardHunt .cardspire-battle-top{
+    min-height:54px;
+    grid-template-columns:1fr 1fr;
+    gap:5px 9px;
+    padding:7px 9px;
+  }
+  #secCardHunt .cardspire-battle-top>span:nth-child(2){text-align:right}
+  #secCardHunt .cardspire-battle-top .affinity{
+    grid-column:1/-1;
+    text-align:left;
+  }
+  #secCardHunt .cardspire-fighters{
+    grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr)!important;
+    gap:5px!important;
+    min-height:246px;
+    padding:10px 7px!important;
+  }
+  #secCardHunt .cardspire-fighters .fighter-card{
+    min-height:220px;
+    padding:7px;
+    align-content:start;
+  }
+  #secCardHunt .cardspire-fighters .fighter-card.hero,
+  #secCardHunt .cardspire-fighters .fighter-card.enemy{
+    grid-template-columns:1fr!important;
+    grid-template-rows:96px minmax(0,1fr);
+    gap:6px!important;
+  }
+  #secCardHunt .cardspire-fighters .fighter-card.hero .fighter-art,
+  #secCardHunt .cardspire-fighters .fighter-card.enemy .enemy-symbol{
+    order:1!important;
+    width:76px;
+    height:92px;
+  }
+  #secCardHunt .cardspire-fighters .fighter-card.hero .fighter-art{justify-self:start}
+  #secCardHunt .cardspire-fighters .fighter-card.enemy .enemy-symbol{justify-self:end}
+  #secCardHunt .cardspire-fighters .fighter-card .fighter-sheet{
+    order:2!important;
+    min-height:104px;
+    grid-template-rows:auto minmax(26px,auto) 6px auto minmax(16px,auto) minmax(25px,auto);
+    gap:3px;
+    align-content:start;
+  }
+  #secCardHunt .fighter-card .fighter-sheet>b{
+    min-height:26px;
+    font-size:10px;
+  }
+  #secCardHunt .fighter-card .fighter-kicker{min-height:14px}
+  #secCardHunt .fighter-card .fighter-role{max-width:68px}
+  #secCardHunt .fighter-card .combat-states{
+    min-height:16px;
+    max-height:34px;
+    overflow:hidden;
+  }
+  #secCardHunt .fighter-card em{
+    min-height:25px;
+    max-width:100%;
+    padding:4px!important;
+    white-space:normal;
+    line-height:1.1;
+  }
+  #secCardHunt .cardspire-versus{
+    width:30px;
+    min-height:52px;
+    font-size:19px;
+    background:none;
+  }
+  #secCardHunt .cardspire-versus small{margin-top:5px}
+  #secCardHunt .cardspire-turn{
+    min-height:40px;
+    justify-content:center;
+    gap:8px;
+  }
+  #secCardHunt .cardspire-turn>span,
+  #secCardHunt .cardspire-turn .cardspire-end{min-height:38px}
+  #secCardHunt .cardspire-turn .cardspire-end{margin:0}
+  #secCardHunt .cardspire-hand-label{min-height:16px}
+  #secCardHunt .cardspire-hand-wrap{
+    margin-inline:-9px;
+    padding:9px 12px 14px;
+    scroll-padding-inline:12px;
+    scroll-snap-type:x mandatory;
+  }
+  #secCardHunt .cardspire-hand{
+    justify-content:flex-start;
+    gap:10px;
+  }
+  #secCardHunt .cardspire-card{
+    flex-basis:148px;
+    width:148px;
+    height:250px;
+    min-height:250px;
+    grid-template-rows:68px 34px minmax(0,1fr);
+    gap:4px;
+    padding:39px 8px 40px;
+  }
+  #secCardHunt .cardspire-card .card-art,
+  #secCardHunt .cardspire-card>i:not(.card-side-stat i){height:68px}
+  #secCardHunt .cardspire-card>b{min-height:34px}
+  #secCardHunt .cardspire-card>small{max-height:55px}
+  #secCardHunt .cardspire-notes{
+    min-height:0;
+    grid-template-columns:1fr;
+    gap:6px;
+  }
+  #secCardHunt .cardspire-notes span{min-height:30px}
+  #secCardHunt .cardspire-map-copy{min-height:76px}
+  #secCardHunt .route-node-info{
+    grid-template-columns:58px minmax(0,1fr);
+    gap:9px;
+  }
+  #secCardHunt .route-node-info>img{width:58px;height:58px}
+  #secCardHunt .route-node-info dl,
+  #secCardHunt .route-node-info>button{grid-column:1/-1}
+}
+
+@media(max-width:420px){
+  #secCardHunt .cardspire-resources span{font-size:7px}
+  #secCardHunt .cardspire-fighters{min-height:232px}
+  #secCardHunt .cardspire-fighters .fighter-card{min-height:206px}
+  #secCardHunt .cardspire-fighters .fighter-card.hero,
+  #secCardHunt .cardspire-fighters .fighter-card.enemy{
+    grid-template-rows:84px minmax(0,1fr);
+  }
+  #secCardHunt .cardspire-fighters .fighter-card.hero .fighter-art,
+  #secCardHunt .cardspire-fighters .fighter-card.enemy .enemy-symbol{
+    width:66px;
+    height:80px;
+  }
+  #secCardHunt .fighter-card .fighter-role{display:none}
+  #secCardHunt .fighter-card .fighter-sheet>b{font-size:9px}
+  #secCardHunt .cardspire-card{
+    flex-basis:142px;
+    width:142px;
+  }
+}
+
+/* Escenarios ilustrados por acto */
+#secCardHunt .cardspire-shell{
+  --cardspire-scene:url('../../assets/images/caceria-acto-1-bosque-v2.webp');
+  --scene-wash-left:rgba(7,10,12,.88);
+  --scene-wash-mid:rgba(22,15,12,.5);
+  --scene-wash-right:rgba(10,8,8,.84);
+  --scene-glow:rgba(237,190,83,.1);
+  isolation:isolate;
+}
+#secCardHunt .cardspire-shell::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 42%,transparent 0 23%,rgba(7,5,5,.65) 79%),
+    linear-gradient(180deg,rgba(8,6,6,.68),rgba(10,6,5,.92)),
+    var(--cardspire-scene) center/cover no-repeat;
+  opacity:.42;
+  transition:background-image .55s ease,opacity .55s ease;
+  animation:cardspire-scene-arrive .75s ease both;
+}
+#secCardHunt .cardspire-hud,
+#secCardHunt .cardspire-main{
+  position:relative;
+  z-index:1;
+}
+#secCardHunt .cardspire-map-view,
+#secCardHunt .cardspire-fighters{
+  background-image:
+    linear-gradient(100deg,var(--scene-wash-left),var(--scene-wash-mid) 46%,var(--scene-wash-right)),
+    linear-gradient(180deg,rgba(10,7,6,.08),rgba(6,5,5,.52)),
+    var(--cardspire-scene);
+  background-position:center;
+  background-size:cover;
+  background-repeat:no-repeat;
+  box-shadow:
+    inset 0 0 90px rgba(0,0,0,.48),
+    0 25px 72px rgba(0,0,0,.48);
+  transition:background-image .55s ease;
+}
+#secCardHunt .cardspire-map-view{
+  position:relative;
+  overflow:hidden;
+  min-height:calc(100dvh - 150px);
+}
+#secCardHunt .cardspire-map-view::after,
+#secCardHunt .cardspire-fighters::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 15% 22%,var(--scene-glow),transparent 22%),
+    radial-gradient(circle at 85% 28%,var(--scene-glow),transparent 20%);
+  mix-blend-mode:screen;
+}
+#secCardHunt .cardspire-map-view>*,
+#secCardHunt .cardspire-fighters>*{
+  position:relative;
+  z-index:1;
+}
+#secCardHunt .cardspire-region{
+  position:absolute;
+  top:18px;
+  left:18px;
+  z-index:2;
+  display:grid;
+  grid-template-columns:36px auto;
+  grid-template-rows:auto auto;
+  column-gap:10px;
+  align-items:center;
+  padding:8px 13px 8px 9px;
+  border:1px solid rgba(229,184,76,.42);
+  border-radius:999px;
+  background:rgba(11,8,7,.76);
+  box-shadow:0 8px 28px rgba(0,0,0,.34);
+  backdrop-filter:blur(7px);
+}
+#secCardHunt .cardspire-region i{
+  grid-row:1/3;
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(242,197,91,.55);
+  border-radius:50%;
+  color:#f1c65f;
+  font:20px Spectral,serif;
+  font-style:normal;
+  background:radial-gradient(circle,rgba(193,129,35,.22),rgba(8,7,7,.2));
+}
+#secCardHunt .cardspire-region span{
+  color:#a69372;
+  font:700 7px JetBrains Mono,monospace;
+  letter-spacing:.16em;
+}
+#secCardHunt .cardspire-region b{
+  color:#efd18a;
+  font:700 11px Cinzel,serif;
+}
+#secCardHunt .scene-crypt .cardspire-map-view,
+#secCardHunt .scene-crypt .cardspire-fighters{
+  background-position:center 42%;
+}
+#secCardHunt .scene-fortress .cardspire-map-view,
+#secCardHunt .scene-fortress .cardspire-fighters{
+  background-position:center 48%;
+}
+#secCardHunt .scene-peaks .cardspire-map-view,
+#secCardHunt .scene-peaks .cardspire-fighters{
+  background-position:center 44%;
+}
+#secCardHunt .scene-moonmarsh{
+  --scene-wash-left:rgba(5,18,18,.9);
+  --scene-wash-mid:rgba(18,38,34,.46);
+  --scene-wash-right:rgba(5,12,14,.88);
+  --scene-glow:rgba(111,210,179,.13);
+}
+#secCardHunt .scene-crystalwaste{
+  --scene-wash-left:rgba(20,13,8,.9);
+  --scene-wash-mid:rgba(57,38,17,.42);
+  --scene-wash-right:rgba(8,16,25,.88);
+  --scene-glow:rgba(96,163,255,.14);
+}
+#secCardHunt .scene-drowned{
+  --scene-wash-left:rgba(3,20,25,.9);
+  --scene-wash-mid:rgba(9,55,59,.43);
+  --scene-wash-right:rgba(3,16,22,.88);
+  --scene-glow:rgba(71,215,216,.15);
+}
+#secCardHunt .scene-stormvale{
+  --scene-wash-left:rgba(7,10,17,.9);
+  --scene-wash-mid:rgba(30,29,49,.4);
+  --scene-wash-right:rgba(8,9,15,.9);
+  --scene-glow:rgba(180,153,255,.13);
+}
+#secCardHunt .scene-crimsonabyss{
+  --scene-wash-left:rgba(20,5,7,.91);
+  --scene-wash-mid:rgba(67,13,15,.42);
+  --scene-wash-right:rgba(16,4,6,.91);
+  --scene-glow:rgba(255,82,57,.14);
+}
+#secCardHunt .scene-moonmarsh .cardspire-map-view,
+#secCardHunt .scene-moonmarsh .cardspire-fighters,
+#secCardHunt .scene-drowned .cardspire-map-view,
+#secCardHunt .scene-drowned .cardspire-fighters{
+  background-position:center 48%;
+}
+#secCardHunt .scene-crystalwaste .cardspire-map-view,
+#secCardHunt .scene-crystalwaste .cardspire-fighters,
+#secCardHunt .scene-stormvale .cardspire-map-view,
+#secCardHunt .scene-stormvale .cardspire-fighters,
+#secCardHunt .scene-crimsonabyss .cardspire-map-view,
+#secCardHunt .scene-crimsonabyss .cardspire-fighters{
+  background-position:center 46%;
+}
+@keyframes cardspire-scene-arrive{
+  from{opacity:0;transform:scale(1.025)}
+  to{opacity:.42;transform:scale(1)}
+}
+@media(max-width:700px){
+  #secCardHunt .cardspire-map-view{
+    min-height:calc(100dvh - 118px);
+    padding-top:82px;
+    background-position:center top;
+  }
+  #secCardHunt .cardspire-fighters{
+    background-position:center;
+  }
+  #secCardHunt .cardspire-region{
+    top:12px;
+    left:12px;
+    padding:6px 10px 6px 7px;
+  }
+  #secCardHunt .cardspire-region i{
+    width:30px;
+    height:30px;
+    font-size:17px;
+  }
+  #secCardHunt .cardspire-region b{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+  #secCardHunt .cardspire-shell::after{animation:none}
+}
+
+/* Mercader de cartas: las cartas avanzadas se obtienen durante la expedición. */
+#secCardHunt .cardspire-shop{
+  width:min(1080px,calc(100% - 28px));
+  margin:24px auto 42px;
+  padding:clamp(18px,3vw,34px);
+  border:1px solid rgba(205,151,48,.55);
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 50% 0,rgba(196,126,31,.18),transparent 42%),
+    linear-gradient(145deg,rgba(39,27,17,.98),rgba(13,11,10,.99));
+  box-shadow:0 24px 65px rgba(0,0,0,.55),inset 0 1px rgba(255,225,156,.08);
+}
+#secCardHunt .cardspire-shop>header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:24px;
+  padding-bottom:22px;
+  border-bottom:1px solid rgba(205,151,48,.25);
+}
+#secCardHunt .cardspire-shop>header p{
+  margin:0 0 7px;
+  color:#e5ae42;
+  font:700 11px/1 monospace;
+  letter-spacing:.22em;
+}
+#secCardHunt .cardspire-shop>header h2{
+  margin:0 0 8px;
+  color:#f5d88d;
+  font-size:clamp(25px,3vw,38px);
+}
+#secCardHunt .cardspire-shop>header div>span{
+  display:block;
+  max-width:650px;
+  color:#bbaa91;
+  line-height:1.55;
+}
+#secCardHunt .cardspire-shop>header strong{
+  min-width:120px;
+  padding:12px 15px;
+  border:1px solid rgba(226,170,57,.55);
+  border-radius:12px;
+  color:#f2c45d;
+  text-align:center;
+  font:700 20px/1.1 monospace;
+  background:rgba(9,8,7,.45);
+}
+#secCardHunt .cardspire-shop>header strong small{
+  display:block;
+  margin-bottom:7px;
+  color:#9f8b6c;
+  font-size:9px;
+  letter-spacing:.15em;
+}
+#secCardHunt .cardspire-shop-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:18px;
+  margin:28px auto;
+}
+#secCardHunt .cardspire-shop-card{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  min-height:390px;
+  padding:15px;
+  overflow:hidden;
+  border:1px solid #9b6b24;
+  border-radius:16px;
+  color:#ead9b5;
+  background:linear-gradient(155deg,#312316,#17120e 68%);
+  box-shadow:0 14px 25px rgba(0,0,0,.35),inset 0 1px rgba(255,225,155,.08);
+  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+#secCardHunt .cardspire-shop-card:hover{
+  z-index:2;
+  transform:translateY(-5px);
+  border-color:#e3b34f;
+  box-shadow:0 20px 34px rgba(0,0,0,.48),0 0 22px rgba(219,157,47,.12);
+}
+#secCardHunt .cardspire-shop-card.block{border-color:#3b8eb8}
+#secCardHunt .cardspire-shop-card.debuff{border-color:#8f5ca8}
+#secCardHunt .shop-card-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  min-height:26px;
+  color:#d7aa4a;
+  font:700 9px/1 monospace;
+  letter-spacing:.14em;
+}
+#secCardHunt .shop-card-top i{
+  padding:6px 8px;
+  border:1px solid rgba(218,162,51,.55);
+  border-radius:999px;
+  color:#f2cc72;
+  font-style:normal;
+  letter-spacing:0;
+  background:#17100a;
+}
+#secCardHunt .shop-card-art{
+  height:145px;
+  margin:12px 0 14px;
+  overflow:hidden;
+  border:1px solid rgba(222,171,65,.38);
+  border-radius:10px;
+  background:#090807;
+}
+#secCardHunt .shop-card-art img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+#secCardHunt .cardspire-shop-card>small{
+  color:#ba9560;
+  font:700 9px/1 monospace;
+  letter-spacing:.16em;
+}
+#secCardHunt .cardspire-shop-card h3{
+  margin:8px 0;
+  color:#f6dda0;
+  font-size:18px;
+}
+#secCardHunt .cardspire-shop-card p{
+  flex:1;
+  margin:0 0 16px;
+  color:#c5b89e;
+  font-size:13px;
+  line-height:1.45;
+}
+#secCardHunt .cardspire-shop-card>button{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  width:100%;
+  min-height:44px;
+  padding:10px 13px;
+  border:1px solid #c38b2e;
+  border-radius:8px;
+  color:#1b1208;
+  background:linear-gradient(#e6b958,#b97822);
+  cursor:pointer;
+}
+#secCardHunt .cardspire-shop-card>button:disabled{
+  filter:grayscale(.7);
+  opacity:.42;
+  cursor:not-allowed;
+}
+#secCardHunt .cardspire-shop-empty{
+  grid-column:1/-1;
+  display:grid;
+  place-items:center;
+  min-height:250px;
+  color:#aa9a80;
+  text-align:center;
+}
+#secCardHunt .cardspire-shop-empty i{color:#d9aa48;font-size:38px}
+#secCardHunt .cardspire-shop-empty b{color:#ecd18e;font-size:21px}
+#secCardHunt .cardspire-shop-empty span{font-size:13px}
+#secCardHunt .cardspire-shop>footer{
+  display:flex;
+  justify-content:flex-end;
+  gap:12px;
+  padding-top:20px;
+  border-top:1px solid rgba(205,151,48,.22);
+}
+#secCardHunt .cardspire-shop>footer button{
+  min-height:48px;
+  padding:12px 18px;
+  border:1px solid #795722;
+  border-radius:9px;
+  color:#d9bc7a;
+  background:#17120e;
+  cursor:pointer;
+}
+#secCardHunt .cardspire-shop>footer button:disabled{opacity:.35;cursor:not-allowed}
+#secCardHunt .cardspire-shop>footer .cardspire-primary{
+  color:#211306;
+  background:linear-gradient(#e4b856,#b87521);
+}
+
+@media(max-width:760px){
+  #secCardHunt .cardspire-shop{
+    width:calc(100% - 14px);
+    margin:8px auto 24px;
+    padding:16px 12px;
+    border-radius:14px;
+  }
+  #secCardHunt .cardspire-shop>header{display:block}
+  #secCardHunt .cardspire-shop>header strong{
+    display:inline-block;
+    margin-top:14px;
+  }
+  #secCardHunt .cardspire-shop-grid{
+    grid-template-columns:1fr;
+    gap:12px;
+    margin:18px auto;
+  }
+  #secCardHunt .cardspire-shop-card{
+    min-height:0;
+    display:grid;
+    grid-template-columns:100px 1fr;
+    grid-template-rows:auto auto auto 1fr auto;
+    column-gap:14px;
+  }
+  #secCardHunt .shop-card-top{grid-column:1/-1}
+  #secCardHunt .shop-card-art{
+    grid-column:1;
+    grid-row:2/6;
+    height:132px;
+    margin:10px 0 0;
+  }
+  #secCardHunt .cardspire-shop-card>small,
+  #secCardHunt .cardspire-shop-card h3,
+  #secCardHunt .cardspire-shop-card p,
+  #secCardHunt .cardspire-shop-card>button{grid-column:2}
+  #secCardHunt .cardspire-shop-card h3{font-size:15px}
+  #secCardHunt .cardspire-shop-card p{font-size:11px;margin-bottom:9px}
+  #secCardHunt .cardspire-shop-card>button{min-height:38px}
+  #secCardHunt .cardspire-shop>footer{display:grid}
+}
+
+/* Pulido de la mano: todas las cartas comparten la misma retícula visual. */
+#secCardHunt .cardspire-hand-wrap{
+  width:100%;
+  box-sizing:border-box;
+  padding-inline:10px;
+}
+#secCardHunt .cardspire-hand{
+  width:max-content;
+  min-width:0;
+  margin-inline:auto;
+  align-items:stretch;
+  gap:12px;
+  padding:0;
+}
+#secCardHunt .cardspire-card{
+  width:172px;
+  height:278px;
+  min-height:278px;
+  box-sizing:border-box;
+  display:grid;
+  grid-template-rows:86px 34px minmax(0,1fr);
+  align-items:stretch;
+  gap:5px;
+  padding:42px 10px 43px;
+  text-align:center;
+}
+#secCardHunt .cardspire-card .card-art{
+  width:100%;
+  height:86px;
+  box-sizing:border-box;
+  margin:0;
+  align-self:start;
+}
+#secCardHunt .cardspire-card .card-art img{
+  object-position:center 32%;
+}
+#secCardHunt .cardspire-card>i:not(.card-side-stat i){
+  height:86px;
+  margin:0;
+  display:grid;
+  place-items:center;
+}
+#secCardHunt .cardspire-card>b{
+  min-width:0;
+  margin:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  line-height:1.12;
+}
+#secCardHunt .cardspire-card>small{
+  min-width:0;
+  margin:0;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  text-align:center;
+  line-height:1.28;
+  overflow:hidden;
+}
+#secCardHunt .cardspire-card .card-cost{
+  top:10px;
+  left:10px;
+}
+#secCardHunt .cardspire-card .card-tag{
+  top:13px;
+  right:10px;
+  max-width:88px;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  text-align:right;
+}
+#secCardHunt .card-side-stat,
+#secCardHunt .card-side-stat.defense{
+  left:9px;
+  bottom:8px;
+  width:36px;
+  height:36px;
+}
+#secCardHunt .card-side-stat.defense{
+  left:9px;
+}
+#secCardHunt .card-side-stat.defense i{
+  font-size:12px;
+  line-height:11px;
+}
+#secCardHunt .card-side-stat.defense b{
+  font-size:9px;
+  line-height:9px;
+}
+#secCardHunt .cardspire-card.debuff{
+  background:linear-gradient(160deg,#34263f,#17121b);
+  border-color:#9b6cb2;
+  box-shadow:0 9px 18px rgba(0,0,0,.3),inset 0 1px rgba(223,181,255,.07);
+}
+#secCardHunt .cardspire-card.debuff .card-tag{
+  color:#d69aec;
+}
+#secCardHunt .cardspire-card[data-card*="iron-wall"],
+#secCardHunt .cardspire-card[data-card*="riposte"],
+#secCardHunt .cardspire-card[data-card*="bastion"],
+#secCardHunt .cardspire-card[data-card*="shield-rise"],
+#secCardHunt .cardspire-card[data-card*="tempered-will"]{
+  border-top-color:#78caff;
+}
+#secCardHunt .cardspire-card[data-card*="chain-cut"],
+#secCardHunt .cardspire-card[data-card*="steel-storm"],
+#secCardHunt .cardspire-card[data-card*="execution"],
+#secCardHunt .cardspire-card[data-card*="overpower"],
+#secCardHunt .cardspire-card[data-card*="shield-ram"]{
+  border-top-color:#ff8c63;
+}
+#secCardHunt .cardspire-card[data-card*="hamstring"],
+#secCardHunt .cardspire-card[data-card*="armor-break"],
+#secCardHunt .cardspire-card[data-card*="disarm"],
+#secCardHunt .cardspire-card[data-card*="concussion"],
+#secCardHunt .cardspire-card[data-card*="intimidate"]{
+  border-top-color:#c78adc;
+}
+
+@media(max-width:700px){
+  #secCardHunt .cardspire-hand-wrap{
+    padding-inline:7px;
+    scroll-padding-inline:7px;
+  }
+  #secCardHunt .cardspire-hand{
+    margin-inline:0;
+    gap:10px;
+  }
+  #secCardHunt .cardspire-card{
+    width:145px;
+    height:244px;
+    min-height:244px;
+    grid-template-rows:66px 32px minmax(0,1fr);
+    gap:4px;
+    padding:38px 8px 40px;
+  }
+  #secCardHunt .cardspire-card .card-art{
+    width:100%;
+    height:66px;
+    margin:0;
+  }
+  #secCardHunt .cardspire-card>i:not(.card-side-stat i){
+    height:66px;
+    margin:0;
+  }
+  #secCardHunt .cardspire-card>b{
+    font-size:10px;
+  }
+  #secCardHunt .cardspire-card>small{
+    font-size:10px;
+    line-height:1.22;
+  }
+  #secCardHunt .cardspire-card .card-tag{
+    top:12px;
+    right:8px;
+    max-width:70px;
+  }
+  #secCardHunt .cardspire-card .card-cost{
+    top:8px;
+    left:8px;
+  }
+  #secCardHunt .card-side-stat,
+  #secCardHunt .card-side-stat.defense{
+    left:7px;
+    bottom:6px;
+    width:32px;
+    height:32px;
+  }
+  #secCardHunt .skill-trap-spikes .fighter.enemy::after,
+  #secCardHunt .skill-trap-snare .fighter.enemy::after,
+  #secCardHunt .skill-trap-net .fighter.enemy::after,
+  #secCardHunt .skill-trap-decoy .fighter.enemy::after{
+    width:90px;
+    height:90px;
+    right:0;
+    bottom:30px;
+  }
+  #secCardHunt .skill-trap-mastery .fighter.hero::after{
+    width:72px;
+    height:72px;
+    left:2px;
+    bottom:34px;
+  }
+}
+
+/* Autoridad final de geometría: evita que estilos históricos desalineen la mano. */
+#secCardHunt .cardspire-hand-wrap{
+  width:100%;
+  margin-inline:auto;
+  padding:10px 12px 16px;
+  box-sizing:border-box;
+}
+#secCardHunt .cardspire-hand{
+  width:max-content;
+  min-width:0;
+  margin-inline:auto;
+  padding:0;
+  justify-content:center;
+  align-items:stretch;
+  gap:12px;
+}
+#secCardHunt .cardspire-card{
+  flex:0 0 172px;
+  width:172px;
+  height:284px;
+  min-height:284px;
+  grid-template-rows:88px 38px minmax(0,1fr);
+  gap:6px;
+  padding:42px 10px 44px;
+}
+#secCardHunt .cardspire-card .card-art,
+#secCardHunt .cardspire-card>i:not(.card-side-stat i){
+  width:100%;
+  height:88px;
+  margin:0;
+}
+#secCardHunt .cardspire-card>b{
+  min-height:38px;
+}
+#secCardHunt .cardspire-card>small{
+  max-height:58px;
+}
+#secCardHunt .card-side-stat,
+#secCardHunt .card-side-stat.defense{
+  left:9px;
+  bottom:8px;
+  width:37px;
+  height:37px;
+}
+
+@media(max-width:700px){
+  #secCardHunt .cardspire-hand-wrap{
+    padding:8px 7px 13px;
+    overflow-x:auto;
+    scroll-padding-inline:7px;
+    scrollbar-width:thin;
+  }
+  #secCardHunt .cardspire-hand{
+    margin-inline:0;
+    justify-content:flex-start;
+    gap:10px;
+  }
+  #secCardHunt .cardspire-card{
+    flex-basis:148px;
+    width:148px;
+    height:250px;
+    min-height:250px;
+    grid-template-rows:68px 34px minmax(0,1fr);
+    gap:4px;
+    padding:39px 8px 40px;
+    scroll-snap-align:center;
+  }
+  #secCardHunt .cardspire-card .card-art,
+  #secCardHunt .cardspire-card>i:not(.card-side-stat i){
+    height:68px;
+  }
+  #secCardHunt .cardspire-card>b{
+    min-height:34px;
+  }
+  #secCardHunt .cardspire-card>small{
+    max-height:54px;
+  }
+  #secCardHunt .card-side-stat,
+  #secCardHunt .card-side-stat.defense{
+    left:7px;
+    bottom:6px;
+    width:33px;
+    height:33px;
+  }
+}
+
+@media(max-width:420px){
+  #secCardHunt .cardspire-card{
+    flex-basis:142px;
+    width:142px;
+  }
+}
+
+/* Mesa de combate: profundidad, lectura táctica y menos espacio vacío. */
+#secCardHunt .cardspire-battle-top{
+  min-height:44px;
+  padding:7px 12px 7px 15px;
+  border-color:rgba(231,183,70,.36);
+  background:
+    linear-gradient(90deg,rgba(78,47,18,.15),transparent 28%,transparent 72%,rgba(78,47,18,.13)),
+    rgba(12,9,8,.88);
+  box-shadow:inset 0 1px rgba(255,225,145,.045),0 8px 24px rgba(0,0,0,.18);
+}
+#secCardHunt .battle-round{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+#secCardHunt .battle-round i{
+  color:#8f7a58;
+  font:700 7px JetBrains Mono,monospace;
+  font-style:normal;
+  letter-spacing:.18em;
+}
+#secCardHunt .battle-round b{
+  width:25px;
+  height:25px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(238,189,72,.48);
+  border-radius:50%;
+  color:#f1c55d;
+  background:radial-gradient(circle,rgba(183,119,27,.23),rgba(12,9,8,.3));
+  box-shadow:0 0 15px rgba(213,153,43,.12);
+  font-size:10px;
+}
+#secCardHunt .battle-deck-summary{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  color:#9f8c6c;
+}
+#secCardHunt .battle-deck-summary b{color:#edca7b}
+#secCardHunt .battle-deck-summary i{
+  width:1px;
+  height:15px;
+  margin-inline:4px;
+  background:linear-gradient(transparent,rgba(231,185,77,.48),transparent);
+}
+#secCardHunt .cardspire-battle-top .affinity{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:center;
+  justify-content:end;
+  gap:8px;
+}
+#secCardHunt .cardspire-battle-top .affinity>b{
+  padding:5px 8px;
+  border:1px solid rgba(231,183,70,.34);
+  border-radius:999px;
+  background:rgba(83,52,18,.2);
+  color:#f0c967;
+  white-space:nowrap;
+}
+#secCardHunt .cardspire-battle-top .affinity small{
+  display:block;
+  max-width:250px;
+  color:#a99a81;
+  text-align:left;
+  line-height:1.15;
+}
+
+#secCardHunt .cardspire-fighters{
+  isolation:isolate;
+  overflow:hidden;
+  min-height:310px;
+  border-color:rgba(230,181,66,.46);
+  box-shadow:
+    inset 0 0 120px rgba(0,0,0,.52),
+    inset 0 -52px 70px rgba(7,5,4,.72),
+    0 24px 58px rgba(0,0,0,.38);
+}
+#secCardHunt .cardspire-fighters::after{
+  background:
+    radial-gradient(circle at 15% 22%,var(--scene-glow),transparent 22%),
+    radial-gradient(circle at 85% 28%,var(--scene-glow),transparent 20%),
+    linear-gradient(90deg,rgba(229,174,58,.05),transparent 20%,transparent 80%,rgba(220,120,48,.05));
+}
+#secCardHunt .cardspire-arena-decor{
+  position:absolute;
+  inset:0;
+  z-index:0!important;
+  pointer-events:none;
+  overflow:hidden;
+}
+#secCardHunt .cardspire-arena-decor::before{
+  content:"";
+  position:absolute;
+  left:9%;
+  right:9%;
+  bottom:18px;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(230,182,71,.2) 18%,rgba(230,182,71,.42) 50%,rgba(230,182,71,.2) 82%,transparent);
+  box-shadow:0 -38px 65px rgba(221,158,48,.08);
+}
+#secCardHunt .cardspire-arena-decor::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:-106px;
+  width:360px;
+  height:190px;
+  transform:translateX(-50%) perspective(240px) rotateX(62deg);
+  border:1px solid rgba(235,187,70,.16);
+  border-radius:50%;
+  background:
+    radial-gradient(circle,transparent 0 28%,rgba(226,177,62,.08) 29% 30%,transparent 31% 48%,rgba(226,177,62,.07) 49% 50%,transparent 51%),
+    conic-gradient(from 22deg,transparent 0 10%,rgba(226,177,62,.12) 10.5% 11%,transparent 11.5% 35%,rgba(226,177,62,.1) 35.5% 36%,transparent 36.5% 60%,rgba(226,177,62,.1) 60.5% 61%,transparent 61.5%);
+  filter:drop-shadow(0 0 18px rgba(205,143,38,.1));
+}
+#secCardHunt .cardspire-arena-decor>span{
+  position:absolute;
+  left:50%;
+  top:14%;
+  width:1px;
+  height:68%;
+  background:linear-gradient(transparent,rgba(231,183,68,.1),transparent);
+}
+#secCardHunt .cardspire-arena-decor>i{
+  position:absolute;
+  width:3px;
+  height:3px;
+  border-radius:50%;
+  background:#eac15e;
+  box-shadow:0 0 8px #e0a83c;
+  opacity:.34;
+  animation:cardspire-mote 4.8s ease-in-out infinite;
+}
+#secCardHunt .cardspire-arena-decor>i:nth-child(1){left:29%;top:27%;animation-delay:-1.2s}
+#secCardHunt .cardspire-arena-decor>i:nth-child(2){left:53%;top:19%;animation-delay:-3.1s}
+#secCardHunt .cardspire-arena-decor>i:nth-child(3){left:72%;top:35%;animation-delay:-2.2s}
+@keyframes cardspire-mote{
+  0%,100%{transform:translateY(7px);opacity:.16}
+  50%{transform:translateY(-10px);opacity:.58}
+}
+
+#secCardHunt .cardspire-fighters .fighter-card{
+  min-height:218px;
+  padding:15px;
+  border-color:color-mix(in srgb,var(--fighter-accent,#d99e43) 62%,transparent);
+  background:
+    linear-gradient(115deg,rgba(5,7,8,.84),rgba(45,27,15,.67)),
+    radial-gradient(circle at 18% 20%,var(--fighter-glow,rgba(224,173,79,.2)),transparent 46%);
+  box-shadow:
+    inset 0 1px rgba(255,229,158,.065),
+    inset 0 0 38px rgba(0,0,0,.42),
+    0 16px 38px rgba(0,0,0,.28),
+    0 0 22px var(--fighter-glow,rgba(224,173,79,.1));
+  backdrop-filter:blur(3px);
+}
+#secCardHunt .cardspire-fighters .fighter-card::before{
+  content:"";
+  position:absolute;
+  inset:7px;
+  border:1px solid color-mix(in srgb,var(--fighter-accent,#d99e43) 17%,transparent);
+  border-radius:11px;
+  pointer-events:none;
+}
+#secCardHunt .cardspire-fighters .fighter-card.hero{
+  border-left-width:2px;
+}
+#secCardHunt .cardspire-fighters .fighter-card.enemy{
+  border-right-width:2px;
+}
+#secCardHunt .fighter-readiness{
+  min-height:27px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-top:2px;
+}
+#secCardHunt .fighter-readiness span{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  padding:4px 6px;
+  border:1px solid rgba(226,184,86,.18);
+  border-radius:5px;
+  color:#8f8169!important;
+  background:rgba(7,7,7,.34);
+  font-size:6px!important;
+  letter-spacing:.08em;
+}
+#secCardHunt .fighter-readiness b{
+  color:#efca77;
+  font:800 8px JetBrains Mono,monospace;
+}
+#secCardHunt .fighter-card.enemy-card em{
+  min-width:min(230px,100%);
+  display:grid;
+  grid-template-columns:1fr;
+  gap:2px;
+  padding:6px 8px;
+  text-align:left;
+  background:linear-gradient(90deg,rgba(120,45,20,.32),rgba(20,11,9,.66));
+}
+#secCardHunt .fighter-card.enemy-card em>span{
+  color:#9e8264;
+  font:700 6px JetBrains Mono,monospace;
+  letter-spacing:.14em;
+}
+#secCardHunt .fighter-card.enemy-card em>b{
+  color:inherit;
+  font:800 8px/1.25 JetBrains Mono,monospace;
+}
+#secCardHunt .cardspire-versus{
+  position:relative;
+  z-index:2;
+  width:86px;
+  min-height:86px;
+  border:1px solid rgba(232,184,70,.25);
+  box-shadow:inset 0 0 24px rgba(181,112,26,.15),0 0 28px rgba(0,0,0,.32);
+}
+#secCardHunt .cardspire-versus::before,
+#secCardHunt .cardspire-versus::after{
+  content:"";
+  position:absolute;
+  top:50%;
+  width:34px;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(231,182,67,.38));
+}
+#secCardHunt .cardspire-versus::before{right:100%}
+#secCardHunt .cardspire-versus::after{left:100%;transform:scaleX(-1)}
+#secCardHunt .cardspire-versus>span{
+  display:block;
+  color:#a77d32;
+  font-size:13px;
+  line-height:1;
+}
+#secCardHunt .cardspire-versus>b{
+  display:block;
+  color:#f1cb70;
+  font:700 28px Cinzel,serif;
+  line-height:1;
+}
+
+#secCardHunt .cardspire-command-dock{
+  width:min(720px,100%);
+  min-height:72px;
+  margin:-4px auto 0;
+  display:grid;
+  grid-template-columns:82px minmax(0,1fr) 82px;
+  align-items:center;
+  gap:10px;
+  padding:7px 10px;
+  box-sizing:border-box;
+  border:1px solid rgba(230,181,65,.28);
+  border-radius:14px;
+  background:
+    radial-gradient(circle at 50% 0,rgba(189,124,27,.12),transparent 52%),
+    rgba(12,9,8,.88);
+  box-shadow:inset 0 1px rgba(255,231,162,.05),0 12px 32px rgba(0,0,0,.3);
+}
+#secCardHunt .cardspire-pile{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  color:#b49a6f;
+}
+#secCardHunt .cardspire-pile>i{
+  position:relative;
+  width:27px;
+  height:38px;
+  flex:0 0 27px;
+  border:1px solid rgba(234,187,76,.46);
+  border-radius:4px;
+  background:
+    radial-gradient(circle at center,rgba(213,158,46,.22) 0 13%,transparent 14%),
+    linear-gradient(135deg,#2c1f14,#0d0d0d);
+  box-shadow:-3px 3px 0 rgba(72,51,27,.8),-6px 6px 0 rgba(42,31,21,.7);
+}
+#secCardHunt .discard-pile>i{
+  transform:rotate(5deg);
+  filter:saturate(.55);
+}
+#secCardHunt .cardspire-pile span{display:grid;gap:1px}
+#secCardHunt .cardspire-pile small{
+  color:#776b59;
+  font:700 6px JetBrains Mono,monospace;
+  letter-spacing:.1em;
+}
+#secCardHunt .cardspire-pile b{
+  color:#e7c370;
+  font:800 13px JetBrains Mono,monospace;
+}
+#secCardHunt .discard-pile{justify-content:flex-end;text-align:right}
+#secCardHunt .cardspire-turn{
+  display:grid;
+  grid-template-columns:auto minmax(120px,1fr) auto;
+  gap:9px;
+}
+#secCardHunt .cardspire-turn>span.mana-orb{
+  min-width:94px;
+  display:grid;
+  grid-template-columns:22px auto;
+  grid-template-rows:auto auto;
+  gap:0 5px;
+  padding:6px 9px;
+  border-color:rgba(94,169,217,.38);
+  background:linear-gradient(135deg,rgba(19,60,89,.42),rgba(14,13,15,.78));
+}
+#secCardHunt .mana-orb>i{
+  grid-row:1/3;
+  align-self:center;
+  width:22px;
+  height:22px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  color:#a8e2ff;
+  background:#276b96;
+  box-shadow:0 0 14px rgba(83,180,235,.32);
+  font-style:normal;
+}
+#secCardHunt .mana-orb>small{
+  align-self:end;
+  color:#7294a9;
+  font:700 6px JetBrains Mono,monospace;
+  letter-spacing:.12em;
+}
+#secCardHunt .mana-orb>b{
+  align-self:start;
+  color:#a8ddfb;
+  font-size:11px;
+}
+#secCardHunt .turn-focus{
+  min-width:0;
+  display:grid;
+  align-content:center;
+  gap:2px;
+  text-align:center;
+}
+#secCardHunt .turn-focus small{
+  color:#e8bd59;
+  font:800 7px JetBrains Mono,monospace;
+  letter-spacing:.18em;
+}
+#secCardHunt .turn-focus b{
+  overflow:hidden;
+  color:#9f917a;
+  font:600 9px Spectral,serif;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+#secCardHunt .cardspire-turn .cardspire-end{
+  min-width:142px;
+  gap:10px;
+  padding-inline:13px;
+  box-shadow:inset 0 1px rgba(255,231,183,.12),0 7px 18px rgba(107,34,25,.25);
+}
+#secCardHunt .cardspire-turn .cardspire-end>b{
+  color:#ffd794;
+  font-size:14px;
+}
+#secCardHunt .cardspire-hand-label{
+  gap:10px;
+  color:#a89571;
+}
+#secCardHunt .cardspire-hand-label i{
+  color:#e0ad48;
+  font-style:normal;
+  font-size:7px;
+}
+
+@media(max-width:900px){
+  #secCardHunt .cardspire-command-dock{
+    grid-template-columns:64px minmax(0,1fr) 64px;
+  }
+  #secCardHunt .cardspire-pile{gap:4px}
+  #secCardHunt .cardspire-pile>i{width:22px;height:32px;flex-basis:22px}
+  #secCardHunt .cardspire-turn{grid-template-columns:auto 1fr}
+  #secCardHunt .turn-focus{display:none}
+}
+
+@media(max-width:700px){
+  #secCardHunt .cardspire-battle-top{
+    min-height:62px;
+    padding:6px 8px;
+  }
+  #secCardHunt .battle-round{gap:5px}
+  #secCardHunt .battle-round i{font-size:6px}
+  #secCardHunt .battle-round b{width:22px;height:22px}
+  #secCardHunt .battle-deck-summary{justify-content:flex-end;font-size:7px}
+  #secCardHunt .cardspire-battle-top .affinity{
+    grid-template-columns:auto 1fr;
+    gap:5px;
+  }
+  #secCardHunt .cardspire-battle-top .affinity>b{padding:4px 6px;font-size:7px}
+  #secCardHunt .cardspire-battle-top .affinity small{max-width:none;font-size:8px}
+  #secCardHunt .cardspire-fighters{
+    min-height:268px;
+    padding:9px 6px 13px!important;
+  }
+  #secCardHunt .cardspire-fighters .fighter-card{
+    min-height:236px;
+    padding:6px;
+    backdrop-filter:none;
+  }
+  #secCardHunt .cardspire-fighters .fighter-card::before{inset:3px;border-radius:7px}
+  #secCardHunt .fighter-readiness{display:none}
+  #secCardHunt .fighter-card.enemy-card em{
+    min-width:0;
+    padding:4px;
+  }
+  #secCardHunt .fighter-card.enemy-card em>span{font-size:5px!important}
+  #secCardHunt .fighter-card.enemy-card em>b{font-size:6px}
+  #secCardHunt .cardspire-versus{
+    width:29px;
+    min-height:55px;
+    border:0;
+    box-shadow:none;
+  }
+  #secCardHunt .cardspire-versus::before,
+  #secCardHunt .cardspire-versus::after{display:none}
+  #secCardHunt .cardspire-versus>span{font-size:9px}
+  #secCardHunt .cardspire-versus>b{font-size:18px}
+  #secCardHunt .cardspire-arena-decor::after{width:210px;height:120px;bottom:-72px}
+  #secCardHunt .cardspire-command-dock{
+    min-height:61px;
+    grid-template-columns:42px minmax(0,1fr) 42px;
+    gap:5px;
+    padding:5px 6px;
+    border-radius:10px;
+  }
+  #secCardHunt .cardspire-pile{display:grid;justify-items:center;text-align:center}
+  #secCardHunt .cardspire-pile>i{
+    width:18px;
+    height:26px;
+    flex-basis:18px;
+    box-shadow:-2px 2px 0 rgba(72,51,27,.8);
+  }
+  #secCardHunt .cardspire-pile span{display:block}
+  #secCardHunt .cardspire-pile small{display:none}
+  #secCardHunt .cardspire-pile b{font-size:9px}
+  #secCardHunt .discard-pile{justify-content:center}
+  #secCardHunt .cardspire-turn{
+    display:grid;
+    grid-template-columns:auto 1fr;
+    gap:5px;
+  }
+  #secCardHunt .cardspire-turn>span.mana-orb{
+    min-width:70px;
+    grid-template-columns:17px auto;
+    padding:5px 6px;
+  }
+  #secCardHunt .mana-orb>i{width:17px;height:17px;font-size:8px}
+  #secCardHunt .mana-orb>small{font-size:5px}
+  #secCardHunt .mana-orb>b{font-size:9px}
+  #secCardHunt .cardspire-turn .cardspire-end{
+    min-width:0;
+    padding-inline:7px;
+    font-size:7px;
+  }
+  #secCardHunt .cardspire-hand-label{
+    gap:6px;
+    font-size:7px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  #secCardHunt .cardspire-arena-decor>i{animation:none}
+}
+
+/* El escenario vuelve a ser parte visible del duelo, sin competir con la interfaz. */
+#secCardHunt .cardspire-fighters{
+  background:
+    linear-gradient(90deg,rgba(6,9,10,.44),rgba(19,12,9,.2) 46%,rgba(17,7,7,.44)),
+    linear-gradient(180deg,rgba(3,4,5,.16),rgba(5,4,4,.52))!important;
+}
+#secCardHunt .cardspire-scene-backdrop{
+  position:absolute!important;
+  inset:0;
+  z-index:0!important;
+  overflow:hidden;
+  pointer-events:none;
+}
+#secCardHunt .cardspire-scene-backdrop img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  object-position:center 48%;
+  filter:saturate(1.12) contrast(1.08) brightness(.76);
+  transform:scale(1.018);
+  animation:cardspire-backdrop-breathe 18s ease-in-out infinite alternate;
+}
+#secCardHunt .cardspire-scene-backdrop::before,
+#secCardHunt .cardspire-scene-backdrop::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+#secCardHunt .cardspire-scene-backdrop::before{
+  background:
+    linear-gradient(90deg,rgba(4,6,7,.7) 0%,rgba(7,6,6,.2) 28%,rgba(7,6,6,.1) 52%,rgba(15,5,5,.66) 100%),
+    linear-gradient(180deg,rgba(4,4,5,.18),transparent 46%,rgba(4,3,3,.72));
+}
+#secCardHunt .cardspire-scene-backdrop::after{
+  background:
+    radial-gradient(ellipse at 50% 43%,transparent 0 34%,rgba(2,2,3,.22) 72%,rgba(2,2,3,.68) 100%),
+    linear-gradient(90deg,rgba(225,174,61,.045),transparent 24%,transparent 76%,rgba(218,103,45,.05));
+}
+#secCardHunt .cardspire-arena-decor{z-index:1!important}
+#secCardHunt .cardspire-fighters>.fighter,
+#secCardHunt .cardspire-fighters>.cardspire-versus,
+#secCardHunt .cardspire-fighters>.cardspire-impact{z-index:2!important}
+#secCardHunt .scene-crypt .cardspire-scene-backdrop img{object-position:center 42%}
+#secCardHunt .scene-fortress .cardspire-scene-backdrop img{object-position:center 48%}
+#secCardHunt .scene-peaks .cardspire-scene-backdrop img{object-position:center 44%}
+#secCardHunt .scene-moonmarsh .cardspire-scene-backdrop img,
+#secCardHunt .scene-drowned .cardspire-scene-backdrop img{object-position:center 48%}
+#secCardHunt .scene-crystalwaste .cardspire-scene-backdrop img,
+#secCardHunt .scene-stormvale .cardspire-scene-backdrop img,
+#secCardHunt .scene-crimsonabyss .cardspire-scene-backdrop img{object-position:center 46%}
+@keyframes cardspire-backdrop-breathe{
+  from{transform:scale(1.018)}
+  to{transform:scale(1.055)}
+}
+@media(max-width:700px){
+  #secCardHunt .cardspire-scene-backdrop img{
+    object-position:center;
+    filter:saturate(1.08) contrast(1.06) brightness(.69);
+    transform:scale(1.035);
+    animation:none;
+  }
+  #secCardHunt .cardspire-scene-backdrop::before{
+    background:
+      linear-gradient(90deg,rgba(4,6,7,.66),rgba(8,6,6,.26) 50%,rgba(15,5,5,.66)),
+      linear-gradient(180deg,rgba(4,4,5,.12),transparent 42%,rgba(4,3,3,.74));
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #secCardHunt .cardspire-scene-backdrop img{animation:none}
+}
+
+/* Sacerdote: lectura final de Fe y curación sobre la retícula común de cartas. */
+#secCardHunt .cardspire-card[data-card^="priest-"]{
+  box-shadow:inset 0 1px 0 rgba(255,238,177,.12),0 10px 25px rgba(0,0,0,.3);
+}
+#secCardHunt .cardspire-card[data-card^="priest-"]:hover{
+  box-shadow:inset 0 1px 0 rgba(255,246,203,.24),0 0 22px rgba(225,183,66,.23),0 14px 28px rgba(0,0,0,.42);
+}
+#secCardHunt .card-side-stat.healing{
+  left:9px;
+  bottom:8px;
+  width:37px;
+  height:37px;
+}
+@media(max-width:700px){
+  #secCardHunt .card-side-stat.healing{
+    left:7px;
+    bottom:6px;
+    width:33px;
+    height:33px;
+  }
+}
+
+/* Identidad regional: cada acto anuncia su ecosistema y mantiene su lectura
+   tanto en el mapa como durante el combate. */
+#secCardHunt .cardspire-region{
+  grid-template-columns:auto 1fr;
+  grid-template-rows:auto auto auto;
+}
+#secCardHunt .cardspire-region i{
+  grid-row:1 / 4;
+}
+#secCardHunt .cardspire-region small{
+  grid-column:2;
+  display:block;
+  max-width:210px;
+  margin-top:2px;
+  color:rgba(223,201,157,.66);
+  font:600 7px/1.45 "JetBrains Mono",monospace;
+  letter-spacing:.055em;
+  text-transform:uppercase;
+}
+#secCardHunt .cardspire-map-copy em{
+  display:block;
+  width:max-content;
+  max-width:min(680px,92%);
+  margin:9px auto 0;
+  padding:6px 11px;
+  border:1px solid rgba(222,173,67,.25);
+  border-radius:999px;
+  background:rgba(13,10,8,.48);
+  color:#d8bd84;
+  font:600 8px/1.4 "JetBrains Mono",monospace;
+  font-style:normal;
+  letter-spacing:.04em;
+}
+#secCardHunt .cardspire-battle-top .battle-deck-summary small{
+  display:block;
+  margin-bottom:3px;
+  color:#d1a848;
+  font:700 7px/1 "JetBrains Mono",monospace;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+@media(max-width:700px){
+  #secCardHunt .cardspire-region small{
+    max-width:150px;
+    font-size:6px;
+  }
+  #secCardHunt .cardspire-map-copy em{
+    max-width:96%;
+    border-radius:8px;
+    font-size:7px;
+  }
+  #secCardHunt .cardspire-battle-top .battle-deck-summary small{
+    font-size:6px;
+  }
+  #secCardHunt .cardspire-legend{
+    width:100%;
+    max-width:100%;
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:5px;
+    overflow:hidden;
+  }
+  #secCardHunt .cardspire-legend span{
+    min-width:0;
+    justify-content:center;
+    padding:5px 2px;
+    font-size:6px;
+    white-space:nowrap;
+  }
+}

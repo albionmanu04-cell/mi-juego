@@ -11,7 +11,7 @@
     margin-bottom: 26px;
     padding: 0;
     position: relative;
-    z-index: 60;
+    z-index: 120;
   }
   .main-nav.active { display: flex; }
 
@@ -110,7 +110,7 @@
   body.immersive-game header::before,body.immersive-game header::after{ width:30%; }
   body.immersive-game h1{ font-size:clamp(21px,2.2vw,31px); }
   body.immersive-game .subtitle{ font-size:8px; letter-spacing:2.5px; }
-  body.immersive-game .main-nav{ position:sticky; z-index:50; top:8px; justify-content:center; margin:0 auto 14px; max-width:1380px; }
+  body.immersive-game .main-nav{ position:sticky; z-index:105; top:8px; justify-content:center; margin:0 auto 14px; max-width:1380px; }
   body.immersive-game .nav-menu-panel{ padding:5px; }
   body.immersive-game .nav-btn{ padding:6px 9px 5px; font-size:8px; }
   body.immersive-game .nav-btn .btn-icon{ font-size:14px; }

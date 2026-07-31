@@ -44,6 +44,7 @@ function updateGoldDisplay(newGold){
 function render(){
   applyVisualSettings();
   syncMusicScene();
+  resolveAllSettlementUpgrades();
   document.getElementById('pName').textContent = state.name;
   const heroClass = currentClass();
   const subclass = currentSubclass();
@@ -60,7 +61,8 @@ function render(){
   document.getElementById('expBar').style.width = pct+'%';
   document.getElementById('expLabel').textContent = state.level>=LEVEL_CAP ? 'NIVEL MÁXIMO' : `${state.exp} / ${need}`;
   updateGoldDisplay(state.gold);
-  document.getElementById('powerLabel').textContent = `Poder ${Math.round(power())}` + (winStreak>0 ? ` · 🔥 Racha ${winStreak}` : '');
+  const powerLabel = document.getElementById('powerLabel');
+  if(powerLabel) powerLabel.textContent = `Poder ${Math.round(power())}` + (winStreak>0 ? ` · 🔥 Racha ${winStreak}` : '');
 
   document.getElementById('pointsBanner').className = 'points-banner' + (state.statPoints>0?'':' empty');
   document.getElementById('pointsBanner').textContent = state.statPoints>0 ? `${state.statPoints} puntos para asignar` : 'Sin puntos para asignar';
@@ -76,10 +78,8 @@ function render(){
     resetBtn.textContent = state.level>=LEVEL_CAP ? 'Terminá la cacería para renacer' : `Renacimiento disponible al nivel ${LEVEL_CAP}`;
   }
 
-  huntMode = 'run';
-  renderRunMode();
-  renderLog();
-  renderHuntSubTabs();
+  // Cacería queda completamente retirada mientras se construye su nuevo
+  // diseño de cartas. No se inicia ni renderiza ninguna expedición vieja.
+  huntMode = 'disabled';
   renderActiveSubTabs();
 }
-

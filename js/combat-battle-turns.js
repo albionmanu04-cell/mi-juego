@@ -99,7 +99,7 @@ function tryTameMonster(){
   } else {
     spawnFloatText('monster','Se resistió','miss');
     showFeedback('CAPTURA FALLIDA', `${Math.round(chance)}% de posibilidad${usedCharm?' · Amuleto de captura usado':''}`, 'danger');
-    setTimeout(()=>startMonsterTurn(tameBattle),340);
+    setTimeout(()=>resolvePlayerActionEnd(tameBattle),340);
   }
 }
 function companionAssist(force=false){
@@ -215,7 +215,7 @@ function runPlayerHits(totalHits, isSkill, doneCount, reference=battle){
       setTimeout(()=>{
         if(!isCurrentBattle(reference)) return;
         if(triggerBossPhaseTwo()) return;
-        startMonsterTurn(reference);
+        resolvePlayerActionEnd(reference);
       }, 260);
     };
     if(hitStopDelay>0) setTimeout(()=>{ if(isCurrentBattle(reference)) applyImpact(); }, hitStopDelay);
@@ -294,4 +294,3 @@ function doReset(){
   if(!confirm(`¿Renacer como nivel 1?\n\nConservarás equipo, inventario, oro, materiales, logros, bestiario y tu subclase. Recibirás la Marca Eterna #${state.resets+1}.`)) return;
   performRebirth();
 }
-

@@ -26,6 +26,18 @@
   .stat-pips i.pending{
     will-change: transform;
   }
+
+  /* Las listas largas no necesitan pintarse hasta que entren en pantalla.
+     Mantiene fluido el gremio, bestiario, forja y perfil en móviles. */
+  .bestiary-card,
+  .trade-card,
+  .forge-card,
+  .salvage-item,
+  .profile-achievement,
+  #secGuild .shop-item{
+    content-visibility:auto;
+    contain-intrinsic-size:auto 150px;
+  }
   @media (prefers-reduced-motion: reduce){
     *, *::before, *::after{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
   }

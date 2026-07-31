@@ -21,28 +21,33 @@ function equippedSetSummary(){
 
 function getEquipmentBonuses() {
   let atk = 0, def = 0, crit = 0, critDmg = 0, hp = 0, mana = 0, speed = 0;
-  if (!state.equipment) return { atk, def, crit, critDmg, hp, mana, speed };
-  Object.values(state.equipment).forEach(item => {
-    if (item) {
-      const multiplier = 1 + Math.min(ENHANCE_MAX,finiteNumber(item.enhanceLevel))* .08;
-      atk += Math.round(finiteNumber(item.bonusAtk)*multiplier);
-      def += Math.round(finiteNumber(item.bonusDef)*multiplier);
-      crit += Math.round(finiteNumber(item.bonusCrit)*multiplier);
-      critDmg += Math.round(finiteNumber(item.bonusCritDmg)*multiplier);
-      hp += Math.round(finiteNumber(item.bonusHp)*multiplier);
-      mana += Math.round(finiteNumber(item.bonusMana)*multiplier);
-      speed += Math.round(finiteNumber(item.bonusSpeed)*multiplier);
-    }
-  });
-  equippedSetSummary().sets.forEach(set=>set.active.forEach(tier=>{
-    atk += finiteNumber(tier.bonuses.atk);
-    def += finiteNumber(tier.bonuses.def);
-    crit += finiteNumber(tier.bonuses.crit);
-    critDmg += finiteNumber(tier.bonuses.critDmg);
-    hp += finiteNumber(tier.bonuses.hp);
-    mana += finiteNumber(tier.bonuses.mana);
-    speed += finiteNumber(tier.bonuses.speed);
-  }));
+  if (state.equipment) {
+    Object.values(state.equipment).forEach(item => {
+      if (item) {
+        const multiplier = 1 + Math.min(ENHANCE_MAX,finiteNumber(item.enhanceLevel))* .08;
+        atk += Math.round(finiteNumber(item.bonusAtk)*multiplier);
+        def += Math.round(finiteNumber(item.bonusDef)*multiplier);
+        crit += Math.round(finiteNumber(item.bonusCrit)*multiplier);
+        critDmg += Math.round(finiteNumber(item.bonusCritDmg)*multiplier);
+        hp += Math.round(finiteNumber(item.bonusHp)*multiplier);
+        mana += Math.round(finiteNumber(item.bonusMana)*multiplier);
+        speed += Math.round(finiteNumber(item.bonusSpeed)*multiplier);
+      }
+    });
+    equippedSetSummary().sets.forEach(set=>set.active.forEach(tier=>{
+      atk += finiteNumber(tier.bonuses.atk);
+      def += finiteNumber(tier.bonuses.def);
+      crit += finiteNumber(tier.bonuses.crit);
+      critDmg += finiteNumber(tier.bonuses.critDmg);
+      hp += finiteNumber(tier.bonuses.hp);
+      mana += finiteNumber(tier.bonuses.mana);
+      speed += finiteNumber(tier.bonuses.speed);
+    }));
+  }
+  // Bonus permanente de El Asentamiento (Santuario de Reliquias): no depende
+  // del equipo, así que se suma siempre, incluso sin nada equipado.
+  const relic = settlementRelicBonus();
+  atk += relic.atk; def += relic.def; crit += relic.crit; critDmg += relic.critDmg; hp += relic.hp; mana += relic.mana;
   return { atk, def, crit, critDmg, hp, mana, speed };
 }
 
@@ -85,6 +90,40 @@ function activeHeroVisual(){
     weapon: `${base.weapon} · ${sub.label}`,
     description: sub.description || '',
     isSubclass:true
+  };
+}
+
+/* ================= APARIENCIA DEL HÉROE =================
+   Perfil, Héroe, Herrería y las vistas públicas usan una ilustración fija por
+   clase o subclase. El equipo conserva todos sus efectos y sus ranuras, pero
+   nunca se superpone sobre el arte del personaje. */
+function activeHeroAppearance(){
+  const visual = activeHeroVisual();
+  const equipped = Object.values(state?.equipment || {}).filter(Boolean);
+  const primary = equippedSetSummary().primary;
+  const classPieces = equipped.filter(item=>
+    item.classOnly===state.characterClass &&
+    !item.subclassOnly &&
+    item.equipmentTier!=='forge'
+  ).length;
+  const forgePieces = equipped.filter(item=>item.equipmentTier==='forge').length;
+  const travelerPieces = equipped.filter(item=>item.equipmentTier==='base' || item.setId==='traveler').length;
+  let appearanceLabel = primary?.definition?.label || (equipped.length ? 'Vestimenta mixta' : 'Ropaje de entrenamiento');
+  if(forgePieces>=2) appearanceLabel='Vestidura Ancestral';
+  else if(visual.isSubclass) appearanceLabel=primary?.definition?.label || visual.label;
+  else if(classPieces>=3) appearanceLabel=`Armadura de ${visual.baseLabel}`;
+  else if(travelerPieces) appearanceLabel='Equipo del Viajero';
+  return {
+    ...visual,
+    image:visual.image,
+    paperDoll:false,
+    appearanceLabel,
+    equippedPieces:equipped.length,
+    classPieces,
+    forgePieces,
+    travelerPieces,
+    paperDollLayers:[],
+    dominantSet:primary?.id || ''
   };
 }
 function subclassBonus(key){
@@ -196,7 +235,7 @@ function availableStatResets(){ return Math.max(0, earnedStatResets() - (state.s
  * cargar un personaje, antes de usarlo en cualquier otra parte del código.
  */
 function normalizeState(){
-  const fresh = defaultState(state.name || 'Guerrero');
+  const fresh = defaultState(state.name || 'Guerrero', state.characterClass || 'warrior');
   state = { ...fresh, ...state };
   if(!CLASSES[state.characterClass]) state.characterClass = 'warrior';
   state.stats = { ...fresh.stats, ...(state.stats || {}) };
@@ -212,6 +251,15 @@ function normalizeState(){
   state.statResetsEarned = Math.max(Math.floor((state.level||0)/5), Number(state.statResetsEarned) || 0);
   state.equipment = { ...fresh.equipment, ...(state.equipment || {}) };
   state.ownedEquipment = Array.isArray(state.ownedEquipment) ? state.ownedEquipment : [];
+  // Las versiones anteriores entregaban la Espada Oxidada a todas las clases.
+  // Sólo se migra esa pieza inicial exacta; el resto del inventario se conserva.
+  if(state.characterClass !== 'warrior'){
+    state.ownedEquipment = state.ownedEquipment.map(item=>
+      item?.id === 'rusty_sword' && !item.classOnly
+        ? starterEquipmentForClass(state.characterClass)
+        : item
+    );
+  }
   // Migra piezas forjadas de versiones anteriores al nuevo set Ancestral.
   const migrateForgeSet = item => {
     if(!item) return item;
@@ -272,6 +320,11 @@ function normalizeState(){
   state.log = Array.isArray(state.log) ? state.log : [];
   state.achievementsClaimed = state.achievementsClaimed || {};
   state.bestiary = state.bestiary || {};
+  state.cardCodex = state.cardCodex && typeof state.cardCodex==='object' ? state.cardCodex : {};
+  Object.keys(state.cardCodex).forEach(classId=>{
+    const entries=Array.isArray(state.cardCodex[classId]) ? state.cardCodex[classId] : [];
+    state.cardCodex[classId]=[...new Set(entries.filter(key=>typeof key==='string' && key.trim()))];
+  });
   state.tutorialSeen = !!state.tutorialSeen;
   state.companion = state.companion || null;
   state.missions = { ...fresh.missions, ...(state.missions || {}) };
@@ -281,5 +334,3 @@ function normalizeState(){
   });
   rollMissionReset();
 }
-
-

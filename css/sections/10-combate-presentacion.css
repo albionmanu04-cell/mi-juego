@@ -184,6 +184,35 @@
   @keyframes sanctumRuneIdle{ 0%,100%{ transform:translate(-50%,-50%) rotate(-2deg); opacity:.19; } 50%{ transform:translate(-50%,-51%) rotate(2deg); opacity:.3; } }
   .equipment-hero-art{ position:absolute; z-index:1; left:50%; bottom:15px; width:180px; height:282px; transform:translateX(-50%); object-fit:contain; filter:drop-shadow(0 0 14px rgba(232,196,119,.25)) drop-shadow(0 17px 13px rgba(0,0,0,.75)); animation:equipmentHeroIdle 3.6s ease-in-out infinite; }
   .equipment-hero-art.subclass-hero-art{ width:218px; height:300px; bottom:8px; filter:drop-shadow(0 0 16px rgba(232,196,119,.3)) drop-shadow(0 18px 14px rgba(0,0,0,.78)); }.subclass-loadout-emblem{ width:32px; height:32px; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,.7)); }
+  .equipment-hero-art.paperdoll-base-art{ width:176px; height:296px; bottom:12px; animation:none; }
+  .paperdoll-layer{
+    position:absolute; z-index:2; left:50%; bottom:12px; width:176px; height:296px;
+    transform:translateX(-50%); object-fit:contain; pointer-events:none;
+    filter:drop-shadow(0 5px 6px rgba(0,0,0,.64));
+  }
+  .paperdoll-layer-chest{ z-index:2; }
+  .paperdoll-layer-boots{ z-index:3; }
+  .paperdoll-layer-weapon{ z-index:4; }
+  .paperdoll-layer-helmet{ z-index:5; }
+  .paperdoll-layer-gloves{ z-index:6; }
+  .paperdoll-layer-shield{ z-index:7; }
+  .paperdoll-active::after{
+    content:''; position:absolute; z-index:0; left:50%; bottom:21px; width:116px; height:19px;
+    transform:translateX(-50%); border-radius:50%;
+    background:radial-gradient(ellipse,rgba(232,196,119,.28),rgba(0,0,0,.02) 68%,transparent);
+    filter:blur(2px);
+  }
+  .appearance-state{
+    position:absolute; z-index:5; left:12px; right:auto; top:72px; bottom:auto; max-width:106px; padding:5px 8px;
+    transform:none; border:1px solid rgba(232,196,119,.35); border-radius:6px;
+    color:#b8aa91; background:rgba(11,8,6,.86); text-align:center;
+    box-shadow:0 5px 12px rgba(0,0,0,.32); pointer-events:none;
+  }
+  .appearance-state small,.appearance-state b,.appearance-state span{ display:block; }
+  .appearance-state small{ color:#8d7d64; font:7px 'JetBrains Mono'; letter-spacing:1px; }
+  .appearance-state b{ margin:2px 0; color:#e8c477; font:700 8px 'Cinzel'; }
+  .appearance-state span{ font:7px 'JetBrains Mono'; }
+  .forge-appearance .equipment-sanctum-rune{ opacity:.46; filter:drop-shadow(0 0 18px rgba(255,186,48,.52)); }
   @keyframes equipmentHeroIdle{ 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-4px)} }
   .loadout-hint{ position:absolute; z-index:5; bottom:7px; left:14px; right:14px; padding:5px 7px; border:1px solid rgba(200,155,60,.18); border-radius:4px; background:rgba(10,7,5,.72); color:#aa9b81; font:8px 'JetBrains Mono'; text-align:center; }
 .eq-slot{ z-index:4; background:linear-gradient(145deg,rgba(42,31,18,.97),rgba(13,9,6,.98)); }
@@ -214,4 +243,4 @@
   .empty-backpack-state p{ max-width:195px; margin:6px 0 0; font:10px/1.5 'JetBrains Mono'; }
   .empty-backpack-state small{ display:block; margin-top:11px; padding:4px 8px; border:1px solid rgba(232,196,119,.25); border-radius:20px; color:#d4bb83; font:8px 'JetBrains Mono'; letter-spacing:.55px; }
   @keyframes emptySatchelIdle{ 0%,100%{ transform:translateY(0) rotate(-2deg); } 50%{ transform:translateY(-5px) rotate(2deg); } }
-  @media(max-width:560px){ .character-doll{ min-height:365px; }.equipment-hero-art{ width:174px; }.loadout-hint{ font-size:7px; } }
+  @media(max-width:560px){ .character-doll{ min-height:365px; }.equipment-hero-art{ width:174px; }.equipment-hero-art.paperdoll-base-art,.paperdoll-layer{width:162px;height:286px}.appearance-state{left:8px;right:auto;top:69px;max-width:98px}.loadout-hint{ font-size:7px; } }

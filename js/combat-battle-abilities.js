@@ -217,7 +217,7 @@ function useSubclassAbility(key){
   showFeedback(`${ability.icon} ${ability.label.toUpperCase()}`,detail, ability.effect==='heal'||ability.effect==='guard'?'mana':'reward');
   syncBattleUi(); renderActionButtons();
   if(monster.hp<=0){ setTimeout(()=>{ if(isCurrentBattle(abilityBattle)) endBattle('win'); },380); return; }
-  startMonsterTurn(abilityBattle);
+  resolvePlayerActionEnd(abilityBattle);
 }
 
 /**
@@ -280,7 +280,7 @@ function useClassAbility(){
   syncBattleUi();
   renderActionButtons();
   if(monster.hp<=0){ setTimeout(()=>{ if(isCurrentBattle(abilityBattle)) endBattle('win'); },380); return; }
-  startMonsterTurn(abilityBattle);
+  resolvePlayerActionEnd(abilityBattle);
 }
 
 /* ================= COSTO, BOTONES Y ESTADO DE HABILIDADES ================= */
@@ -373,6 +373,5 @@ function useAbility(key){
   }
   syncBattleUi();
   if(battle.monster.hp<=0){ setTimeout(()=>{ if(isCurrentBattle(abilityBattle)) endBattle('win'); },350); return; }
-  startMonsterTurn(abilityBattle);
+  resolvePlayerActionEnd(abilityBattle);
 }
-

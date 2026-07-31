@@ -225,6 +225,12 @@ const MAP_NODE_TYPES = {
 function makeMapNodes(depth){
   if(depth>1 && depth%5===0) return [{ type:'boss' }];
   const pool = ['fight','fight','elite','treasure','shrine','tracking','merchant','event'];
+  // La Torre del Vigía de El Asentamiento agrega copias extra de nodos "buenos"
+  // (no combate/élite) al bolillero antes de sortear, sin sacar los de combate,
+  // para que el mapa tienda a ofrecer más oportunidades sin perder variedad.
+  const watchtowerBoost = (typeof settlementWatchtowerBonus==='function') ? settlementWatchtowerBonus() : 0;
+  const goodTypes = ['treasure','shrine','tracking','merchant','event'];
+  for(let i=0;i<watchtowerBoost;i++) pool.push(goodTypes[Math.floor(Math.random()*goodTypes.length)]);
   const nodes = [];
   while(nodes.length<3 && pool.length){
     const index = Math.floor(Math.random()*pool.length);
@@ -520,7 +526,7 @@ const UNIVERSAL_SLOT_NAMES = {
   boots:'Botas de Sendero', weapon:'Arma de Práctica', shield:'Talismán de Viaje', ring:'Anillo de Brújula'
 };
 const UNIVERSAL_GEAR_ART = Object.fromEntries(Object.keys(UNIVERSAL_SLOT_NAMES).map(type=>[
-  type, `assets/images/equipment-pieces/traveler_${type}.png`
+  type, `assets/images/equipment-pieces/traveler_${type}.webp`
 ]));
 const UNIVERSAL_SLOT_ICONS = { helmet:'🧢', chest:'🥋', gloves:'🧤', boots:'🥾', weapon:'⚔', shield:'🧿', ring:'🧭' };
 const UNIVERSAL_SET_BONUSES = [
@@ -562,15 +568,15 @@ const SUBCLASS_SET_STYLES = {
 };
 const SUBCLASS_SLOT_NAMES = { helmet:'Corona', chest:'Vestidura', gloves:'Guantes', boots:'Botas', weapon:'Arma', shield:'Reliquia', ring:'Sello' };
 const ANCESTRAL_FORGE_ART = {
-  warrior:'assets/images/equipment-sets/ancestral_warrior.png',
-  archer:'assets/images/equipment-sets/ancestral_archer.png',
-  mage:'assets/images/equipment-sets/ancestral_mage.png',
-  priest:'assets/images/equipment-sets/ancestral_priest.png',
-  assassin:'assets/images/equipment-sets/ancestral_assassin.png',
-  tamer:'assets/images/equipment-sets/ancestral_tamer.png'
+  warrior:'assets/images/equipment-sets/ancestral_warrior.webp',
+  archer:'assets/images/equipment-sets/ancestral_archer.webp',
+  mage:'assets/images/equipment-sets/ancestral_mage.webp',
+  priest:'assets/images/equipment-sets/ancestral_priest.webp',
+  assassin:'assets/images/equipment-sets/ancestral_assassin.webp',
+  tamer:'assets/images/equipment-sets/ancestral_tamer.webp'
 };
 function subclassPieceArt(classOnly, subclassOnly, type){
-  return `assets/images/equipment-pieces/${subclassOnly}_${type}.png`;
+  return `assets/images/equipment-pieces/${subclassOnly}_${type}.webp`;
 }
 function subclassArmory(){
   const result=[];
@@ -660,28 +666,28 @@ const CLASSES = {
 
 const SUBCLASSES = {
   warrior: {
-    guardian:{ label:'Guardián', icon:'🛡', image:'assets/images/subclasses/warrior_guardian.png', description:'Resiste golpes fuertes y protege su avance.', bonuses:{hp:25,def:4} },
-    berserker:{ label:'Berserker', icon:'🪓', image:'assets/images/subclasses/warrior_berserker.png', description:'Sacrifica seguridad por ataques brutales.', bonuses:{atk:3,critDmg:25} }
+    guardian:{ label:'Guardián', icon:'🛡', image:'assets/images/subclasses/warrior_guardian.webp', description:'Resiste golpes fuertes y protege su avance.', bonuses:{hp:25,def:4} },
+    berserker:{ label:'Berserker', icon:'🪓', image:'assets/images/subclasses/warrior_berserker.webp', description:'Sacrifica seguridad por ataques brutales.', bonuses:{atk:3,critDmg:25} }
   },
   archer: {
-    sniper:{ label:'Francotirador', icon:'◎', image:'assets/images/subclasses/archer_sniper.png', description:'Golpes precisos y críticos más frecuentes.', bonuses:{atk:3,crit:6} },
-    ranger:{ label:'Explorador', icon:'🌿', image:'assets/images/subclasses/archer_ranger.png', description:'Movilidad, evasión y ataques encadenados.', bonuses:{dodge:5,speed:5} }
+    sniper:{ label:'Francotirador', icon:'◎', image:'assets/images/subclasses/archer_sniper.webp', description:'Golpes precisos y críticos más frecuentes.', bonuses:{atk:3,crit:6} },
+    ranger:{ label:'Explorador', icon:'🌿', image:'assets/images/subclasses/archer_ranger.webp', description:'Movilidad, evasión y ataques encadenados.', bonuses:{dodge:5,speed:5} }
   },
   mage: {
-    elementalist:{ label:'Elementalista', icon:'🔥', image:'assets/images/subclasses/mage_elementalist.png', description:'Potencia al máximo el daño de habilidades.', bonuses:{mana:18,skillMult:.14} },
-    arcanist:{ label:'Arcanista', icon:'✧', image:'assets/images/subclasses/mage_arcanist.png', description:'Conserva maná para lanzar más hechizos.', bonuses:{mana:30,manaDiscount:.12} }
+    elementalist:{ label:'Elementalista', icon:'🔥', image:'assets/images/subclasses/mage_elementalist.webp', description:'Potencia al máximo el daño de habilidades.', bonuses:{mana:18,skillMult:.14} },
+    arcanist:{ label:'Arcanista', icon:'✧', image:'assets/images/subclasses/mage_arcanist.webp', description:'Conserva maná para lanzar más hechizos.', bonuses:{mana:30,manaDiscount:.12} }
   },
   priest: {
-    templar:{ label:'Templario', icon:'⚜', image:'assets/images/subclasses/priest_templar.png', description:'Fe convertida en vida y defensa.', bonuses:{hp:20,def:3} },
-    oracle:{ label:'Oráculo', icon:'☀', image:'assets/images/subclasses/priest_oracle.png', description:'Milagros más poderosos y eficientes.', bonuses:{mana:22,skillMult:.10,manaDiscount:.06} }
+    templar:{ label:'Templario', icon:'⚜', image:'assets/images/subclasses/priest_templar.webp', description:'Fe convertida en vida y defensa.', bonuses:{hp:20,def:3} },
+    oracle:{ label:'Oráculo', icon:'☀', image:'assets/images/subclasses/priest_oracle.webp', description:'Milagros más poderosos y eficientes.', bonuses:{mana:22,skillMult:.10,manaDiscount:.06} }
   },
   assassin: {
-    shadow:{ label:'Sombra', icon:'☾', image:'assets/images/subclasses/assassin_shadow.png', description:'Evita ataques y golpea antes de ser visto.', bonuses:{dodge:7,speed:4} },
-    executioner:{ label:'Verdugo', icon:'🗡', image:'assets/images/subclasses/assassin_executioner.png', description:'Críticos mucho más peligrosos.', bonuses:{atk:2,crit:4,critDmg:35} }
+    shadow:{ label:'Sombra', icon:'☾', image:'assets/images/subclasses/assassin_shadow.webp', description:'Evita ataques y golpea antes de ser visto.', bonuses:{dodge:7,speed:4} },
+    executioner:{ label:'Verdugo', icon:'🗡', image:'assets/images/subclasses/assassin_executioner.webp', description:'Críticos mucho más peligrosos.', bonuses:{atk:2,crit:4,critDmg:35} }
   },
   tamer: {
-    beastmaster:{ label:'Maestro de Bestias', icon:'🐾', image:'assets/images/subclasses/tamer_beastmaster.png', description:'Su compañero ataca más seguido y con más fuerza.', bonuses:{companionRate:.16,companionPower:.22} },
-    binder:{ label:'Vinculador', icon:'⧉', image:'assets/images/subclasses/tamer_binder.png', description:'Refuerza el vínculo con maná y protección.', bonuses:{mana:20,def:2,manaDiscount:.08} }
+    beastmaster:{ label:'Maestro de Bestias', icon:'🐾', image:'assets/images/subclasses/tamer_beastmaster.webp', description:'Su compañero ataca más seguido y con más fuerza.', bonuses:{companionRate:.16,companionPower:.22} },
+    binder:{ label:'Vinculador', icon:'⧉', image:'assets/images/subclasses/tamer_binder.webp', description:'Refuerza el vínculo con maná y protección.', bonuses:{mana:20,def:2,manaDiscount:.08} }
   }
 };
 
@@ -697,18 +703,18 @@ const CLASS_EMBLEMS = {
 // completo del personaje, estos sellos se leen bien dentro del maniquí y
 // conservan la identidad de cada subclase.
 const SUBCLASS_EQUIPMENT_EMBLEMS = {
-  'warrior-guardian':'assets/images/equipment-sets/guardian.png',
-  'warrior-berserker':'assets/images/equipment-sets/berserker.png',
-  'archer-sniper':'assets/images/equipment-sets/sniper.png',
-  'archer-ranger':'assets/images/equipment-sets/ranger.png',
-  'mage-elementalist':'assets/images/equipment-sets/elementalist.png',
-  'mage-arcanist':'assets/images/equipment-sets/arcanist.png',
-  'priest-templar':'assets/images/equipment-sets/templar.png',
-  'priest-oracle':'assets/images/equipment-sets/oracle.png',
-  'assassin-shadow':'assets/images/equipment-sets/shadow.png',
-  'assassin-executioner':'assets/images/equipment-sets/executioner.png',
-  'tamer-beastmaster':'assets/images/equipment-sets/beastmaster.png',
-  'tamer-binder':'assets/images/equipment-sets/binder.png'
+  'warrior-guardian':'assets/images/equipment-sets/guardian.webp',
+  'warrior-berserker':'assets/images/equipment-sets/berserker.webp',
+  'archer-sniper':'assets/images/equipment-sets/sniper.webp',
+  'archer-ranger':'assets/images/equipment-sets/ranger.webp',
+  'mage-elementalist':'assets/images/equipment-sets/elementalist.webp',
+  'mage-arcanist':'assets/images/equipment-sets/arcanist.webp',
+  'priest-templar':'assets/images/equipment-sets/templar.webp',
+  'priest-oracle':'assets/images/equipment-sets/oracle.webp',
+  'assassin-shadow':'assets/images/equipment-sets/shadow.webp',
+  'assassin-executioner':'assets/images/equipment-sets/executioner.webp',
+  'tamer-beastmaster':'assets/images/equipment-sets/beastmaster.webp',
+  'tamer-binder':'assets/images/equipment-sets/binder.webp'
 };
 function equipmentHeroEmblem(classId, subclassId){
   const classKey = classId || 'warrior';
@@ -749,10 +755,27 @@ function equipmentSlotMeta(slot){
 function itemFitsCurrentClass(item){
   return !!item && (!item.classOnly || item.classOnly === state.characterClass) && (!item.subclassOnly || item.subclassOnly === state.subclass);
 }
+function itemCompatibilityMeta(item){
+  if(!item) return { key:'incompatible', label:'INCOMPATIBLE', equippable:false };
+  if(!item.classOnly && !item.subclassOnly){
+    return { key:'universal', label:'UNIVERSAL · TODAS LAS CLASES', equippable:true };
+  }
+  const ownerClass = CLASSES[item.classOnly] || null;
+  const classLabel = ownerClass?.label || 'OTRA CLASE';
+  const subclassLabel = item.subclassOnly
+    ? (SUBCLASSES[item.classOnly]?.[item.subclassOnly]?.label || item.subclassOnly)
+    : '';
+  const fits = itemFitsCurrentClass(item);
+  const owner = subclassLabel ? `${classLabel} · ${subclassLabel}` : classLabel;
+  return {
+    key:fits ? 'compatible' : 'incompatible',
+    label:fits ? `PROPIO · ${owner}` : `INCOMPATIBLE · SOLO ${owner}`,
+    equippable:fits
+  };
+}
 let state = null;
 let activeCharacterId = null;
 let selectedClassId = 'warrior';
-let selectedTier = 'normal';
 let activeHeroTab = 'gear';
 let activeGuildTab = 'shop';
 let activeTradeView = 'buy';
@@ -765,8 +788,9 @@ let activeOptionsView = 'home';
 let battle = null;
 let battleSequence = 0;
 let winStreak = 0;
-let huntMode = 'run'; // 'run' (roguelike) | 'free' (cacería clásica)
-let activeHuntTab = 'combat';
+let huntMode = 'run'; // Siempre 'run' (roguelike). Existió un modo 'free' de
+// cacería clásica (peleas sueltas por dificultad); se eliminó junto con su
+// UI (#tierGrid, #huntModeToggle) porque quedó inalcanzable sin botón.
 let runState = null;
 let fishCast = null;
 let fishCastSeq = 0;

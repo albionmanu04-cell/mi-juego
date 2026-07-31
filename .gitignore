@@ -1,0 +1,9 @@
+# Recursos de trabajo: no forman parte del juego publicado.
+tmp/
+assets/images/paperdoll/
+*-preview.jpg
+*.bak
+
+# Paquetes generados localmente.
+publicacion/
+*.zip

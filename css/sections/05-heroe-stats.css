@@ -189,6 +189,7 @@
   .stat-stepper-count{ min-width:16px; text-align:center; font:700 13.5px 'JetBrains Mono'; color:var(--parchment-dim); transition:color .15s ease; }
   .stat-card.invested .stat-stepper-count{ color:var(--gold-bright); text-shadow:0 0 8px rgba(232,196,119,.4); }
   .stat-stepper-count.value-pop{ animation:valuePop .38s cubic-bezier(.2,.9,.25,1.6); }
+  .stat-mini-spark{ position:absolute; width:4px; height:4px; border-radius:50%; pointer-events:none; z-index:6; background:var(--gold-bright); box-shadow:0 0 7px currentColor; animation:sparkBurst .6s ease-out forwards; }
   .respec-panel{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin:0 0 4px; padding:9px 10px; border:1px solid rgba(200,155,60,.25); border-radius:6px; background:linear-gradient(90deg,rgba(200,155,60,.1),transparent); }
   .respec-panel small{ color:var(--parchment-dim); font-size:9px; line-height:1.25; }
   .respec-btn{ flex:0 0 auto; padding:7px 9px; border:1px solid var(--green); border-radius:3px; background:rgba(95,138,76,.14); color:#a7d898; font:700 9px 'Cinzel'; letter-spacing:.7px; cursor:pointer; }
@@ -213,3 +214,23 @@
   .points-banner.empty{ color:var(--parchment-dim); background:transparent; border-color:var(--line); }
   .points-banner:not(.empty){ animation:pointsBannerPulse 2.4s ease-in-out infinite; }
   @keyframes pointsBannerPulse{ 0%,100%{ box-shadow:0 0 0 rgba(95,138,76,0); background:rgba(95,138,76,0.12); } 50%{ box-shadow:0 0 18px rgba(95,138,76,.5); background:rgba(95,138,76,0.22); } }
+
+  /* ---- Ficha de estadísticas detalladas (pestaña Héroe > Estadísticas) ----
+     Generada por renderHeroSubTab() en script-views.js (activeHeroTab==='detailed_stats').
+     .sd-card usa la variable --sc (definida inline por card) para su color de acento. */
+  .stats-detailed{ display:flex; flex-direction:column; gap:14px; }
+  .sd-power-banner{ display:flex; align-items:center; gap:12px; padding:14px 16px; border:1px solid var(--gold); border-radius:6px; background:linear-gradient(120deg,rgba(200,155,60,.16),rgba(0,0,0,.14)); }
+  .sd-power-icon{ font-size:24px; color:var(--gold-bright); }
+  .sd-power-banner small{ display:block; font-family:'Cinzel'; font-size:10px; letter-spacing:2px; color:var(--parchment-dim); text-transform:uppercase; }
+  .sd-power-banner b{ font-family:'JetBrains Mono'; font-size:22px; color:var(--gold-bright); }
+  .sd-section h5{ font-family:'Cinzel'; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold); margin:0 0 8px; }
+  .sd-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .sd-card{ border:1px solid var(--line); border-left:3px solid var(--sc,var(--gold)); border-radius:5px; padding:10px 11px; background:var(--bg-panel-2); }
+  .sd-card.plain{ border-left-color:var(--line); }
+  .sd-card .sd-top{ display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+  .sd-card .sd-icon{ font-size:13px; color:var(--sc,var(--gold)); }
+  .sd-card .sd-label{ font-family:'Cinzel'; font-size:9.5px; letter-spacing:1px; text-transform:uppercase; color:var(--parchment-dim); }
+  .sd-card .sd-total{ font-family:'JetBrains Mono'; font-size:16px; font-weight:700; color:var(--parchment); }
+  .sd-card .sd-total small{ font-family:'Cinzel'; font-size:10px; font-weight:400; color:var(--parchment-dim); text-transform:none; letter-spacing:0; }
+  .sd-card .sd-sub{ font-family:'JetBrains Mono'; font-size:9.5px; color:var(--parchment-dim); margin-top:3px; line-height:1.4; }
+  @media(max-width:560px){ .sd-grid{ grid-template-columns:1fr; } }

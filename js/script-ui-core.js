@@ -227,12 +227,12 @@ function statAllocList(){
 }
 
 const CLASS_BATTLE_STYLE = {
-  warrior:{ icon:'⚔', label:'Guerrero', weapon:'Espada del Juramento', robe:'#a84f37', trim:'#f1b95a', hair:'#382017', glow:'#e08146', image:'assets/images/clase guerrero sprite.webp' },
-  archer:{ icon:'🏹', label:'Arquero', weapon:'Arco de Hoja Lunar', robe:'#38735b', trim:'#b7df80', hair:'#563523', glow:'#66bf7e', image:'assets/images/clase arquero sprite.webp' },
-  mage:{ icon:'✦', label:'Mago', weapon:'Baston Astral', robe:'#3c4d9e', trim:'#93c8ff', hair:'#d6d9ec', glow:'#669deb', image:'assets/images/clase mago sprite.webp' },
-  priest:{ icon:'✚', label:'Sacerdote', weapon:'Cetro de Aurora', robe:'#d6c29a', trim:'#fff0a6', hair:'#72563f', glow:'#eccf7e', image:'assets/images/clase sacerdote sprite.webp' },
-  assassin:{ icon:'🗡', label:'Asesino', weapon:'Dagas Gemelas', robe:'#613769', trim:'#ef9bff', hair:'#19141e', glow:'#b968c2', image:'assets/images/clase asesino sprite.webp' },
-  tamer:{ icon:'🪢', label:'Domador', weapon:'Látigo de Vínculo', robe:'#287b6c', trim:'#7ce3bd', hair:'#3c2d20', glow:'#48d0ad', image:'assets/images/clase domador sprite.webp' }
+  warrior:{ icon:'⚔', label:'Guerrero', weapon:'Espada del Juramento', robe:'#172131', trim:'#c89b4c', hair:'#231b19', glow:'#d99a45', image:'assets/images/clase guerrero sprite v2.webp' },
+  archer:{ icon:'🏹', label:'Arquero', weapon:'Arco de Hoja Lunar', robe:'#173f30', trim:'#c49a50', hair:'#241c18', glow:'#4ca46d', image:'assets/images/clase arquero sprite v2.webp' },
+  mage:{ icon:'✦', label:'Mago', weapon:'Baston Astral', robe:'#172746', trim:'#c49a50', hair:'#17191f', glow:'#438fe8', image:'assets/images/clase mago sprite v2.webp' },
+  priest:{ icon:'✚', label:'Sacerdote', weapon:'Cetro de Aurora', robe:'#d6c29a', trim:'#fff0a6', hair:'#72563f', glow:'#eccf7e', image:'assets/images/clase sacerdote sprite v2.webp' },
+  assassin:{ icon:'🗡', label:'Asesino', weapon:'Dagas Gemelas', robe:'#613769', trim:'#ef9bff', hair:'#19141e', glow:'#b968c2', image:'assets/images/clase asesino sprite v2.webp' },
+  tamer:{ icon:'🪢', label:'Domador', weapon:'Látigo de Vínculo', robe:'#287b6c', trim:'#7ce3bd', hair:'#3c2d20', glow:'#48d0ad', image:'assets/images/clase domador sprite v2.webp' }
 };
 /* ================= RENDERIZADO DE LA ARENA DE COMBATE ================= */
 function battleClassStyle(){ return CLASS_BATTLE_STYLE[state.characterClass] || CLASS_BATTLE_STYLE.warrior; }
@@ -329,6 +329,7 @@ function renderArena(fresh){
       </div>
       ${state.characterClass==='tamer' && state.companion ? `<div class="companion-fighter"><img src="${state.companion.image}" alt="${escapeHtml(state.companion.name)}" decoding="async"><b>${escapeHtml(state.companion.name)}</b><small>COMPAÑERO</small></div>` : ''}
       <div class="vs">VS</div>
+      <div class="combat-turn-banner"><span>✦</span><b>TU TURNO</b><small>Elegí una carta</small></div>
       <div class="fighter monster monster-${battle.monster.visualType || 'slime'} ${battle.monster.isBoss?'boss':''} ${battle.monster.phaseTwo?'phase-two':''}">
         <div class="name">${escapeHtml(battle.monster.name)}</div>
         <div class="mini-bar"><div class="mini-bar-ghost" id="arenaMonsterHpGhost" style="width:100%"></div><div id="arenaMonsterHp" style="width:100%"></div></div>
@@ -443,13 +444,17 @@ function renderActionButtons(){
   // El mapa, la pantalla de recompensa y el cierre de la expedición no son
   // combates: ocultamos acciones antiguas para no dar la impresión de que se
   // puede atacar sin un enemigo delante.
-  if(huntMode==='run' && (!runState || runState.phase==='ended')){
+  if(!runState || runState.phase==='ended'){
     box.innerHTML = `<div class="hunt-ready-panel"><b>✦ LA SENDA ESTÁ LISTA</b><small>Iniciá una expedición para elegir tu primer camino.</small><button id="beginRunBtn">COMENZAR EXPEDICIÓN</button></div>`;
     document.getElementById('beginRunBtn').addEventListener('click', ()=>startRun());
     return;
   }
-  if(huntMode==='run' && !battle){
+  if(!battle){
     box.innerHTML = '';
+    return;
+  }
+  if(battle.deckMode){
+    renderDeckCombatActions(box);
     return;
   }
   if(battle){
@@ -471,7 +476,7 @@ function renderActionButtons(){
       const blocked = ability.requiresCompanion && !state.companion;
       const ready = !battle.busy && cooldown===0 && battle.playerMana>=abilityCost && !blocked;
       const detail = blocked ? 'Requiere compañero domado' : cooldown>0 ? `Recarga: ${cooldown}` : abilityCost===0 ? 'GRATIS ✧' : `${abilityCost} maná`;
-      return `<button class="ability-btn subclass-ability-btn ${ready?'ready':''}" data-subclass-ability="${ability.key}" ${ready?'':'disabled'} title="${ability.hint}"><strong>${ability.icon} ${ability.label}</strong><small>${ability.hint} · ${detail}</small></button>`;
+      return `<button class="ability-btn subclass-ability-btn combat-card card-subclass ${ready?'ready':''}" data-subclass-ability="${ability.key}" ${ready?'':'disabled'} title="${ability.hint}"><span class="card-corner">✧</span><strong>${ability.icon} ${ability.label}</strong><small>${ability.hint} · ${detail}</small><em>SUBCLASE</em></button>`;
     }).join('');
     const momentum = combatMomentum();
     const tactical = monsterTacticalReadout();
@@ -492,10 +497,15 @@ function renderActionButtons(){
         ${tactical.effects.length ? `<div class="combat-intel-effects">${tactical.effects.map(effect=>`<span>⚠ ${escapeHtml(effect)}</span>`).join('')}</div>` : ''}
         <div class="combat-intel-advice"><b>JUGADA RECOMENDADA</b><span>${escapeHtml(tactical.response)}</span></div>
       </section>
-      <button id="attackBtn" title="${moveInfo.attack}"><strong>${moves.attack}</strong><small>${moveInfo.attack} · Daño ${attackPreview.min}–${attackPreview.max}${critChance()>0 ? ` · crítico ${attackPreview.critMin}–${attackPreview.critMax}` : ''}</small></button>
-      <button id="skillBtn" ${battle.playerMana<cost?'disabled':''}>${moves.skill} (${cost===0?'GRATIS ✧':cost+' maná'})</button>
-      <button id="classAbilityBtn" class="ability-btn ${signatureReady?'ready':''}" ${signatureReady?'':'disabled'}><strong>${signature.icon} ${signature.label}</strong><small>Habilidad única · ${signatureSub}</small></button>
-      ${subclassButtons}
+      <section class="combat-card-hand" aria-label="Cartas de combate">
+        <div class="combat-card-hand-head"><span>✦ TU MANO</span><b>Elegí una carta para actuar</b><small>Maná ${battle.playerMana}/${battle.playerMaxMana}</small></div>
+        <div class="combat-card-row">
+          <button id="attackBtn" class="combat-card card-attack" title="${moveInfo.attack}"><span class="card-corner">01</span><strong>${moves.attack}</strong><small>${moveInfo.attack} · Daño ${attackPreview.min}–${attackPreview.max}${critChance()>0 ? ` · crítico ${attackPreview.critMin}–${attackPreview.critMax}` : ''}</small><em>ATAQUE</em></button>
+          <button id="skillBtn" class="combat-card card-skill" ${battle.playerMana<cost?'disabled':''}><span class="card-corner">02</span>${moves.skill} (${cost===0?'GRATIS ✧':cost+' maná'})</button>
+          <button id="classAbilityBtn" class="ability-btn combat-card card-signature ${signatureReady?'ready':''}" ${signatureReady?'':'disabled'}><span class="card-corner">✦</span><strong>${signature.icon} ${signature.label}</strong><small>Habilidad única · ${signatureSub}</small><em>FIRMA</em></button>
+          ${subclassButtons}
+        </div>
+      </section>
       <div class="combat-momentum ${momentum>=100?'ready':''}">
         <div class="combat-momentum-head"><strong>✦ ÍMPETU TÁCTICO</strong><span>${Math.round(momentum)} / 100</span></div>
         <div class="combat-momentum-track"><i style="width:${momentum}%"></i></div>
@@ -539,18 +549,3 @@ function renderActionButtons(){
     document.getElementById('trainBtn').addEventListener('click', doTrain);
   }
 }
-
-function buildTierGrid(){
-  const grid = document.getElementById('tierGrid');
-  if(!grid) return;
-  grid.innerHTML = Object.entries(TIERS).map(([key,t])=>`
-    <div class="tier-btn ${key===selectedTier?'selected':''}" data-tier="${key}" ${battle?'style="pointer-events:none;opacity:.4"':''}>
-      ${t.label}<small>x${t.reward}</small>
-    </div>`).join('');
-  if(!battle){
-    grid.querySelectorAll('.tier-btn').forEach(btn=>{
-      btn.addEventListener('click', ()=>{ Sound.click(); selectedTier = btn.dataset.tier; buildTierGrid(); });
-    });
-  }
-}
-
