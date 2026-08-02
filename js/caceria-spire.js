@@ -1422,7 +1422,7 @@
     const finalBoss=hunt.enemy.type==='boss'&&hunt.act>=HUNT_SCENES.length&&hunt.floor>=hunt.maxFloor-1;
     const exp=typeof cardHuntExperienceReward==='function'
       ? cardHuntExperienceReward(hunt.enemy.type,hunt.act,finalBoss)
-      : Math.max(1,Math.floor(expToNext(state.level)*({fight:.10,elite:.22,boss:.45}[hunt.enemy.type]||.10)));
+      : Math.max(1,Math.floor(expToNext(state.level)*({fight:.04,elite:.10,boss:.20}[hunt.enemy.type]||.04)));
     hunt.enemy.goldReward=reward;
     hunt.enemy.experienceReward=exp;
     if(exp>0){

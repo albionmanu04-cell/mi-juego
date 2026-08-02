@@ -25,16 +25,16 @@ function progressionRuntime(){
 
 test('combate, élite y jefe conceden experiencia creciente',()=>{
   const context=progressionRuntime();
-  assert.equal(context.cardHuntExperienceReward('fight',1,false),100);
-  assert.equal(context.cardHuntExperienceReward('elite',1,false),220);
-  assert.equal(context.cardHuntExperienceReward('boss',1,false),450);
+  assert.equal(context.cardHuntExperienceReward('fight',1,false),40);
+  assert.equal(context.cardHuntExperienceReward('elite',1,false),100);
+  assert.equal(context.cardHuntExperienceReward('boss',1,false),200);
 });
 
 test('el jefe final y el Cuartel mejoran la recompensa',()=>{
   const context=progressionRuntime();
-  assert.equal(context.cardHuntExperienceReward('boss',9,true),837);
+  assert.equal(context.cardHuntExperienceReward('boss',9,true),372);
   context.barracksBonus=.20;
-  assert.equal(context.cardHuntExperienceReward('fight',1,false),120);
+  assert.equal(context.cardHuntExperienceReward('fight',1,false),48);
 });
 
 test('el nivel máximo no acumula experiencia adicional',()=>{

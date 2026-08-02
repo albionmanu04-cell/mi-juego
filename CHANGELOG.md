@@ -2,6 +2,14 @@
 
 Este proyecto usa versionado semántico: `MAYOR.MENOR.PARCHE`.
 
+## [2.0.2] - 2026-08-02
+
+### Balance
+
+- La experiencia de los combates de Cacería se redujo para exigir varias victorias por nivel.
+- Los combates comunes entregan 4%, los élites 10% y los guardianes 20% del siguiente nivel antes de bonificaciones.
+- El jefe final conserva un premio adicional sin completar por sí solo casi todo un nivel.
+
 ## [2.0.1] - 2026-08-02
 
 ### Corregido

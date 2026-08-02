@@ -1,6 +1,6 @@
 # Forja Eterna
 
-Versión actual: **2.0.1**
+Versión actual: **2.0.2**
 
 Juego RPG web estático. No necesita compilación ni dependencias de ejecución: se abre desde un servidor HTTP y guarda el progreso localmente, con respaldo opcional en Supabase.
 
