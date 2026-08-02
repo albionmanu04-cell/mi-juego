@@ -26,13 +26,8 @@
   .inv-item:hover{ transform:translateX(3px); border-color:var(--gold); box-shadow:0 5px 12px rgba(0,0,0,.28); }
   .inv-item-name{ font-family:'Cinzel'; font-size:11px; letter-spacing:.4px; }
   .inv-item-stats{ color:var(--gold-bright); line-height:1.5; }
-  .stats-detailed{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:8px; border:0; background:transparent; box-shadow:none; }
-  .stats-detailed h4{ grid-column:1/-1; padding:10px 11px; margin:0; border:1px solid var(--line); border-radius:4px; background:linear-gradient(120deg,rgba(200,155,60,.14),rgba(0,0,0,.12)); }
-  .stat-row-detail{ min-height:66px; flex-direction:column; align-items:flex-start; justify-content:center; gap:5px; padding:10px 11px; border:1px solid var(--line); border-radius:4px; background:linear-gradient(145deg,#211810,#17110c); }
-  .stat-row-detail:last-child{ border-bottom:1px solid var(--line); }
-  .stat-row-detail .label{ font:9px 'JetBrains Mono'; letter-spacing:.7px; text-transform:uppercase; }
-  .stat-row-detail .val{ font-size:14px; }
-  @media(max-width:560px){ .equipment-tab{grid-template-columns:1fr}.character-doll{min-height:270px}.inventory-list{max-height:none}.stats-detailed{grid-template-columns:1fr}.stat-row-detail{min-height:56px} }
+  .stats-detailed{ padding:8px; border:0; background:transparent; box-shadow:none; }
+  @media(max-width:560px){ .equipment-tab{grid-template-columns:1fr}.character-doll{min-height:270px}.inventory-list{max-height:none} }
 
   /* ---- RECOMPENSA DIARIA ---- */
   .daily-toast{
@@ -152,10 +147,10 @@
   .game-section.active:not(#secGuild) > .panel > h3::after{ content:'✦'; margin-left:8px; color:rgba(239,193,90,.7); font-size:11px; text-shadow:0 0 10px rgba(232,185,70,.35); }
   @keyframes sectionUnseal{ from{opacity:0;transform:translateY(14px) scale(.99)} to{opacity:1;transform:translateY(0) scale(1)} }
   @keyframes panelSweep{ from{opacity:0;transform:translateX(-40%)} 30%{opacity:1} to{opacity:0;transform:translateX(40%)} }
-  button, .tier-btn, .bounty-card, .reward-card, .die, .eq-slot, .claim-btn{ -webkit-tap-highlight-color:transparent; }
-  button:not(:disabled), .tier-btn:not(:disabled), .bounty-card, .reward-card, .die, .eq-slot, .claim-btn.ready{ transition:transform .14s ease, filter .14s ease, box-shadow .14s ease, border-color .14s ease; }
-  button:not(:disabled):hover, .tier-btn:not(:disabled):hover, .bounty-card:hover, .reward-card:hover, .claim-btn.ready:hover{ filter:brightness(1.14); }
-  button:not(:disabled):active, .tier-btn:not(:disabled):active, .bounty-card:active, .reward-card:active, .die:active, .eq-slot:active{ transform:translateY(2px) scale(.98); }
+  button, .bounty-card, .reward-card, .die, .eq-slot, .claim-btn{ -webkit-tap-highlight-color:transparent; }
+  button:not(:disabled), .bounty-card, .reward-card, .die, .eq-slot, .claim-btn.ready{ transition:transform .14s ease, filter .14s ease, box-shadow .14s ease, border-color .14s ease; }
+  button:not(:disabled):hover, .bounty-card:hover, .reward-card:hover, .claim-btn.ready:hover{ filter:brightness(1.14); }
+  button:not(:disabled):active, .bounty-card:active, .reward-card:active, .die:active, .eq-slot:active{ transform:translateY(2px) scale(.98); }
   .bar > div, .mini-bar > div, .rbar > div{ position:relative; overflow:hidden; }
   .bar > div::after, .mini-bar > div::after, .rbar > div::after{ content:""; position:absolute; inset:0; transform:translateX(-100%); background:linear-gradient(90deg,transparent,rgba(255,255,255,.38),transparent); animation:barSheen 2.8s ease-in-out infinite; }
   @keyframes barSheen{ 0%,55%{transform:translateX(-120%)} 100%{transform:translateX(130%)} }
@@ -173,6 +168,20 @@
   @keyframes critFloat{ 0%{transform:scale(.5) rotate(var(--jitter-rot,0deg));opacity:0} 16%{transform:scale(1.4) rotate(var(--jitter-rot,0deg));opacity:1} 34%{transform:scale(1.05) rotate(var(--jitter-rot,0deg));opacity:1} 100%{transform:translateY(-52px) scale(1) rotate(var(--jitter-rot,0deg));opacity:0} }
   .feedback-toast{ position:fixed; left:50%; bottom:28px; transform:translate(-50%,20px) scale(.92); opacity:0; pointer-events:none; z-index:250; min-width:180px; padding:10px 16px; text-align:center; font-family:'Cinzel'; font-size:12px; letter-spacing:1px; color:var(--parchment); background:linear-gradient(135deg,rgba(42,32,19,.96),rgba(25,18,11,.96)); border:1px solid var(--gold); border-radius:4px; box-shadow:0 10px 28px rgba(0,0,0,.58),0 0 20px rgba(200,155,60,.25); transition:opacity .2s ease,transform .28s cubic-bezier(.2,.9,.25,1.2); }
   .feedback-toast.show{ opacity:1; transform:translate(-50%,0) scale(1); }
+
+  /* ---- Indicador de "qué mejoró" (equipar / asignar puntos) — ver showStatDelta() en combat-battle-vfx.js ---- */
+  .stat-delta-toast{ position:fixed; top:16px; left:50%; transform:translate(-50%,-16px); opacity:0; pointer-events:none; z-index:260; width:min(280px,calc(100% - 24px)); padding:11px 13px; font-family:'Cinzel'; background:linear-gradient(135deg,rgba(42,32,19,.97),rgba(25,18,11,.97)); border:1px solid var(--gold); border-radius:6px; box-shadow:0 10px 28px rgba(0,0,0,.58),0 0 20px rgba(200,155,60,.25); transition:opacity .2s ease,transform .28s cubic-bezier(.2,.9,.25,1.2); }
+  .stat-delta-toast.show{ opacity:1; transform:translate(-50%,0); }
+  .stat-delta-toast .sd-title{ font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-bright); text-align:center; margin-bottom:6px; }
+  .stat-delta-row{ display:flex; align-items:flex-start; gap:8px; padding:5px 0; border-top:1px solid rgba(200,155,60,.14); }
+  .stat-delta-row:first-of-type{ border-top:none; }
+  .stat-delta-row .sd-icon{ width:15px; flex-shrink:0; text-align:center; color:var(--gold); font-size:12px; line-height:16px; }
+  .stat-delta-row .sd-main{ flex:1; min-width:0; }
+  .stat-delta-row .sd-top{ display:flex; justify-content:space-between; gap:8px; font-size:11px; color:var(--parchment); }
+  .stat-delta-row .sd-diff{ font-family:'JetBrains Mono'; font-weight:700; }
+  .stat-delta-row.up .sd-diff{ color:var(--green); }
+  .stat-delta-row.down .sd-diff{ color:var(--blood); }
+  .stat-delta-row .sd-vals{ font-family:'JetBrains Mono'; font-size:10px; color:var(--parchment-dim); margin-top:1px; }
 
   /* ---- Arena de fantasia JRPG ---- */
   .arena{ height:300px; min-height:300px; padding:20px 42px 30px; background:radial-gradient(ellipse at 50% 100%,#392713 0%,#17100a 52%,#0e0a07 100%); }
@@ -206,15 +215,15 @@
   @media(max-width:520px){ .arena{ height:288px; min-height:288px; padding:18px 14px 28px; } .arena.has-companion{min-height:338px;height:338px}.fighter{ width:96px; } .sprite-box{ width:88px; height:100px; } .fighter .mini-bar{ width:88px; } .fighter .weapon-label{ font-size:7px; max-width:98px; overflow:hidden; text-overflow:ellipsis; }.companion-fighter{left:25%;bottom:28px;width:66px}.companion-fighter img{width:62px;height:70px} }
 
   /* ---- Biomas y efectos de clase ---- */
-  .arena.biome-forest{ background:linear-gradient(rgba(5,14,7,.48),rgba(5,14,7,.75)),url('assets/images/fondo bosque.webp') center/cover no-repeat; }
-  .arena.biome-ruins{ background:linear-gradient(rgba(26,20,29,.42),rgba(9,8,13,.78)),url('assets/images/fondo ruinas.webp') center/cover no-repeat; }
-  .arena.biome-cavern{ background:linear-gradient(rgba(19,7,4,.42),rgba(11,5,4,.78)),url('assets/images/fondo cueva.webp') center/cover no-repeat; }
-  .arena.biome-temple{ background:linear-gradient(rgba(13,10,32,.38),rgba(6,5,18,.77)),url('assets/images/fondo templo.webp') center/cover no-repeat; }
-  .arena.biome-dragon-nest{ background:linear-gradient(rgba(42,9,7,.34),rgba(13,4,3,.76)),url('assets/images/fondo dragon.webp') center/cover no-repeat; }
-  .arena.biome-moon-swamp{ background:linear-gradient(rgba(8,24,19,.42),rgba(4,13,11,.78)),url('assets/images/fondo pantano de lunas.webp') center/cover no-repeat; }
-  .arena.biome-forgotten-crypt{ background:linear-gradient(rgba(13,18,31,.42),rgba(5,7,14,.8)),url('assets/images/fondo cripta olvidada.webp') center/cover no-repeat; }
-  .arena.biome-obsidian-fortress{ background:linear-gradient(rgba(42,11,6,.36),rgba(13,4,3,.8)),url('assets/images/fondo fortaleza obsidiana.webp') center/cover no-repeat; }
-  .arena.biome-frozen-peaks{ background:linear-gradient(rgba(8,20,37,.38),rgba(4,9,18,.78)),url('assets/images/fondo cumbres heladas.webp') center/cover no-repeat; }
+  .arena.biome-forest{ background:linear-gradient(rgba(5,14,7,.48),rgba(5,14,7,.75)),url('../../assets/images/fondo bosque.webp') center/cover no-repeat; }
+  .arena.biome-ruins{ background:linear-gradient(rgba(26,20,29,.42),rgba(9,8,13,.78)),url('../../assets/images/fondo ruinas.webp') center/cover no-repeat; }
+  .arena.biome-cavern{ background:linear-gradient(rgba(19,7,4,.42),rgba(11,5,4,.78)),url('../../assets/images/fondo cueva.webp') center/cover no-repeat; }
+  .arena.biome-temple{ background:linear-gradient(rgba(13,10,32,.38),rgba(6,5,18,.77)),url('../../assets/images/fondo templo.webp') center/cover no-repeat; }
+  .arena.biome-dragon-nest{ background:linear-gradient(rgba(42,9,7,.34),rgba(13,4,3,.76)),url('../../assets/images/fondo dragon.webp') center/cover no-repeat; }
+  .arena.biome-moon-swamp{ background:linear-gradient(rgba(8,24,19,.42),rgba(4,13,11,.78)),url('../../assets/images/fondo pantano de lunas.webp') center/cover no-repeat; }
+  .arena.biome-forgotten-crypt{ background:linear-gradient(rgba(13,18,31,.42),rgba(5,7,14,.8)),url('../../assets/images/fondo cripta olvidada.webp') center/cover no-repeat; }
+  .arena.biome-obsidian-fortress{ background:linear-gradient(rgba(42,11,6,.36),rgba(13,4,3,.8)),url('../../assets/images/fondo fortaleza obsidiana.webp') center/cover no-repeat; }
+  .arena.biome-frozen-peaks{ background:linear-gradient(rgba(8,20,37,.38),rgba(4,9,18,.78)),url('../../assets/images/fondo cumbres heladas.webp') center/cover no-repeat; }
   .arena.biome-forest::before{ background:radial-gradient(circle,rgba(119,204,92,.2),transparent 44%); }
   .arena.biome-ruins::before{ background:radial-gradient(circle,rgba(185,191,209,.16),transparent 44%); }
   .arena.biome-cavern::before{ background:radial-gradient(circle,rgba(238,111,48,.16),transparent 44%); }
@@ -224,6 +233,18 @@
   .arena.biome-forgotten-crypt::before{ background:radial-gradient(circle,rgba(93,182,255,.18),transparent 44%); }
   .arena.biome-obsidian-fortress::before{ background:radial-gradient(circle,rgba(255,105,49,.22),transparent 44%); }
   .arena.biome-frozen-peaks::before{ background:radial-gradient(circle,rgba(144,222,255,.22),transparent 44%); }
+
+  /* ---- El mapa de nodos (.route-map-mode) reutiliza la misma imagen de bioma
+     que el arena de combate, con un velo más oscuro para no tapar los nodos ---- */
+  #secHunt .arena.route-map-mode.biome-forest{ background:linear-gradient(rgba(5,14,7,.66),rgba(5,14,7,.86)),url('../../assets/images/fondo bosque.webp') center/cover no-repeat; }
+  #secHunt .arena.route-map-mode.biome-ruins{ background:linear-gradient(rgba(26,20,29,.62),rgba(9,8,13,.88)),url('../../assets/images/fondo ruinas.webp') center/cover no-repeat; }
+  #secHunt .arena.route-map-mode.biome-cavern{ background:linear-gradient(rgba(19,7,4,.62),rgba(11,5,4,.88)),url('../../assets/images/fondo cueva.webp') center/cover no-repeat; }
+  #secHunt .arena.route-map-mode.biome-temple{ background:linear-gradient(rgba(13,10,32,.58),rgba(6,5,18,.87)),url('../../assets/images/fondo templo.webp') center/cover no-repeat; }
+  #secHunt .arena.route-map-mode.biome-dragon-nest{ background:linear-gradient(rgba(42,9,7,.56),rgba(13,4,3,.86)),url('../../assets/images/fondo dragon.webp') center/cover no-repeat; }
+  #secHunt .arena.route-map-mode.biome-moon-swamp{ background:linear-gradient(rgba(8,24,19,.62),rgba(4,13,11,.88)),url('../../assets/images/fondo pantano de lunas.webp') center/cover no-repeat; }
+  #secHunt .arena.route-map-mode.biome-forgotten-crypt{ background:linear-gradient(rgba(13,18,31,.62),rgba(5,7,14,.9)),url('../../assets/images/fondo cripta olvidada.webp') center/cover no-repeat; }
+  #secHunt .arena.route-map-mode.biome-obsidian-fortress{ background:linear-gradient(rgba(42,11,6,.56),rgba(13,4,3,.9)),url('../../assets/images/fondo fortaleza obsidiana.webp') center/cover no-repeat; }
+  #secHunt .arena.route-map-mode.biome-frozen-peaks{ background:linear-gradient(rgba(8,20,37,.58),rgba(4,9,18,.88)),url('../../assets/images/fondo cumbres heladas.webp') center/cover no-repeat; }
   .biome-badge{ padding:3px 7px; border:1px solid rgba(200,155,60,.35); border-radius:12px; color:var(--gold-bright); font:9px 'Cinzel'; letter-spacing:.7px; background:rgba(0,0,0,.2); }
 
   /* Sprites ilustrados: los PNG se muestran sin su fondo y conservan la silueta en combate. */

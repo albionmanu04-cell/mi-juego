@@ -6,7 +6,7 @@
 <title>Forja Eterna</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cinzel+Decorative:wght@700;900&family=Spectral:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&family=Anton&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/base.css?v=20260730-release-fix">
 <!-- El orden de estos archivos importa: reproduce el orden exacto del CSS original -->
 <link rel="stylesheet" href="css/sections/01-portal-inicio.css">
 <link rel="stylesheet" href="css/sections/02-mapa-rutas.css">
@@ -15,21 +15,23 @@
 <link rel="stylesheet" href="css/sections/05-heroe-stats.css">
 <link rel="stylesheet" href="css/sections/06-combate-arena-caceria.css">
 <link rel="stylesheet" href="css/sections/07-pesca.css">
-<link rel="stylesheet" href="css/sections/08-equipo-inventario.css">
+<link rel="stylesheet" href="css/sections/08-equipo-inventario.css?v=20260730-release-fix">
 <link rel="stylesheet" href="css/sections/09-combate-extra.css">
 <link rel="stylesheet" href="css/sections/10-combate-presentacion.css">
 <link rel="stylesheet" href="css/sections/11-gremio.css">
 <link rel="stylesheet" href="css/sections/12-portal-inicio-detallado.css">
 <link rel="stylesheet" href="css/sections/13-optimizacion-rendimiento.css">
-<link rel="stylesheet" href="css/sections/14-acceso-nube.css">
+<link rel="stylesheet" href="css/sections/14-acceso-nube.css?v=20260730-release-fix">
 <link rel="stylesheet" href="css/sections/15-caceria-premium.css">
+<link rel="stylesheet" href="css/sections/16-asentamiento.css?v=incremental-1">
+<link rel="stylesheet" href="css/sections/17-caceria-cartas.css?v=20260730-battle-table">
 </head>
 <body>
 <section class="account-gate" id="accountGate" aria-label="Acceso a Forja Eterna">
   <div class="account-atmosphere"><i></i><i></i><i></i><i></i><i></i></div>
   <div class="account-world">
     <div class="account-brand"><span>✦ CRÓNICAS DEL SANTUARIO ✦</span><h1>FORJA<br>ETERNA</h1><p>Cada caída es un nuevo comienzo.<br>Cada cuenta, una leyenda protegida.</p></div>
-    <div class="account-heroes" aria-hidden="true"><img src="assets/images/clase guerrero sprite.webp" alt=""><img src="assets/images/clase mago sprite.webp" alt=""><img src="assets/images/clase arquero sprite.webp" alt=""></div>
+    <div class="account-heroes" aria-hidden="true"><img src="assets/images/clase guerrero sprite v2.webp" alt=""><img src="assets/images/clase mago sprite v2.webp" alt=""><img src="assets/images/clase arquero sprite v2.webp" alt=""></div>
     <div class="account-benefits"><span><b>⚔</b> Cacerías roguelike</span><span><b>♛</b> Progreso protegido</span><span><b>◇</b> Guardado multidispositivo</span></div>
   </div>
   <div class="account-console">
@@ -42,7 +44,7 @@
       <div class="account-status" id="accountStatus" aria-live="polite"></div>
       <button class="account-submit" id="accountSubmit" type="submit"><span>ENTRAR AL SANTUARIO</span><b>→</b></button>
     </form>
-    <div class="account-security"><span>◆</span><p><b>GUARDADO HÍBRIDO</b>Tu partida se guarda al instante en este dispositivo y se respalda online cada 12 minutos.</p></div>
+    <div class="account-security"><span>◆</span><p><b>GUARDADO HÍBRIDO</b>Tu partida se guarda al instante en este dispositivo y se respalda online tras tus avances importantes.</p></div>
     <button class="developer-entry" id="developerEntry" type="button" hidden><span>⚒</span><b>ENTRAR COMO DESARROLLADOR</b><small>Partida local aislada · sin cuenta ni sincronización</small></button>
   </div>
 </section>
@@ -123,6 +125,7 @@
       <button class="nav-btn group-start" data-sec="secHunt" style="--acc:#e8622c"><span class="btn-icon">⚔️</span><span class="nav-btn-text"><span class="btn-label">Cacería</span><span class="btn-hint">Explorá y combatí</span></span></button>
       <button class="nav-btn" data-sec="secForge" style="--acc:#e8c477"><span class="btn-icon">⚒️</span><span class="nav-btn-text"><span class="btn-label">Herrería</span><span class="btn-hint">Forjá tu equipo</span></span></button>
       <button class="nav-btn" data-sec="secFishing" style="--acc:#6aa977"><span class="btn-icon">🎣</span><span class="nav-btn-text"><span class="btn-label">Pesca</span><span class="btn-hint">Minijuego y recompensas</span></span></button>
+      <button class="nav-btn" data-sec="secSettlement" style="--acc:#c2965a"><span class="btn-icon">🏘️</span><span class="nav-btn-text"><span class="btn-label">Asentamiento</span><span class="btn-hint">Tu progreso incremental</span></span></button>
       <button class="nav-btn" data-sec="secGuild" style="--acc:#e8c477"><span class="btn-icon">📜</span><span class="nav-btn-text"><span class="btn-label">Gremio</span><span class="btn-hint">Contratos y recompensas</span></span></button>
       <button class="nav-btn group-start" data-sec="secOptions" style="--acc:#a8a196"><span class="btn-icon">⚙️</span><span class="nav-btn-text"><span class="btn-label">Opciones</span><span class="btn-hint">Audio y ajustes</span></span></button>
       <button class="nav-btn" id="charactersBtn" style="--acc:#c07ce2"><span class="btn-icon">👥</span><span class="nav-btn-text"><span class="btn-label">Personajes</span><span class="btn-hint">Cambiar de aventurero</span></span></button>
@@ -194,7 +197,7 @@
         <div class="hunt-embers"><i></i><i></i><i></i><i></i></div>
         <div class="hunt-premium-header">
           <div class="hunt-premium-sigil"><span>⚔</span><i></i></div>
-          <div class="hunt-premium-copy"><small>DESCENSO AL SANTUARIO</small><h2>Cacería Roguelike</h2><p>Elegí tu ruta, dominá cada encuentro y decidí cuándo regresar con el botín.</p></div>
+          <div class="hunt-premium-copy"><small>DESCENSO AL SANTUARIO</small><h2>Cacería Roguelike</h2><p>Una vida, una ruta: avanzá por actos y retirate con el botín antes de perderlo todo.</p></div>
           <div class="hunt-title-actions"><small id="powerLabel"></small><button id="huntResetBtn" class="hunt-reset-btn" type="button" title="Usá esto si el combate quedó trabado o no responde">⟳ Reiniciar</button></div>
         </div>
         <div class="hunt-overview" id="huntOverview" data-phase="idle">
@@ -203,25 +206,12 @@
           <div class="hunt-overview-card"><span class="hunt-overview-icon">☠</span><small>VENCIDOS</small><b id="huntOverviewKills">0</b><em id="huntOverviewStreak">Racha 0</em></div>
           <div class="hunt-overview-card"><span class="hunt-overview-icon">✦</span><small>BOTÍN DE RUN</small><b id="huntOverviewRelics">0 reliquias</b><em id="huntOverviewEssence">0 esencia</em></div>
         </div>
-        <div class="guild-note hunt-intro"><span>◆</span><span><b>Una vida. Una ruta. Una decisión.</b> Avanzá por actos, enfrentá guardianes y retirate antes de perderlo todo.</span></div>
-        <div class="hunt-flow" aria-label="Cómo avanza una expedición">
-          <div class="hunt-flow-step"><i>1</i><span><b>ELEGÍ RUTA</b><small>Riesgo o recompensa</small></span></div>
-          <div class="hunt-flow-step"><i>2</i><span><b>SUPERÁ DESAFÍOS</b><small>Combates y eventos</small></span></div>
-          <div class="hunt-flow-step"><i>3</i><span><b>COBRÁ EL BOTÍN</b><small>Retirate o seguí</small></span></div>
-        </div>
-        <div class="hunt-subtabs" id="huntSubtabs">
-          <button class="hunt-subtab active" data-hunt-tab="combat"><span class="hunt-tab-icon">⚔</span><span class="hunt-tab-label">Combate</span></button>
-          <button class="hunt-subtab" data-hunt-tab="progress"><span class="hunt-tab-icon">✦</span><span class="hunt-tab-label">Progreso</span></button>
-        </div>
         <div class="hunt-view active" id="huntViewCombat">
-          <div class="tier-grid" id="tierGrid"></div>
+          <div class="run-status-bar" id="runStatusBar" style="display:none;"></div>
           <div class="arena" id="arena">
             <div class="arena-idle" id="arenaIdle">Comenzá la expedición y elegí tu camino.</div>
           </div>
           <div class="action-btns" id="actionBtns"></div>
-        </div>
-        <div class="hunt-view" id="huntViewProgress">
-          <div class="run-status-bar" id="runStatusBar" style="display:none;"></div>
         </div>
       </div>
       <aside class="panel hunt-log-panel">
@@ -253,6 +243,19 @@
         <h3>Vivero <small>Registro y mejoras</small></h3>
         <div id="fishingSide"></div>
       </aside>
+    </div>
+
+    <div class="game-section" id="secSettlement">
+      <div class="panel settlement-main-panel">
+        <div class="settlement-section-header">
+          <span class="settlement-section-sigil">🏘️</span>
+          <div><small>TU RINCÓN EN EL MUNDO</small><h2>EL ASENTAMIENTO</h2><p>Construí y mejorá edificios que trabajan para vos incluso cuando no estás jugando.</p></div>
+          <b id="settlementLevelBadge">NIVEL 1</b>
+        </div>
+        <div class="guild-note hunt-intro"><span>🏠</span><span>Elegí un decreto de producción, recolectá lo acumulado y desarrollá un edificio a la vez. La aldea sigue trabajando aunque cierres el juego.</span></div>
+        <button class="settlement-collect-all-btn" onclick="collectAllSettlement()">✋ Recolectar todo</button>
+        <div id="settlementContent" class="settlement-grid"></div>
+      </div>
     </div>
 
     <div class="game-section" id="secOptions">
@@ -294,26 +297,29 @@
   </svg>
 </div>
 
-<script src="js/sound.js"></script>
-<script src="js/classes.js"></script>
+<script src="js/sound.js?v=20260730-hunt-feedback"></script>
+<script src="js/classes.js?v=20260730-release-fix"></script>
 <script src="js/combat-loot.js"></script>
 <script src="js/combat-battle-monsters.js"></script>
 <script src="js/combat-battle-core.js"></script>
 <script src="js/combat-battle-vfx.js"></script>
 <script src="js/combat-battle-abilities.js"></script>
 <script src="js/combat-battle-turns.js"></script>
+<script src="js/combat-deck.js"></script>
 <script src="js/combat-run.js"></script>
 <script src="js/combat-run-render.js"></script>
 <script src="js/combat-render.js"></script>
 <script src="js/forge.js"></script>
 <script src="js/fishing.js"></script>
-<script src="js/script-state.js"></script>
-<script src="js/script-math.js"></script>
-<script src="js/script-ui-core.js"></script>
-<script src="js/script-views.js"></script>
+<script src="js/settlement.js?v=incremental-1"></script>
+<script src="js/script-state.js?v=20260730-release-fix"></script>
+<script src="js/script-math.js?v=20260730-release-fix"></script>
+<script src="js/script-ui-core.js?v=heroes-v2"></script>
+<script src="js/script-views.js?v=20260730-release-fix"></script>
 <script src="js/script-trade.js"></script>
 <script src="js/script-shop.js"></script>
 <script src="js/script-render.js"></script>
+<script src="js/caceria-spire.js?v=20260730-battle-table"></script>
 <script src="js/script-boot.js"></script>
 </body>
 </html>

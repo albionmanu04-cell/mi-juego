@@ -198,9 +198,10 @@ function makeRelicChoices(){
 /**
  * Calcula y otorga el botín de un monstruo vencido DENTRO de una run
  * (oro, esencia, materiales, ítem de equipo con probabilidad por rareza).
- * Solo aplica si `battle.isRun` — el combate clásico (`huntMode==='free'`)
- * usa una recompensa más simple resuelta directo en `endBattle`
- * (combat-battle-core.js). Llamada desde `endBattle` cuando `result==='win'`.
+ * Solo aplica si `battle.isRun` — hoy `battle` siempre tiene `isRun:true`
+ * (la cacería clásica que usaba la rama simple se eliminó; `endBattle` en
+ * combat-battle-core.js todavía tiene esa rama `!isRun` por las dudas, pero
+ * es inalcanzable). Llamada desde `endBattle` cuando `result==='win'`.
  */
 function awardRunLoot(monster){
   if(!battle || !battle.isRun || !runState) return null;

@@ -316,6 +316,137 @@ const Sound = {
     this.sfxTone(280,.19,'sawtooth',.05,72); this.noise(.12,.03,520,'bandpass');
   },
 
+  /* ================= CACERÍA DE CARTAS =================
+     Señales cortas y distintas. Se disparan desde acciones del jugador,
+     nunca desde render(), para que no se acumulen al actualizar la interfaz. */
+  huntOpen() {
+    this.init();
+    this.noise(.24,.026,520,'lowpass');
+    [164.81,220,329.63].forEach((freq,index)=>this.sfxTone(freq,.28,'triangle',.035,freq*1.18,index*.075));
+  },
+
+  routeReveal() {
+    this.init();
+    this.noise(.18,.028,1250,'bandpass');
+    [246.94,329.63,493.88].forEach((freq,index)=>this.sfxTone(freq,.19,'sine',.036,freq*1.12,index*.055));
+  },
+
+  nodeSelect(type='event') {
+    this.init();
+    const cue = {
+      fight:[196,'sawtooth',98],
+      elite:[146.83,'square',73.42],
+      boss:[110,'sawtooth',55],
+      treasure:[659.25,'sine',987.77],
+      rest:[392,'sine',587.33],
+      shop:[523.25,'triangle',783.99],
+      event:[293.66,'triangle',440]
+    }[type] || [293.66,'triangle',440];
+    this.sfxTone(cue[0],.15,cue[1],.055,cue[2]);
+    this.sfxTone(cue[2],.18,'sine',.026,cue[2]*1.18,.055);
+    if(type==='elite'||type==='boss') this.noise(.1,.035,620,'lowpass');
+  },
+
+  cardDraw(count=1) {
+    this.init();
+    const cards=Math.max(1,Math.min(5,Number(count)||1));
+    for(let index=0;index<cards;index++){
+      const delay=index*.035;
+      this.noise(.045,.018,1850+index*130,'highpass',delay);
+      this.sfxTone(310+index*24,.055,'triangle',.023,210,delay);
+    }
+  },
+
+  cardPlay(card={}, classId='warrior', critical=false) {
+    this.init();
+    const kind=String(card.kind||'').toLowerCase();
+    const effect=String(card.effect||'').toLowerCase();
+    if(critical){
+      this.crit();
+      return;
+    }
+    if(kind==='block'){
+      this.shield();
+      if(effect==='double_block'||effect==='retain_block'){
+        this.sfxTone(310,.24,'sine',.042,620,.055);
+      }
+      return;
+    }
+    if(kind==='heal'){ this.heal(); return; }
+    if(kind==='mana'){ this.mana(); return; }
+    if(kind==='strength'||kind==='utility'||kind==='debuff'){
+      this.classSkill(classId);
+      return;
+    }
+    if(kind==='bash'){
+      this.classAttack(classId);
+      this.noise(.13,.07,1700,'highpass',.045);
+      this.sfxTone(760,.15,'square',.065,145,.045);
+      return;
+    }
+    if(kind==='spell'){
+      this.classSkill(classId);
+      return;
+    }
+    this.classAttack(classId);
+    const hits=Math.max(1,Math.min(5,Number(card.hits)||1));
+    for(let index=1;index<hits;index++){
+      const delay=.07*index;
+      this.noise(.055,.025,2200,'highpass',delay);
+      this.sfxTone(420+index*70,.075,'sawtooth',.032,125,delay);
+    }
+  },
+
+  turnEnd() {
+    this.init();
+    this.noise(.07,.018,900,'bandpass');
+    this.sfxTone(330,.13,'triangle',.045,220);
+    this.sfxTone(220,.16,'triangle',.036,146.83,.09);
+  },
+
+  huntEnemyAction(intent='attack', damage=0, blocked=false, evaded=false) {
+    this.init();
+    if(evaded){ this.miss(); return; }
+    if(intent==='guard'){
+      this.sfxTone(135,.16,'square',.065,72);
+      this.noise(.09,.035,1050,'bandpass');
+      return;
+    }
+    if(intent==='charge'){
+      this.sfxTone(92,.22,'sawtooth',.105,38);
+      this.noise(.16,.075,470,'lowpass',.035);
+    } else {
+      this.noise(.075,.055,1080,'bandpass');
+      this.sfxTone(170,.14,'triangle',.08,48);
+    }
+    if(blocked){
+      this.sfxTone(210,.12,'triangle',.055,480,.045);
+      this.noise(.07,.026,1900,'bandpass',.045);
+    } else if(damage>0){
+      this.sfxTone(115,.15,'sawtooth',.055,42,.045);
+    }
+  },
+
+  treasureOpen(ancient=false) {
+    this.init();
+    this.noise(.18,.052,520,'lowpass');
+    const notes=ancient?[392,523.25,659.25,1046.5]:[440,554.37,659.25];
+    notes.forEach((freq,index)=>this.sfxTone(freq,.25,'sine',.055,freq*1.16,.055+index*.065));
+  },
+
+  shopBuy() {
+    this.init();
+    [880,1174.66,1396.91].forEach((freq,index)=>this.sfxTone(freq,.12,'sine',.045,freq*1.08,index*.055));
+    this.noise(.055,.018,2700,'highpass',.045);
+  },
+
+  sanctuary(kind='life') {
+    this.init();
+    if(kind==='mana') this.mana();
+    else this.heal();
+    this.sfxTone(kind==='mana'?783.99:659.25,.32,'sine',.04,1046.5,.12);
+  },
+
   playNextNote() {
     if (!this.musicEnabled) return;
     if (this.scene === 'menu' && this.menuAudioEl) return;
@@ -510,5 +641,9 @@ const Sound = {
     [196,164.81,130.81].forEach((freq,index)=>this.sfxTone(freq,.36,'sawtooth',.082,freq*.56,index*.14));
   }
 };
+
+// La Cacería se carga en un módulo aislado y accede al audio mediante window.
+// Exponer la misma instancia evita crear un segundo AudioContext.
+window.Sound = Sound;
 
 /* ================= CONFIG ================= */

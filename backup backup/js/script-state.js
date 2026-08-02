@@ -52,6 +52,25 @@ function showDailyToast(day, reward){
 }
 
 /* ================= STATE ================= */
+function starterEquipmentForClass(classId='warrior'){
+  const starters = {
+    warrior:{ id:'rusty_sword', type:'weapon', name:'Espada Oxidada', bonusAtk:4, bonusCrit:2, image:'assets/images/warrior_weapon_icon.webp' },
+    archer:{ id:'worn_training_bow', type:'weapon', name:'Arco de Entrenamiento', bonusAtk:4, bonusCrit:2, image:'assets/images/archer_bow_icon.webp' },
+    mage:{ id:'worn_apprentice_staff', type:'weapon', name:'Báculo de Aprendiz', bonusAtk:3, bonusMana:6, image:'assets/images/mage_weapon_icon.webp' },
+    priest:{ id:'worn_novice_scepter', type:'weapon', name:'Cetro de Novicio', bonusAtk:3, bonusMana:5, bonusHp:3, image:'assets/images/priest_weapon_icon.webp' },
+    assassin:{ id:'worn_training_daggers', type:'weapon', name:'Dagas de Entrenamiento', bonusAtk:4, bonusCrit:2, image:'assets/images/assassin_weapon_icon.webp' },
+    tamer:{ id:'worn_binding_whip', type:'weapon', name:'Látigo Gastado', bonusAtk:3, bonusHp:4, bonusCrit:1, image:'assets/images/tamer_weapon_icon.webp' }
+  };
+  const safeClass = CLASSES[classId] ? classId : 'warrior';
+  return {
+    ...starters[safeClass],
+    classOnly:safeClass,
+    rarity:'Común',
+    rarityKey:'common',
+    equipmentTier:'class',
+    starterItem:true
+  };
+}
 /**
  * Crea un personaje nuevo con TODOS los campos que puede tener `state`.
  * Esta función es la fuente de verdad de la forma de `state`: si agregás un
@@ -90,9 +109,7 @@ function defaultState(name, classId='warrior') {
       shield: null,
       ring: null
     },
-    ownedEquipment: [
-      { id: 'rusty_sword', type: 'weapon', name: 'Espada Oxidada', bonusAtk: 4, bonusCrit: 2, icon: '⚔️' }
-    ],
+    ownedEquipment: [starterEquipmentForClass(classId)],
     lastLoginDay: null,
     loginStreak: 0,
     maxLevelEver: 1,
@@ -102,6 +119,7 @@ function defaultState(name, classId='warrior') {
     totalGoldEarnedLifetime: 0,
     achievementsClaimed: {},
     bestiary: {},
+    cardCodex: {},
     tutorialSeen: false,
     companion: null,
     missions: {
@@ -117,6 +135,7 @@ function defaultState(name, classId='warrior') {
     weeklyChallenge: { key:null, wins:0, claimed:false },
     lastRunSummary: null,
     bestRunSummary: null,
+    settlement: null,
     settings: { musicVolume:100, sfxVolume:100, musicEnabled:false, sfxEnabled:true, graphics:'high', reducedMotion:false },
     log: []
   };
@@ -271,6 +290,11 @@ function restoreRunSnapshot(snapshot){
 let saveWriteQueue = Promise.resolve();
 let saveRevision = 0;
 let runCheckpointTimer = null;
+// La copia local se escribe siempre al instante. La nube se agrupa unos
+// segundos para no mandar una petición por cada punto asignado, pero nunca
+// queda esperando los 12 minutos del respaldo periódico.
+let cloudBackupTimer = null;
+let cloudBackupListenersBound = false;
 function scheduleRunCheckpoint(){
   if(runCheckpointTimer || !runState || !activeCharacterId) return;
   runCheckpointTimer = setTimeout(()=>{
@@ -301,6 +325,7 @@ async function saveState(){
         setTimeout(()=>{ if(revision === saveRevision) updateSaveIndicator('idle'); }, 1800);
       }
       scheduleLeaderboardSync();
+      scheduleCloudBackup();
     }catch(error){ if(revision === saveRevision) updateSaveIndicator('error'); }
   });
   return saveWriteQueue;
@@ -331,15 +356,24 @@ let leaderboardEntries = [];
 let leaderboardSyncTimer = null;
 let leaderboardSyncInFlight = null;
 const LEADERBOARD_CLASSES = {
-  warrior:{label:'Guerrero',icon:'⚔',image:'assets/images/clase guerrero sprite.webp',color:'#e6a85e'}, archer:{label:'Arquero',icon:'🏹',image:'assets/images/clase arquero sprite.webp',color:'#75cf83'}, mage:{label:'Mago',icon:'✦',image:'assets/images/clase mago sprite.webp',color:'#8baeff'}, priest:{label:'Sacerdote',icon:'✚',image:'assets/images/clase sacerdote sprite.webp',color:'#f4d784'}, assassin:{label:'Asesino',icon:'🗡',image:'assets/images/clase asesino sprite.webp',color:'#dc7dca'}, tamer:{label:'Domador',icon:'🪢',image:'assets/images/clase domador sprite.webp',color:'#58d2a1'}
+  warrior:{label:'Guerrero',icon:'⚔',image:'assets/images/clase guerrero sprite v2.webp',color:'#e6a85e'}, archer:{label:'Arquero',icon:'🏹',image:'assets/images/clase arquero sprite v2.webp',color:'#75cf83'}, mage:{label:'Mago',icon:'✦',image:'assets/images/clase mago sprite v2.webp',color:'#8baeff'}, priest:{label:'Sacerdote',icon:'✚',image:'assets/images/clase sacerdote sprite v2.webp',color:'#f4d784'}, assassin:{label:'Asesino',icon:'🗡',image:'assets/images/clase asesino sprite v2.webp',color:'#dc7dca'}, tamer:{label:'Domador',icon:'🪢',image:'assets/images/clase domador sprite v2.webp',color:'#58d2a1'}
 };
 /* ================= CUENTA, NUBE (SUPABASE) Y RANKING ================= */
-function leaderboardClassInfo(key){ const classKey=LEADERBOARD_CLASSES[key] ? key : 'warrior'; return { key:classKey, ...(LEADERBOARD_CLASSES[classKey] || {label:'Aventurero',icon:'✦',image:'assets/images/clase guerrero sprite.webp'}) }; }
+function leaderboardClassInfo(key){ const classKey=LEADERBOARD_CLASSES[key] ? key : 'warrior'; return { key:classKey, ...(LEADERBOARD_CLASSES[classKey] || {label:'Aventurero',icon:'✦',image:'assets/images/clase guerrero sprite v2.webp'}) }; }
 function leaderboardProfile(){ return { class_key:state.characterClass || 'warrior', attack:Math.round(atkDamage()), defense:Math.round(totalDefense()), crit_chance:Math.round(critChance()) }; }
 function scheduleLeaderboardSync(){
   if(developerMode) return;
   clearTimeout(leaderboardSyncTimer);
   leaderboardSyncTimer = setTimeout(()=>{ leaderboardSyncTimer = null; syncLeaderboard(); }, 1400);
+}
+
+function scheduleCloudBackup(delay=6500){
+  if(developerMode || !accountSession || !navigator.onLine) return;
+  clearTimeout(cloudBackupTimer);
+  cloudBackupTimer = setTimeout(()=>{
+    cloudBackupTimer = null;
+    pushCloudProgress(true);
+  }, Math.max(0, Number(delay)||0));
 }
 
 function supabaseHeaders(token){
@@ -447,8 +481,13 @@ async function pushCloudProgress(silent=false){
 function startCloudBackup(){
   clearInterval(cloudSyncInterval);
   cloudSyncInterval=setInterval(()=>pushCloudProgress(),CLOUD_SYNC_INTERVAL);
+  if(cloudBackupListenersBound) return;
+  cloudBackupListenersBound = true;
   window.addEventListener('online',()=>pushCloudProgress());
   document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') pushCloudProgress(true); });
+  // pagehide cubre móvil y cierre de pestaña mejor que beforeunload. El
+  // guardado local ya ocurrió; esta llamada intenta enviar el último estado.
+  window.addEventListener('pagehide',()=>pushCloudProgress(true));
 }
 async function enterAuthenticatedWorld(){
   document.getElementById('accountGate').hidden=true; document.body.classList.remove('account-locked');
@@ -491,7 +530,16 @@ async function enterDeveloperWorld(){
   accountSession=null;
   document.getElementById('accountGate').hidden=true;
   document.body.classList.remove('account-locked');
-  document.getElementById('developerPanel').hidden=false;
+  document.body.classList.add('developer-local');
+  const developerPanel=document.getElementById('developerPanel');
+  developerPanel.hidden=false;
+  developerPanel.classList.add('minimized');
+  const panelToggle=document.getElementById('developerPanelToggle');
+  if(panelToggle){
+    panelToggle.textContent='+';
+    panelToggle.setAttribute('aria-label','Abrir panel del creador');
+    panelToggle.setAttribute('aria-expanded','false');
+  }
   const saveIndicator=document.getElementById('saveIndicator');
   if(saveIndicator) saveIndicator.textContent='Modo desarrollador · guardado local';
   await launchGamePortal();
@@ -510,11 +558,23 @@ async function initializeAccountGate(){
   document.querySelectorAll('[data-auth-mode]').forEach(button=>button.addEventListener('click',()=>setAccountMode(button.dataset.authMode)));
   document.getElementById('toggleAccountPassword').addEventListener('click',()=>{ const input=document.getElementById('accountPassword'); input.type=input.type==='password'?'text':'password'; });
   const developerEntry=document.getElementById('developerEntry');
+  const developerPanel=document.getElementById('developerPanel');
   if(isLocalDeveloperEnvironment()){
     developerEntry.hidden=false;
     developerEntry.addEventListener('click',enterDeveloperWorld);
+  }else{
+    // En una versión publicada las herramientas locales no permanecen en el DOM.
+    developerEntry?.remove();
+    developerPanel?.remove();
   }
-  document.getElementById('developerPanelToggle').addEventListener('click',()=>document.getElementById('developerPanel').classList.toggle('minimized'));
+  document.getElementById('developerPanelToggle')?.addEventListener('click',event=>{
+    const panel=document.getElementById('developerPanel');
+    if(!panel) return;
+    const minimized=panel.classList.toggle('minimized');
+    event.currentTarget.textContent=minimized?'+':'−';
+    event.currentTarget.setAttribute('aria-label',minimized?'Abrir panel del creador':'Minimizar panel del creador');
+    event.currentTarget.setAttribute('aria-expanded',String(!minimized));
+  });
   document.querySelectorAll('[data-dev-action]').forEach(button=>button.addEventListener('click',()=>applyDeveloperAction(button.dataset.devAction,button.dataset.value)));
   document.getElementById('accountForm').addEventListener('submit',async event=>{
     event.preventDefault(); const gate=document.getElementById('accountGate'), mode=gate.dataset.mode||'login';
@@ -664,4 +724,3 @@ function renderLeaderboard(entries){
   }).join('');
 }
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-

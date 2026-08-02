@@ -72,13 +72,15 @@ function adventurerTenureLabel(){
 function profileHubStats(){
   const catalog = bestiaryCatalog();
   const completed = ACHIEVEMENTS.filter(a=>a.check(state));
+  const huntSummary=window.CardHunt?.summary?.() || {active:false,depth:0};
   return {
     catalog,
     completed,
     discovered:catalog.filter(form=>state.bestiary && state.bestiary[form.type || form.name]).length,
     equipped:Object.values(state.equipment||{}).filter(Boolean).length,
     expNeed:expToNext(state.level),
-    runActive:!!(runState && runState.phase!=='ended')
+    runActive:huntSummary.active,
+    runDepth:huntSummary.depth
   };
 }
 
@@ -219,7 +221,7 @@ function renderProfileHub(){
     const nextQuestHTML = pendingAch.length
       ? `<div class="next-quest-panel"><h4>✦ PRÓXIMA LEYENDA</h4><div class="next-quest-list">${pendingAch.map(a=>`<div class="next-quest-item"><span class="next-quest-mark">${achievementGlyph(a.id)}</span><span>${escapeHtml(a.label)}</span></div>`).join('')}</div></div>`
       : `<div class="next-quest-panel done"><h4>✦ PRÓXIMA LEYENDA</h4><p>Completaste todos los hitos disponibles. Tu leyenda no tiene techo.</p></div>`;
-    box.innerHTML=`${particles}${head}<section class="hub-detail"><button class="hub-back" data-profile-back>← VOLVER AL PERFIL</button><h3 class="hub-detail-title">PROGRESO DE EXPEDICIÓN</h3><p class="hub-detail-sub">Los hitos que definen el camino de tu aventurero.</p><div class="hub-detail-grid"><div class="hub-detail-stat" style="--stat-color:#e8622c"><small>VICTORIAS</small><b>${state.totalWins||0}</b></div><div class="hub-detail-stat" style="--stat-color:#ef6666"><small>GUARDIANES</small><b>${state.totalBossWins||0}</b></div><div class="hub-detail-stat" style="--stat-color:#7bc9c9"><small>MEJOR PROFUNDIDAD</small><b>${state.maxHuntDepth||0}</b></div><div class="hub-detail-stat" style="--stat-color:#5fb0dd"><small>RESETS</small><b>${state.resets||0}</b></div><div class="hub-detail-stat" style="--stat-color:#7bc981"><small>DISPONIBLES</small><b>${availableStatResets()}</b></div><div class="hub-detail-stat" style="--stat-color:#ff8445"><small>RACHA</small><b>${winStreak}</b></div></div>${nextQuestHTML}<div class="profile-run-badge">${data.runActive?`⚔ Expedición en curso · profundidad ${runState.depth}`:'✦ No hay expedición activa. Podés preparar una nueva cacería.'}</div><div class="hub-action-row"><button data-profile-action="hunt">IR A CACERÍA</button></div></section>`;
+    box.innerHTML=`${particles}${head}<section class="hub-detail"><button class="hub-back" data-profile-back>← VOLVER AL PERFIL</button><h3 class="hub-detail-title">PROGRESO DE EXPEDICIÓN</h3><p class="hub-detail-sub">Los hitos que definen el camino de tu aventurero.</p><div class="hub-detail-grid"><div class="hub-detail-stat" style="--stat-color:#e8622c"><small>VICTORIAS</small><b>${state.totalWins||0}</b></div><div class="hub-detail-stat" style="--stat-color:#ef6666"><small>GUARDIANES</small><b>${state.totalBossWins||0}</b></div><div class="hub-detail-stat" style="--stat-color:#7bc9c9"><small>MEJOR PROFUNDIDAD</small><b>${state.maxHuntDepth||0}</b></div><div class="hub-detail-stat" style="--stat-color:#5fb0dd"><small>RESETS</small><b>${state.resets||0}</b></div><div class="hub-detail-stat" style="--stat-color:#7bc981"><small>DISPONIBLES</small><b>${availableStatResets()}</b></div><div class="hub-detail-stat" style="--stat-color:#ff8445"><small>RACHA</small><b>${winStreak}</b></div></div>${nextQuestHTML}<div class="profile-run-badge">${data.runActive?`🃏 Expedición en curso · profundidad ${data.runDepth}`:'✦ No hay expedición activa. Podés preparar una nueva cacería.'}</div><div class="hub-action-row"><button data-profile-action="hunt">IR A CACERÍA</button></div></section>`;
   } else if(activeProfileView==='achievements'){
     box.innerHTML=`${particles}${head}<section class="hub-detail"><button class="hub-back" data-profile-back>← VOLVER AL PERFIL</button><h3 class="hub-detail-title">SALÓN DE LOGROS</h3><p class="hub-detail-sub">${data.completed.length} de ${ACHIEVEMENTS.length} hitos completados.</p><div class="hub-detail-list">${ACHIEVEMENTS.map(a=>{const done=a.check(state),claimed=!!state.achievementsClaimed[a.id];return `<div class="profile-achievement ${done?'done':''}"><span class="achievement-mark">${achievementGlyph(a.id)}</span><div><b>${escapeHtml(a.label)}</b><small>${done?(claimed?'Recompensa reclamada':'Disponible para reclamar en Gremio'):'Aún no completado'}</small></div><span class="achievement-status">${done?'✓':'—'}</span></div>`;}).join('')}</div><div class="hub-action-row"><button data-profile-action="guild">ABRIR LOGROS DEL GREMIO</button></div></section>`;
   } else if(activeProfileView==='collection'){
@@ -326,7 +328,7 @@ function buyItem(id){
 }
 
 window.equipItemFromInventory = function(index) {
-  if (battle) {
+  if (isHuntProgressLocked()) {
     addLog("No puedes equipar objetos durante una cacería.", "lose");
     return;
   }
@@ -353,7 +355,7 @@ window.equipItemFromInventory = function(index) {
 }
 
 window.deleteItemFromInventory = function(index) {
-  if (battle) {
+  if (isHuntProgressLocked()) {
     showFeedback('MOCHILA BLOQUEADA', 'No podés eliminar objetos durante una cacería', 'danger');
     return;
   }
@@ -373,7 +375,7 @@ window.deleteItemFromInventory = function(index) {
 }
 
 function unequipItem(slotName) {
-  if (battle) {
+  if (isHuntProgressLocked()) {
     addLog("No puedes quitarte el equipo en pleno combate.", "lose");
     return;
   }

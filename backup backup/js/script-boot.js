@@ -71,8 +71,10 @@ async function activateCharacter(id){
   battle = null;
   runState = null;
   winStreak = 0;
-  const savedRun = await loadRunSnapshot(id);
-  const resumed = restoreRunSnapshot(savedRun);
+  // El modo Cacería anterior fue retirado para reconstruirlo desde cero.
+  // Su snapshot no se restaura: evita que una pelea antigua vuelva a abrirse.
+  await clearRunSnapshot(id);
+  const resumed = false;
   applyVisualSettings();
   Sound.musicEnabled = !!state.settings.musicEnabled;
   Sound.applyVolumes();

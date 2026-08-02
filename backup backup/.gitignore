@@ -1,3 +1,9 @@
-# Recursos de trabajo: el juego usa solamente los sprites terminados.
-assets/images/* source.png
+# Recursos de trabajo: no forman parte del juego publicado.
+tmp/
+assets/images/paperdoll/
+*-preview.jpg
 *.bak
+
+# Paquetes generados localmente.
+publicacion/
+*.zip

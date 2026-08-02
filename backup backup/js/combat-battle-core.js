@@ -7,20 +7,11 @@
    ================================================================= */
 
 /* ================= INICIO Y CIERRE DE BATALLA ================= */
-/**
- * Inicia una pelea 1v1 del modo "cacería clásica" (huntMode==='free'), donde
- * el jugador elige el tier manualmente (selectedTier). Para el modo roguelike
- * con mapa de nodos y profundidad, ver startRunBattle() más abajo.
- */
-function startBattle(){
-  if(battle || huntMode!=='free') return;
-  Sound.click();
-  battle = { id:++battleSequence, monster: prepareMonster(makeMonster(selectedTier)), playerHp: maxHP(), playerMaxHp: maxHP(), playerMana: maxMana(), playerMaxMana: maxMana(), tier: selectedTier, busy:false, playerStatus:newPlayerStatus() };
-  renderArena(true);
-  renderActionButtons();
-  announceMonsterAnalysis();
-  buildTierGrid();
-}
+// Nota: acá vivía startBattle(), el inicio de pelea 1v1 del viejo modo
+// "cacería clásica" (huntMode==='free', con selección manual de tier vía
+// #tierGrid). Se eliminó porque el botón que lo activaba (#huntModeToggle)
+// ya no existe en el HTML — era código muerto e inalcanzable. El modo
+// vigente es el roguelike de abajo (startRunBattle).
 
 /**
  * Inicia la pelea contra el monstruo de un nodo de combate dentro de una
@@ -37,8 +28,10 @@ function startRunBattle(){
   battle = {
     id:++battleSequence,
     monster, playerHp: runState.hp, playerMaxHp: maxHp, playerMana: runState.mana, playerMaxMana: maxMp,
-    tier: depthTierKey(runState.depth), busy:false, isRun:true, playerStatus:newPlayerStatus(), healingUsed:false, masteryClaims:{}
+    tier: depthTierKey(runState.depth), busy:false, isRun:true, playerStatus:newPlayerStatus(), healingUsed:false, masteryClaims:{},
+    deckMode:true, turn:1, energy:3, maxEnergy:3, hand:[], drawPile:[], discardPile:[], playedCards:[]
   };
+  initializeDeckCombat(battle);
   runState.phase = 'fight';
   renderArena(true);
   renderActionButtons();
@@ -168,7 +161,7 @@ function triggerBossPhaseTwo(){
     if(!isCurrentBattle(phaseBattle)) return;
     phaseBattle.busy = false;
     syncBattleUi();
-    startMonsterTurn(phaseBattle);
+    resolvePlayerActionEnd(phaseBattle);
   },900);
   return true;
 }
@@ -232,9 +225,17 @@ function endBattle(result){
     const exp = Math.floor(expToNext(state.level) * 0.09 * tier.reward * bossMult);
     let gold = Math.floor((20 + state.level*2) * tier.reward * bossMult * (0.85+Math.random()*0.3));
     if(isRun) gold = Math.floor(gold * (1+runRelicValue('gold')));
+    // El Cuartel de El Asentamiento da un bonus permanente y chico a las recompensas
+    // de Cacería, independiente de las reliquias de la run (que se pierden al terminarla).
+    let finalExp = exp;
+    if(isRun){
+      const barracksBonus = settlementBarracksBonus();
+      gold = Math.floor(gold * (1+barracksBonus));
+      finalExp = Math.floor(exp * (1+barracksBonus));
+    }
     state.missions.day.hunts++;
     state.missions.week.wins++;
-    gainExp(exp);
+    gainExp(finalExp);
     gainGold(gold);
     let runLoot = null;
     if(isRun){
@@ -251,8 +252,8 @@ function endBattle(result){
         if(rank>=2) setTimeout(()=>showLootReveal(runLoot.item), rank>=3 ? 550 : 300);
       }
     }
-    showFeedback(isBoss ? '☠ JEFE DERROTADO' : '✦ VICTORIA', `+${exp} exp · +${gold} oro${runLoot ? ` · ${runLoot.summary}` : ''}`);
-    addLog(`${isBoss?'☠ ¡Jefe derrotado! ':'Venciste a '}${battle.monster.name} (${tier.label}) — +${exp} exp, +${gold} oro`, 'win');
+    showFeedback(isBoss ? '☠ JEFE DERROTADO' : '✦ VICTORIA', `+${finalExp} exp · +${gold} oro${runLoot ? ` · ${runLoot.summary}` : ''}`);
+    addLog(`${isBoss?'☠ ¡Jefe derrotado! ':'Venciste a '}${battle.monster.name} (${tier.label}) — +${finalExp} exp, +${gold} oro`, 'win');
     if([5,10,20,35,50].includes(winStreak)){
       const bonus = winStreak*20;
       gainGold(bonus);
@@ -275,6 +276,7 @@ function endBattle(result){
   }
   resolvedBattle.ended = true;
   battle = null;
+  clearCombatVisuals();
   rollMissionReset();
   if(isRun){
     if(victory){
@@ -294,4 +296,3 @@ function endBattle(result){
   render();
   saveState();
 }
-

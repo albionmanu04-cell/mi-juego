@@ -4,26 +4,98 @@
    ================================================================= */
 
 /* ================= MERCADO ENTRE JUGADORES =================
-   Los Sellos del Gremio son una moneda separada del oro: se ganan al derrotar
-   jefes y se usan solamente para intercambiar equipo entre cuentas. */
+   La Lonja V2 usa una billetera online separada del oro y del guardado local.
+   El servidor liquida cada compra de forma atomica y acredita la venta sin un
+   paso manual de cobro. */
+const TRADE_PROTOCOL_VERSION = 2;
+let tradeProtocolStatus = 'idle';
+let tradeProtocolError = '';
+let tradeWalletBalance = null;
+
 function marketMarks(amount){
   state.guildMarks = Math.max(0, Math.floor(finiteNumber(state.guildMarks) + finiteNumber(amount)));
 }
+
+function tradeUuid(){
+  if(globalThis.crypto && typeof globalThis.crypto.randomUUID==='function') return globalThis.crypto.randomUUID();
+  const bytes=new Uint8Array(16);
+  if(globalThis.crypto && typeof globalThis.crypto.getRandomValues==='function') globalThis.crypto.getRandomValues(bytes);
+  else for(let index=0;index<bytes.length;index++) bytes[index]=Math.floor(Math.random()*256);
+  bytes[6]=(bytes[6]&15)|64; bytes[8]=(bytes[8]&63)|128;
+  const hex=[...bytes].map(value=>value.toString(16).padStart(2,'0')).join('');
+  return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+}
+
+function tradeSafeText(value,maxLength=120){
+  return String(value ?? '').replace(/[\u0000-\u001f\u007f<>&"'`]/g,'').trim().slice(0,maxLength);
+}
+
+function tradeSafeImage(value){
+  const source=String(value||'').trim();
+  return /^assets\/images\/[A-Za-z0-9 _./-]+\.(?:webp|png|jpg)$/.test(source) && !source.includes('..') ? source : '';
+}
+
+function tradeSafeRarityKey(value){
+  const key=String(value||'common').toLowerCase();
+  return Object.prototype.hasOwnProperty.call(ITEM_RARITIES,key) ? key : 'common';
+}
+
+function tradeSafeNumber(value,min=0,max=2000){
+  const number=Number(value);
+  return Number.isFinite(number) ? Math.max(min,Math.min(max,Math.round(number))) : 0;
+}
+
+function tradeSafeItem(raw){
+  const source=raw && typeof raw==='object' && !Array.isArray(raw) ? raw : {};
+  const type=['helmet','chest','gloves','boots','weapon','shield','ring'].includes(source.type) ? source.type : 'ring';
+  const rarityKey=tradeSafeRarityKey(source.rarityKey);
+  const rarity=ITEM_RARITIES[rarityKey] || ITEM_RARITIES.common;
+  const item={
+    id:/^[A-Za-z0-9_-]{1,120}$/.test(String(source.id||'')) ? String(source.id) : `traded-${tradeUuid()}`,
+    type,
+    name:tradeSafeText(source.name||'Pieza desconocida',80)||'Pieza desconocida',
+    rarityKey,
+    rarity:rarity.label,
+    color:rarity.color,
+    glow:rarity.glow
+  };
+  const image=tradeSafeImage(source.image); if(image) item.image=image;
+  const icon=tradeSafeText(source.icon,24); if(icon) item.icon=icon;
+  const classOnly=['warrior','archer','mage','priest','assassin','tamer'].includes(source.classOnly) ? source.classOnly : '';
+  if(classOnly) item.classOnly=classOnly;
+  const subclassOnly=/^[a-z-]{1,32}$/.test(String(source.subclassOnly||'')) ? String(source.subclassOnly) : '';
+  if(subclassOnly) item.subclassOnly=subclassOnly;
+  const equipmentTier=['base','class','subclass','forge'].includes(source.equipmentTier) ? source.equipmentTier : '';
+  if(equipmentTier) item.equipmentTier=equipmentTier;
+  if(/^[A-Za-z0-9_-]{1,100}$/.test(String(source.setId||''))) item.setId=String(source.setId);
+  const setLabel=tradeSafeText(source.setLabel,80); if(setLabel) item.setLabel=setLabel;
+  ['bonusAtk','bonusDef','bonusHp','bonusMana','bonusCrit','bonusCritDmg','bonusSpeed'].forEach(key=>{
+    if(source[key]!==undefined) item[key]=tradeSafeNumber(source[key]);
+  });
+  if(source.enhanceLevel!==undefined) item.enhanceLevel=tradeSafeNumber(source.enhanceLevel,0,13);
+  if(source.price!==undefined) item.price=tradeSafeNumber(source.price,0,100000);
+  const forgeOutcome=['stable','refined','masterwork','perfect'].includes(source.forgeOutcome) ? source.forgeOutcome : '';
+  if(forgeOutcome) item.forgeOutcome=forgeOutcome;
+  const forgeLabel=tradeSafeText(source.forgeLabel,60); if(forgeLabel) item.forgeLabel=forgeLabel;
+  if(source.crafted) item.crafted=true;
+  if(source.forgeExclusive) item.forgeExclusive=true;
+  if(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(source.tradeUid||''))) item.tradeUid=String(source.tradeUid);
+  return item;
+}
+
 function tradeItemStats(item){
   const parts=[];
-  if(item.bonusAtk) parts.push(`+${item.bonusAtk} Atq`);
-  if(item.bonusDef) parts.push(`+${item.bonusDef} Def`);
-  if(item.bonusHp) parts.push(`+${item.bonusHp} Vida`);
-  if(item.bonusMana) parts.push(`+${item.bonusMana} Maná`);
-  if(item.bonusCrit) parts.push(`+${item.bonusCrit}% Crít.`);
-  if(item.bonusCritDmg) parts.push(`+${item.bonusCritDmg}% D.C.`);
-  if(item.bonusSpeed) parts.push(`+${item.bonusSpeed}% Rapidez`);
-  if(item.enhanceLevel) parts.push(`+${item.enhanceLevel} Forja`);
+  if(item.bonusAtk) parts.push(`+${tradeSafeNumber(item.bonusAtk)} Atq`);
+  if(item.bonusDef) parts.push(`+${tradeSafeNumber(item.bonusDef)} Def`);
+  if(item.bonusHp) parts.push(`+${tradeSafeNumber(item.bonusHp)} Vida`);
+  if(item.bonusMana) parts.push(`+${tradeSafeNumber(item.bonusMana)} Maná`);
+  if(item.bonusCrit) parts.push(`+${tradeSafeNumber(item.bonusCrit)}% Crít.`);
+  if(item.bonusCritDmg) parts.push(`+${tradeSafeNumber(item.bonusCritDmg)}% D.C.`);
+  if(item.bonusSpeed) parts.push(`+${tradeSafeNumber(item.bonusSpeed)}% Rapidez`);
+  if(item.enhanceLevel) parts.push(`+${tradeSafeNumber(item.enhanceLevel,0,13)} Forja`);
   return parts.join(' · ') || 'Pieza sin bonificaciones';
 }
-function tradeItemArt(item){
-  return item?.image ? `<img src="${item.image}" alt="" decoding="async" loading="lazy">` : `<span>${item?.icon||'✦'}</span>`;
-}
+
 async function tradeRequest(name, body={}){
   const session=await ensureRegisteredAccount();
   if(!session) throw new Error('Iniciá sesión para usar el comercio entre jugadores.');
@@ -34,83 +106,176 @@ async function tradeRequest(name, body={}){
   if(!response.ok) throw new Error(data?.message||data?.hint||`No se pudo completar el comercio (${response.status}).`);
   return data;
 }
+
+function syncTradeWallet(balance){
+  tradeWalletBalance=Math.max(0,Math.floor(finiteNumber(balance)));
+  if(state) state.guildMarks=tradeWalletBalance;
+}
+
+async function ensureTradeProtocol(){
+  const account=await tradeRequest('trade_v2_account');
+  if(Number(account?.protocol)!==TRADE_PROTOCOL_VERSION) throw new Error('El servidor de comercio necesita la migración V2.');
+  syncTradeWallet(account.balance);
+  return account;
+}
+
 async function fetchTradeListings(){
   const session=await ensureRegisteredAccount();
   if(!session){ tradeListingsCache=[]; return []; }
-  const response=await fetch(`${SUPABASE_URL}/rest/v1/trade_listings?select=id,seller_id,seller_name,item,price,status,created_at&status=eq.active&order=created_at.desc&limit=60`,{
-    headers:supabaseHeaders(session.access_token), cache:'no-store'
-  });
-  if(!response.ok) throw new Error('El mercado todavía no está configurado en el servidor.');
-  tradeListingsCache=await response.json();
+  await ensureTradeProtocol();
+  const rows=await tradeRequest('trade_v2_list_market');
+  tradeListingsCache=(Array.isArray(rows)?rows:[]).map(entry=>({
+    id:tradeSafeText(entry?.id,40),
+    seller_id:tradeSafeText(entry?.seller_id,40),
+    seller_name:tradeSafeText(entry?.seller_name||'Aventurero',28)||'Aventurero',
+    item:tradeSafeItem(entry?.item),
+    price:tradeSafeNumber(entry?.price,5,99999),
+    created_at:tradeSafeText(entry?.created_at,40)
+  })).filter(entry=>/^[0-9a-f-]{36}$/i.test(entry.id));
   tradeListingsLoaded=true;
   return tradeListingsCache;
 }
+
+async function loadTradeMarket(){
+  if(tradeProtocolStatus==='loading') return;
+  tradeProtocolStatus='loading'; tradeProtocolError='';
+  try{
+    await fetchTradeListings();
+    tradeProtocolStatus='ready';
+    await saveState();
+  }catch(error){
+    tradeProtocolStatus='error';
+    tradeProtocolError=tradeSafeText(error?.message||'El mercado seguro no está disponible.',180);
+    tradeListingsCache=[]; tradeListingsLoaded=false;
+  }
+  if(activeGuildTab==='trade') renderGuildSubTab();
+}
+
 async function publishTradeItem(index, price){
   const item=state.ownedEquipment[index];
   const amount=Math.floor(Number(price));
   if(!item || !Number.isFinite(amount) || amount<5 || amount>99999){ showFeedback('PRECIO INVÁLIDO','Elegí entre 5 y 99.999 sellos.','warning'); return; }
+  item.tradeUid=/^[0-9a-f-]{36}$/i.test(String(item.tradeUid||'')) ? item.tradeUid : tradeUuid();
+  item.tradePending=true;
+  await saveState();
   try{
-    await tradeRequest('create_trade_listing',{p_item:item,p_price:amount,p_seller_name:state.name});
-    state.ownedEquipment.splice(index,1);
-    marketMarks(0);
+    await tradeRequest('trade_v2_create_listing',{p_origin_id:item.tradeUid,p_item:tradeSafeItem(item),p_price:amount,p_seller_name:tradeSafeText(state.name,28)});
+    const savedIndex=state.ownedEquipment.findIndex(entry=>entry?.tradeUid===item.tradeUid);
+    if(savedIndex>=0) state.ownedEquipment.splice(savedIndex,1);
     addLog(`✦ Publicaste ${item.name} por ${amount} sellos en la Lonja.`, 'level');
     Sound.reward(); showFeedback('PIEZA PUBLICADA',`${item.name} · ${amount} sellos`,'reward');
-    activeTradeView='mine'; saveState(); renderGuildSubTab();
-  }catch(error){ showFeedback('NO SE PUDO PUBLICAR',error.message,'warning'); }
+    activeTradeView='mine'; await saveState(); await fetchTradeListings(); renderGuildSubTab();
+  }catch(error){ item.tradePending=false; await saveState(); showFeedback('NO SE PUDO PUBLICAR',tradeSafeText(error.message,180),'warning'); renderGuildSubTab(); }
 }
 async function buyTradeListing(id){
   const listing=tradeListingsCache.find(entry=>entry.id===id);
   if(!listing) return;
-  if(Math.floor(finiteNumber(state.guildMarks))<Math.floor(finiteNumber(listing.price))){ showFeedback('SELLOS INSUFICIENTES','Derrotá jefes para conseguir más sellos.','warning'); return; }
+  if(Math.floor(finiteNumber(tradeWalletBalance))<listing.price){ showFeedback('SELLOS INSUFICIENTES','Tu saldo online no alcanza para esta pieza.','warning'); return; }
   try{
-    const result=await tradeRequest('buy_trade_listing',{p_listing_id:id});
-    const soldItem=result?.item || listing.item;
-    marketMarks(-listing.price);
-    state.ownedEquipment.push({...soldItem, traded:true});
+    const result=await tradeRequest('trade_v2_buy_listing',{p_listing_id:id});
+    const soldItem=tradeSafeItem(result?.item || listing.item);
+    syncTradeWallet(result?.balance);
+    if(!state.ownedEquipment.some(item=>item?.tradeUid && item.tradeUid===soldItem.tradeUid)) state.ownedEquipment.push({...soldItem,traded:true});
     addLog(`✦ Compraste ${soldItem.name||'una pieza'} por ${listing.price} sellos.`, 'win');
     Sound.reward(); showFeedback('INTERCAMBIO COMPLETADO',`${soldItem.name||'Pieza'} llegó a tu mochila.`,'reward');
-    saveState(); await fetchTradeListings(); renderGuildSubTab();
-  }catch(error){ showFeedback('PIEZA NO DISPONIBLE',error.message,'warning'); await fetchTradeListings().catch(()=>{}); renderGuildSubTab(); }
+    await saveState(); await fetchTradeListings(); renderGuildSubTab();
+  }catch(error){ showFeedback('PIEZA NO DISPONIBLE',tradeSafeText(error.message,180),'warning'); await fetchTradeListings().catch(()=>{}); renderGuildSubTab(); }
 }
 async function cancelTradeListing(id){
   try{
-    const result=await tradeRequest('cancel_trade_listing',{p_listing_id:id});
-    if(result?.item) state.ownedEquipment.push({...result.item, returnedFromTrade:true});
-    addLog(`↩ Retiraste ${result?.item?.name||'una publicación'} de la Lonja.`, 'level');
+    const result=await tradeRequest('trade_v2_cancel_listing',{p_listing_id:id});
+    const returnedItem=tradeSafeItem(result?.item);
+    if(returnedItem.name && !state.ownedEquipment.some(item=>item?.tradeUid && item.tradeUid===returnedItem.tradeUid)) state.ownedEquipment.push({...returnedItem,returnedFromTrade:true});
+    addLog(`↩ Retiraste ${returnedItem.name||'una publicación'} de la Lonja.`, 'level');
     Sound.click(); showFeedback('PUBLICACIÓN RETIRADA','La pieza volvió a tu mochila.','reward');
-    saveState(); renderGuildSubTab();
-  }catch(error){ showFeedback('NO SE PUDO RETIRAR',error.message,'warning'); }
+    await saveState(); await fetchTradeListings(); renderGuildSubTab();
+  }catch(error){ showFeedback('NO SE PUDO RETIRAR',tradeSafeText(error.message,180),'warning'); }
 }
-async function claimTradeSales(){
-  try{
-    const result=await tradeRequest('claim_trade_sales');
-    const marks=Math.max(0,Math.floor(finiteNumber(result?.marks)));
-    if(!marks){ showFeedback('SIN VENTAS PENDIENTES','Todavía no hay sellos para reclamar.','warning'); return; }
-    marketMarks(marks);
-    addLog(`✦ Cobraste ${marks} sellos de tus ventas en la Lonja.`, 'win');
-    Sound.reward(); showFeedback('VENTA COBRADA',`+${marks} sellos del gremio`,'reward');
-    saveState(); renderGuildSubTab();
-  }catch(error){ showFeedback('NO SE PUDO COBRAR',error.message,'warning'); }
+
+function tradeElement(tag,className,text){
+  const element=document.createElement(tag);
+  if(className) element.className=className;
+  if(text!==undefined) element.textContent=text;
+  return element;
 }
+
+function tradeAppendItemArt(container,item){
+  const source=tradeSafeImage(item.image);
+  if(source){ const image=tradeElement('img'); image.src=source; image.alt=''; image.decoding='async'; image.loading='lazy'; container.appendChild(image); }
+  else container.appendChild(tradeElement('span','',tradeSafeText(item.icon,24)||'✦'));
+}
+
+function tradeCreateCard(rawItem,options={}){
+  const item=tradeSafeItem(rawItem);
+  const article=tradeElement('article',`trade-card rarity-${item.rarityKey}`);
+  article.style.setProperty('--rarity-color',(ITEM_RARITIES[item.rarityKey]||ITEM_RARITIES.common).color);
+  const art=tradeElement('div','trade-art'); tradeAppendItemArt(art,item); article.appendChild(art);
+  const copy=tradeElement('div','trade-copy');
+  copy.appendChild(tradeElement('small','',`${tradeSafeText(item.rarity,30)} · ${tradeSafeText(options.ownerLabel||equipmentSlotMeta(item.type).label,50)}`));
+  copy.appendChild(tradeElement('b','',item.name));
+  copy.appendChild(tradeElement('span','',tradeItemStats(item)));
+  article.appendChild(copy);
+  if(options.mode==='sell'){
+    const controls=tradeElement('div','trade-price-input');
+    const label=tradeElement('label','',`PRECIO `);
+    const input=tradeElement('input'); input.type='number'; input.min='5'; input.max='99999'; input.value=String(Math.max(10,Math.round((item.price||100)/12))); input.dataset.tradePrice=String(options.index);
+    label.append(input,document.createTextNode(' ✦')); controls.appendChild(label);
+    const button=tradeElement('button','',item.tradePending?'PUBLICANDO…':'PUBLICAR'); button.dataset.tradePublish=String(options.index); button.disabled=!!item.tradePending; controls.appendChild(button);
+    article.appendChild(controls);
+  }else{
+    const offer=tradeElement('div','trade-offer');
+    offer.append(tradeElement('strong','',`✦ ${options.price}`),tradeElement('small','','SELLOS'));
+    const button=tradeElement('button','',options.mine?'RETIRAR':'COMPRAR');
+    button.dataset[options.mine?'tradeCancel':'tradeBuy']=options.listingId; offer.appendChild(button); article.appendChild(offer);
+  }
+  return article;
+}
+
 function renderTradeTab(box){
   const signedIn=!!accountSession;
   const ownId=accountSession?.user?.id;
-  const active=activeTradeView;
-  const content=active==='sell'
-    ? `<div class="trade-sell-grid">${state.ownedEquipment.length ? state.ownedEquipment.map((item,index)=>`<article class="trade-card rarity-${item.rarityKey||'common'}" style="--rarity-color:${item.color||'#b9c4d6'}"><div class="trade-art">${tradeItemArt(item)}</div><div class="trade-copy"><small>${item.rarity||'Equipo'} · ${equipmentSlotMeta(item.type).label}</small><b>${escapeHtml(item.name)}</b><span>${tradeItemStats(item)}</span></div><div class="trade-price-input"><label>PRECIO <input type="number" min="5" max="99999" value="${Math.max(10,Math.round((item.price||100)/12))}" data-trade-price="${index}"> ✦</label><button data-trade-publish="${index}">PUBLICAR</button></div></article>`).join('') : `<div class="trade-empty">Tu mochila está vacía. Conseguí una pieza antes de publicarla.</div>`}</div>`
-    : active==='mine'
-      ? `<div class="trade-mine-note"><span>✦</span><div><b>Ventas y cobros</b><small>Cuando otro aventurero compra tu pieza, reclamá sus sellos aquí.</small></div><button data-trade-claim>COBRAR VENTAS</button></div><div class="trade-list">${tradeListingsCache.filter(entry=>entry.seller_id===ownId).length ? tradeListingsCache.filter(entry=>entry.seller_id===ownId).map(entry=>tradeListingMarkup(entry,true)).join('') : `<div class="trade-empty">No tenés publicaciones activas.</div>`}</div>`
-      : `<div class="trade-list">${tradeListingsCache.filter(entry=>entry.seller_id!==ownId).length ? tradeListingsCache.filter(entry=>entry.seller_id!==ownId).map(entry=>tradeListingMarkup(entry,false)).join('') : `<div class="trade-empty">Todavía no hay piezas publicadas por otros aventureros.</div>`}</div>`;
-  box.innerHTML=guildSummaryMarkup()+`<section class="trade-hall ${signedIn?'':'trade-locked'}"><div class="trade-hero"><div><span>✦ LONJA DE AVENTUREROS</span><h4>Comercio entre jugadores</h4><p>Usá <b>Sellos del Gremio</b>, una moneda separada del oro. Los jefes entregan sellos y cada compra va directo a tu mochila.</p></div><div class="trade-wallet"><small>TU BOLSILLO</small><b>✦ ${Math.floor(finiteNumber(state.guildMarks))}</b><span>sellos</span></div></div>${signedIn?`<div class="trade-tabs"><button class="${active==='buy'?'active':''}" data-trade-view="buy">EXPLORAR</button><button class="${active==='sell'?'active':''}" data-trade-view="sell">VENDER (${state.ownedEquipment.length})</button><button class="${active==='mine'?'active':''}" data-trade-view="mine">MIS VENTAS</button></div>${content}`:`<div class="trade-signin"><b>🔒 INICIÁ SESIÓN PARA ENTRAR A LA LONJA</b><span>El comercio usa tu cuenta para proteger las piezas y evitar intercambios duplicados.</span></div>`}</section>`;
+  box.innerHTML=guildSummaryMarkup();
+  const hall=tradeElement('section',`trade-hall ${signedIn?'':'trade-locked'}`);
+  const hero=tradeElement('div','trade-hero'); const intro=tradeElement('div');
+  intro.append(tradeElement('span','','✦ LONJA DE AVENTUREROS'),tradeElement('h4','','Comercio entre jugadores'),tradeElement('p','','Las compras, ventas y transferencias se liquidan en el servidor dentro de una sola operación.'));
+  const wallet=tradeElement('div','trade-wallet'); wallet.append(tradeElement('small','','SALDO ONLINE'),tradeElement('b','',tradeWalletBalance===null?'✦ —':`✦ ${tradeWalletBalance}`),tradeElement('span','','sellos protegidos'));
+  hero.append(intro,wallet); hall.appendChild(hero);
+
+  if(!signedIn){ const locked=tradeElement('div','trade-signin'); locked.append(tradeElement('b','','🔒 INICIÁ SESIÓN PARA ENTRAR A LA LONJA'),tradeElement('span','','El mercado seguro requiere una cuenta registrada.')); hall.appendChild(locked); box.appendChild(hall); return; }
+  if(tradeProtocolStatus!=='ready'){
+    const status=tradeElement('div','trade-signin');
+    status.append(tradeElement('b','',tradeProtocolStatus==='error'?'⚠ MERCADO SEGURO NO DISPONIBLE':'VERIFICANDO MERCADO SEGURO…'),tradeElement('span','',tradeProtocolStatus==='error'?`${tradeProtocolError} Ejecutá supabase-comercio-jugadores.sql en Supabase.`:'Comprobando protocolo, saldo e inventario online.'));
+    if(tradeProtocolStatus==='error'){ const retry=tradeElement('button','','REINTENTAR'); retry.dataset.tradeRetry='1'; status.appendChild(retry); }
+    hall.appendChild(status); box.appendChild(hall);
+    hall.querySelector('[data-trade-retry]')?.addEventListener('click',()=>{tradeProtocolStatus='idle';loadTradeMarket();renderGuildSubTab();});
+    if(tradeProtocolStatus==='idle') loadTradeMarket();
+    return;
+  }
+
+  const tabs=tradeElement('div','trade-tabs');
+  [['buy','EXPLORAR'],['sell',`VENDER (${state.ownedEquipment.length})`],['mine','MIS VENTAS']].forEach(([id,label])=>{const button=tradeElement('button',activeTradeView===id?'active':'',label);button.dataset.tradeView=id;tabs.appendChild(button);});
+  hall.appendChild(tabs);
+  if(activeTradeView==='sell'){
+    const grid=tradeElement('div','trade-sell-grid');
+    if(state.ownedEquipment.length) state.ownedEquipment.forEach((item,index)=>grid.appendChild(tradeCreateCard(item,{mode:'sell',index})));
+    else grid.appendChild(tradeElement('div','trade-empty','Tu mochila está vacía. Conseguí una pieza antes de publicarla.'));
+    hall.appendChild(grid);
+  }else{
+    if(activeTradeView==='mine'){
+      const note=tradeElement('div','trade-mine-note'); note.append(tradeElement('span','','✦'));
+      const copy=tradeElement('div'); copy.append(tradeElement('b','','Ventas automáticas'),tradeElement('small','','El servidor acredita los Sellos en el mismo instante en que se completa una compra.')); note.appendChild(copy); hall.appendChild(note);
+    }
+    const list=tradeElement('div','trade-list');
+    const entries=tradeListingsCache.filter(entry=>activeTradeView==='mine' ? entry.seller_id===ownId : entry.seller_id!==ownId);
+    if(entries.length) entries.forEach(entry=>list.appendChild(tradeCreateCard(entry.item,{mine:activeTradeView==='mine',listingId:entry.id,price:entry.price,ownerLabel:activeTradeView==='mine'?'TU PUBLICACIÓN':`DE ${entry.seller_name}`})));
+    else list.appendChild(tradeElement('div','trade-empty',activeTradeView==='mine'?'No tenés publicaciones activas.':'Todavía no hay piezas publicadas por otros aventureros.'));
+    hall.appendChild(list);
+  }
+  box.appendChild(hall);
   box.querySelectorAll('[data-trade-view]').forEach(button=>button.addEventListener('click',()=>{ activeTradeView=button.dataset.tradeView; Sound.click(); renderGuildSubTab(); }));
   box.querySelectorAll('[data-trade-publish]').forEach(button=>button.addEventListener('click',()=>{ const index=Number(button.dataset.tradePublish); const price=box.querySelector(`[data-trade-price="${index}"]`)?.value; publishTradeItem(index,price); }));
   box.querySelectorAll('[data-trade-buy]').forEach(button=>button.addEventListener('click',()=>buyTradeListing(button.dataset.tradeBuy)));
   box.querySelectorAll('[data-trade-cancel]').forEach(button=>button.addEventListener('click',()=>cancelTradeListing(button.dataset.tradeCancel)));
-  box.querySelector('[data-trade-claim]')?.addEventListener('click',claimTradeSales);
-}
-function tradeListingMarkup(entry,mine=false){
-  const item=entry.item||{}; const price=Math.floor(finiteNumber(entry.price));
-  return `<article class="trade-card rarity-${item.rarityKey||'common'}" style="--rarity-color:${item.color||'#b9c4d6'}"><div class="trade-art">${tradeItemArt(item)}</div><div class="trade-copy"><small>${item.rarity||'Equipo'} · ${mine?'TU PUBLICACIÓN':`DE ${escapeHtml(entry.seller_name||'Aventurero')}`}</small><b>${escapeHtml(item.name||'Pieza desconocida')}</b><span>${tradeItemStats(item)}</span></div><div class="trade-offer"><strong>✦ ${price}</strong><small>SELLOS</small><button ${mine?'data-trade-cancel':'data-trade-buy'}="${entry.id}">${mine?'RETIRAR':'COMPRAR'}</button></div></article>`;
 }
 
 /* ================= PESTAÑAS DE GREMIO Y RANKING ================= */
@@ -126,11 +291,6 @@ function renderGuildSubTab() {
 
   if (activeGuildTab === 'trade') {
     renderTradeTab(box);
-    if(accountSession && !tradeListingsLoaded){
-      fetchTradeListings().then(()=>{ if(activeGuildTab==='trade') renderGuildSubTab(); }).catch(error=>{
-        showFeedback('MERCADO SIN CONFIGURAR',`${error.message} Ejecutá el SQL de comercio una sola vez.`,'warning');
-      });
-    }
     return;
   }
   if (activeGuildTab === 'shop') {
@@ -273,4 +433,3 @@ function renderLbSubTab() {
     fetchLeaderboard();
   }
 }
-

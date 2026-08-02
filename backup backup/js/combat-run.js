@@ -7,14 +7,10 @@
    ================================================================= */
 
 /* ================= MODO ROGUELIKE: FLUJO DE LA RUN ================= */
-function switchHuntMode(mode){
-  if(mode===huntMode) return;
-  if(battle) return; // no se puede cambiar de modo en pleno combate
-  if(mode==='free' && runState && runState.phase!=='ended') return; // no abandonar una run activa
-  Sound.click();
-  huntMode = mode;
-  render();
-}
+// Nota: acá vivía switchHuntMode(), que alternaba huntMode entre 'run' y
+// 'free' desde un botón #huntModeToggle que ya no existe en el HTML. Como
+// huntMode quedó fijo en 'run' (ver classes.js), se eliminó junto con el
+// resto de la cacería clásica (buildTierGrid, startBattle, #tierGrid).
 
 /**
  * Crea una nueva expedición roguelike: inicializa `runState` desde cero en la
@@ -51,7 +47,7 @@ function startRun(startDepth=1, abyss=false){
   };
   ensureRoutePlan();
   showFeedback('RUTA ABIERTA', 'Elegí tu primer destino antes de combatir.', 'reward');
-  addLog('🩸 Comienza una nueva Cacería Roguelike. Un monstruo común aguarda en la profundidad 1.', 'level');
+  addLog('🩸 Comienza una nueva Cacería Roguelike. Elegí tu primer camino antes de enfrentarte a las profundidades.', 'level');
   render();
   saveState();
 }
@@ -79,12 +75,14 @@ function endMonsterTurn(reference=battle){
   if(ps.dodgeBoostTurns>0) ps.dodgeBoostTurns--;
   reference.busy = false;
   syncBattleUi();
-  renderActionButtons();
   if(reference.playerHp<=0){
     const fighter = document.querySelector('.fighter.player');
     if(fighter) fighter.classList.add('dead');
     setTimeout(()=>{ if(isCurrentBattle(reference)) endBattle('lose'); },450);
+    return;
   }
+  if(reference.deckMode) beginDeckTurn(reference);
+  else renderActionButtons();
 }
 
 /**
@@ -653,6 +651,7 @@ function retreatRun(){
  */
 function finishRun(retreated, completed=false){
   if(battle){ battle.ended = true; battle = null; }
+  clearCombatVisuals();
   const lostCompanion = state.companion;
   const pendingRunGold = Math.max(0, finiteNumber(runState && runState.runGold,0));
   const cashOutRunGold = (retreated || completed) && pendingRunGold>0 && !runState.runGoldClaimed;
@@ -684,4 +683,3 @@ function finishRun(retreated, completed=false){
   render();
   saveState();
 }
-

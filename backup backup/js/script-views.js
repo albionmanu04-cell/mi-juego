@@ -9,6 +9,7 @@ document.querySelectorAll('.nav-btn[data-sec]').forEach(btn => {
       Sound.click();
       if(btn.dataset.sec==='secProfile') activeProfileView = 'home';
       if(btn.dataset.sec==='secOptions') activeOptionsView = 'home';
+      document.body.classList.toggle('profile-screen-open', btn.dataset.sec==='secProfile');
       document.querySelectorAll('.nav-btn[data-sec]').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.game-section').forEach(sec => sec.classList.remove('active'));
     
@@ -43,6 +44,7 @@ document.getElementById('charactersBtn').addEventListener('click', async ()=>{
     return;
   }
   Sound.click();
+  document.body.classList.remove('profile-screen-open');
   document.getElementById('mainNav').classList.remove('menu-open');
   document.getElementById('navMenuToggle').setAttribute('aria-expanded','false');
   state = null;
@@ -51,10 +53,6 @@ document.getElementById('charactersBtn').addEventListener('click', async ()=>{
   document.getElementById('mainNav').classList.remove('active');
   document.getElementById('nameGate').style.display = 'grid';
   renderCharacterGate(await loadRoster());
-});
-
-document.querySelectorAll('#huntModeToggle .mode-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=> switchHuntMode(btn.dataset.mode));
 });
 
 document.getElementById('huntResetBtn')?.addEventListener('click', ()=> resetHuntState());
@@ -72,9 +70,9 @@ function resetHuntState(){
   if(!confirmado) return;
   if(runCheckpointTimer){ clearTimeout(runCheckpointTimer); runCheckpointTimer = null; }
   battle = null;
+  clearCombatVisuals();
   runState = null;
   huntMode = 'run';
-  activeHuntTab = 'combat';
   Sound.click();
   addLog('⟳ Cacería reiniciada manualmente para destrabar el combate.', 'reset');
   render();
@@ -103,23 +101,13 @@ function initTabListeners() {
       renderActiveSubTabs();
     });
   });
-  document.querySelectorAll('#huntSubtabs [data-hunt-tab]').forEach(tab=>{
-    tab.onclick = ()=>{
-      activeHuntTab = tab.dataset.huntTab;
-      Sound.click();
-      renderHuntSubTabs();
-    };
-  });
 }
 
-/* ================= PESTAÑAS DE CACERÍA ================= */
-function renderHuntSubTabs(){
-  const active = ['combat','progress'].includes(activeHuntTab) ? activeHuntTab : 'combat';
-  activeHuntTab = active;
-  document.querySelectorAll('#huntSubtabs [data-hunt-tab]').forEach(tab=>tab.classList.toggle('active', tab.dataset.huntTab===active));
-  const views = { combat:'huntViewCombat', progress:'huntViewProgress' };
-  Object.entries(views).forEach(([key,id])=>document.getElementById(id)?.classList.toggle('active', key===active));
-}
+/* La sección de Cacería ya no tiene subtabs "Combate"/"Progreso": el HUD de
+   la expedición (runStatusBar) vive siempre visible junto al mapa/arena en
+   vez de en una pestaña aparte — antes había que cambiar de pestaña para ver
+   tu vida/maná mientras elegías un nodo o un contrato. Ver updateHuntOverview()
+   y renderRunStatusBar() en combat-run-render.js. */
 
 function renderActiveSubTabs() {
   const profileActive = document.getElementById('secProfile').classList.contains('active');
@@ -128,11 +116,13 @@ function renderActiveSubTabs() {
   const forgeActive = document.getElementById('secForge').classList.contains('active');
   const optionsActive = document.getElementById('secOptions').classList.contains('active');
   const fishingActive = document.getElementById('secFishing').classList.contains('active');
+  const settlementActive = document.getElementById('secSettlement').classList.contains('active');
   if(profileActive) renderProfile();
   if(heroActive) renderHeroSubTab();
   if(forgeActive) renderForge();
   if(optionsActive) renderOptions();
   if(fishingActive) renderFishing();
+  if(settlementActive) renderSettlement();
   if(guildActive){
     renderGuildSubTab();
     renderLbSubTab();
@@ -216,7 +206,7 @@ function renderHeroSubTab() {
     `;
   } else if (activeHeroTab === 'gear') {
     const eq = state.equipment;
-    const style = activeHeroVisual();
+    const style = activeHeroAppearance();
     const loadoutEmblem = equipmentHeroEmblem(state.characterClass, state.subclass);
     const slotMeta = key => equipmentSlotMeta(key);
     const gearSlotMarkup = slot => {
@@ -242,11 +232,11 @@ function renderHeroSubTab() {
     box.innerHTML = `
       <div class="equipment-tab">
         ${setProgressMarkup}
-        <div class="character-doll">
-          <div class="loadout-title"><span><img class="subclass-loadout-emblem" src="${loadoutEmblem}" alt="Emblema de ${style.label}" decoding="async"></span><div><small>VESTIDURA ACTIVA · ${style.baseLabel}</small><strong>${style.label}</strong><em>${style.weapon}</em></div></div>
-          <img class="equipment-sanctum-rune" src="assets/images/inventory_sanctum_rune.webp" alt="" decoding="async">
-          <img class="equipment-hero-art ${style.isSubclass?'subclass-hero-art':''}" src="${style.image}" alt="${style.label}" decoding="async">
-          
+        <div class="character-doll ${style.paperDoll?'paperdoll-active':''} ${style.forgePieces>=2?'forge-appearance':''}">
+          <div class="loadout-title"><span><img class="subclass-loadout-emblem" src="${loadoutEmblem}" alt="Emblema de ${style.label}" decoding="async"></span><div><small>VESTIDURA ACTIVA · ${escapeHtml(style.appearanceLabel)}</small><strong>${style.label}</strong><em>${style.weapon}</em></div></div>
+          <img class="equipment-sanctum-rune" src="assets/images/inventory_sanctum_rune.webp" alt="" decoding="async" loading="lazy">
+          <img class="equipment-hero-art ${style.isSubclass?'subclass-hero-art':''} ${style.paperDoll?'paperdoll-base-art':''}" src="${style.image}" alt="${style.label}" decoding="async" loading="lazy">
+          ${(style.paperDollLayers||[]).map(layer=>`<img class="paperdoll-layer paperdoll-layer-${layer.slot}" src="${layer.image}" alt="" decoding="async">`).join('')}
           ${gearSlotMarkup('helmet')}
           ${gearSlotMarkup('chest')}
           ${gearSlotMarkup('weapon')}
@@ -259,14 +249,16 @@ function renderHeroSubTab() {
 
         <div class="inventory-list">
           <div class="backpack-head"><span>◈</span><div><small>INVENTARIO DEL VIAJERO</small><h4>Tu Mochila</h4></div><b>${state.ownedEquipment.length}</b></div>
-          ${state.ownedEquipment.length === 0 ? `<div class="empty-backpack-state"><img src="assets/images/inventory_empty_satchel.webp" alt="Mochila del viajero" decoding="async"><b>MOCHILA A LA ESPERA</b><p>Consigue piezas en la caceria, el gremio o la herreria para preparar a tu aventurero.</p><small>BOTIN · TIENDA · HERRERIA</small></div>` : ''}
+          ${state.ownedEquipment.length === 0 ? `<div class="empty-backpack-state"><img src="assets/images/inventory_empty_satchel.webp" alt="Mochila del viajero" decoding="async" loading="lazy"><b>MOCHILA A LA ESPERA</b><p>Consigue piezas en la caceria, el gremio o la herreria para preparar a tu aventurero.</p><small>BOTIN · TIENDA · HERRERIA</small></div>` : ''}
           ${state.ownedEquipment.map((item, idx) => {
             const rarity = itemRarityMeta(item);
+            const compatibility = itemCompatibilityMeta(item);
             return `
-            <div class="inv-item rarity-${rarity.key}" style="--rarity-color:${rarity.color};--rarity-glow:${rarity.glow};border-left-color:${rarity.color}">
+            <div class="inv-item rarity-${rarity.key} compatibility-${compatibility.key}" style="--rarity-color:${rarity.color};--rarity-glow:${rarity.glow};border-left-color:${rarity.color}">
               ${item.image ? `<img class="inv-item-art" src="${item.image}" alt="" decoding="async" loading="lazy">` : ''}<div class="inv-item-info">
                 <span class="inv-item-name">${item.name}</span>
                 <span class="inv-rarity" style="--rarity-color:${rarity.color}">${rarity.label}</span>
+                <span class="inv-compatibility ${compatibility.key}">${compatibility.label}</span>
                 ${item.forgeLabel ? `<span class="inv-forge-quality quality-${item.forgeOutcome||'stable'}">⚒ ${escapeHtml(item.forgeLabel)}${item.forgeMultiplier>1?` · +${Math.round((item.forgeMultiplier-1)*100)}% base`:''}</span>` : ''}
                 <span class="inv-item-stats">
                   ${item.bonusAtk ? `+${item.bonusAtk} Atk ` : ''}
@@ -278,7 +270,7 @@ function renderHeroSubTab() {
                   ${item.bonusSpeed ? `+${item.bonusSpeed}% Rapidez` : ''}
                 </span>
               </div>
-              <div class="inv-actions"><button class="claim-btn ready" style="padding: 4px 10px; width:auto; font-size:10px; font-family:'Cinzel';" onclick="equipItemFromInventory(${idx})">Equipar</button><button class="delete-item-btn" onclick="deleteItemFromInventory(${idx})">Eliminar</button></div>
+              <div class="inv-actions"><button class="claim-btn ${compatibility.equippable?'ready':'locked'}" style="padding: 4px 10px; width:auto; font-size:10px; font-family:'Cinzel';" onclick="equipItemFromInventory(${idx})" ${compatibility.equippable?'':'disabled'} title="${compatibility.equippable?'Equipar pieza':compatibility.label}">${compatibility.equippable?'Equipar':'No compatible'}</button><button class="delete-item-btn" onclick="deleteItemFromInventory(${idx})">Eliminar</button></div>
             </div>
           `}).join('')}
         </div>
@@ -330,4 +322,3 @@ function achievementGlyph(id){
   if(id.indexOf('reach')===0) return '✦';
   return '✧';
 }
-

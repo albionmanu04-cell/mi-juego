@@ -39,10 +39,7 @@ document.addEventListener('click', event=>{
 });
 
 document.getElementById('charactersBtn').addEventListener('click', async ()=>{
-  if(battle || (runState && runState.phase!=='ended')){
-    showFeedback('EXPEDICION ACTIVA', 'Termina la caceria antes de cambiar de personaje.', 'danger');
-    return;
-  }
+  window.CardHunt?.prepareCharacterSwitch?.();
   Sound.click();
   document.body.classList.remove('profile-screen-open');
   document.getElementById('mainNav').classList.remove('menu-open');
@@ -54,30 +51,6 @@ document.getElementById('charactersBtn').addEventListener('click', async ()=>{
   document.getElementById('nameGate').style.display = 'grid';
   renderCharacterGate(await loadRoster());
 });
-
-document.getElementById('huntResetBtn')?.addEventListener('click', ()=> resetHuntState());
-
-/* Botón de emergencia: fuerza la limpieza del estado de cacería (combate/expedición)
-   por si un bug deja los botones o la arena trabados. Borra el progreso de la
-   expedición en curso (profundidad, reliquias sin cobrar, batalla activa), pero
-   NO toca el personaje, nivel, equipo, oro ni inventario. */
-function resetHuntState(){
-  if(!state) return;
-  const enExpedicion = !!(battle || (runState && runState.phase!=='ended'));
-  const confirmado = confirm(enExpedicion
-    ? '¿Reiniciar la cacería?\n\nSe perderá el progreso de la expedición actual (profundidad, reliquias y botín sin cobrar). Tu personaje, nivel, equipo y oro NO se ven afectados.\n\nUsá esto si el combate quedó trabado.'
-    : 'Esto limpia el estado interno de la cacería por si quedó trabado. ¿Continuar?');
-  if(!confirmado) return;
-  if(runCheckpointTimer){ clearTimeout(runCheckpointTimer); runCheckpointTimer = null; }
-  battle = null;
-  clearCombatVisuals();
-  runState = null;
-  huntMode = 'run';
-  Sound.click();
-  addLog('⟳ Cacería reiniciada manualmente para destrabar el combate.', 'reset');
-  render();
-  saveState();
-}
 
 function initTabListeners() {
   if(tabListenersInitialized) return;
@@ -103,11 +76,7 @@ function initTabListeners() {
   });
 }
 
-/* La sección de Cacería ya no tiene subtabs "Combate"/"Progreso": el HUD de
-   la expedición (runStatusBar) vive siempre visible junto al mapa/arena en
-   vez de en una pestaña aparte — antes había que cambiar de pestaña para ver
-   tu vida/maná mientras elegías un nodo o un contrato. Ver updateHuntOverview()
-   y renderRunStatusBar() en combat-run-render.js. */
+/* La Cacería unificada administra su vista completa fuera de estos subtabs. */
 
 function renderActiveSubTabs() {
   const profileActive = document.getElementById('secProfile').classList.contains('active');
@@ -270,7 +239,7 @@ function renderHeroSubTab() {
                   ${item.bonusSpeed ? `+${item.bonusSpeed}% Rapidez` : ''}
                 </span>
               </div>
-              <div class="inv-actions"><button class="claim-btn ${compatibility.equippable?'ready':'locked'}" style="padding: 4px 10px; width:auto; font-size:10px; font-family:'Cinzel';" onclick="equipItemFromInventory(${idx})" ${compatibility.equippable?'':'disabled'} title="${compatibility.equippable?'Equipar pieza':compatibility.label}">${compatibility.equippable?'Equipar':'No compatible'}</button><button class="delete-item-btn" onclick="deleteItemFromInventory(${idx})">Eliminar</button></div>
+              <div class="inv-actions"><button class="claim-btn ${compatibility.equippable?'ready':'locked'}" style="padding: 4px 10px; width:auto; font-size:10px; font-family:'Cinzel';" data-inventory-equip="${idx}" ${compatibility.equippable?'':'disabled'} title="${compatibility.equippable?'Equipar pieza':compatibility.label}">${compatibility.equippable?'Equipar':'No compatible'}</button><button class="delete-item-btn" data-inventory-delete="${idx}">Eliminar</button></div>
             </div>
           `}).join('')}
         </div>
@@ -285,6 +254,8 @@ function renderHeroSubTab() {
         }
       });
     });
+    box.querySelectorAll('[data-inventory-equip]').forEach(button=>button.addEventListener('click',()=>equipItemFromInventory(Number(button.dataset.inventoryEquip))));
+    box.querySelectorAll('[data-inventory-delete]').forEach(button=>button.addEventListener('click',()=>deleteItemFromInventory(Number(button.dataset.inventoryDelete))));
   }
 }
 

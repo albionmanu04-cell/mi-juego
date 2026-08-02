@@ -1,0 +1,29 @@
+name: Calidad del proyecto
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Descargar el proyecto
+        uses: actions/checkout@v7
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Revisar sintaxis, estructura y comportamiento
+        run: npm run check

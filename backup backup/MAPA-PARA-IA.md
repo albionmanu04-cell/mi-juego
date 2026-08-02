@@ -1,26 +1,86 @@
 # Mapa de Forja Eterna para lectura por IA
 
-**Nota de reparación (última revisión):** este repo tenía `js/combat.js` y
-`js/script.js` (los monolitos viejos, pre-división) conviviendo con los
-archivos ya divididos, y `index.html` cargaba los monolitos — es decir, el
-juego real corría con la versión VIEJA sin ninguna de las mejoras hechas
-después de la división (incluida una limpieza de código muerto y un
-rebalanceo del botín de combates comunes). Se borraron ambos monolitos y se
-actualizó `index.html` para cargar los archivos divididos. De paso apareció
-un bug real: a los archivos divididos les faltaban 6 funciones que
-`renderProfileHub()` necesita (`profileHubStats`, `playerPrestigeTier`,
-`classFrameOrnaments`, `hubProgressRing`, `hubParticlesHTML`,
-`adventurerTenureLabel`) — sin ellas la pestaña Perfil rompía apenas se
-abría. Ya están restauradas en `js/script-shop.js`, junto a
-`renderProfileHub()` que las usa.
+**Nota de diseño/bug (revisión más reciente):** las imágenes de fondo de
+bioma (`assets/images/fondo *.webp`) nunca se vieron en NINGUNA vista del
+arena de cacería (ni combate clásico ni mapa de nodos), desde mucho antes de
+esta ronda de cambios. La causa real: las 9 reglas `.arena.biome-X` en
+`css/sections/09-combate-extra.css` escribían `url('assets/images/fondo
+X.webp')`, pero **las rutas dentro de un archivo CSS se resuelven relativas
+a la ubicación de ESE archivo CSS, no a la raíz del sitio** — como el CSS
+vive en `css/sections/`, el navegador buscaba en
+`css/sections/assets/images/...` (que no existe) y fallaba en silencio,
+mostrando solo el gradiente de color por encima de un fondo vacío. Se
+corrigieron las 18 rutas (las 9 originales + las 9 de `.route-map-mode` que
+se agregaron en la revisión anterior, que heredaron el mismo error) a
+`../../assets/images/fondo X.webp`. Ojo con este patrón: un `background:
+url(...)` que falla no tira ningún error en consola, así que hay que
+verificar con `getComputedStyle(el).backgroundImage` o mirando la pestaña
+Network, no alcanza con revisar que la regla CSS "exista".
 
-**Pendiente sin resolver (encontrado de paso, no arreglado todavía):** los
-botones "Equipar"/"Eliminar" de un ítem en la mochila (`script-views.js`,
-dentro de `renderProfile`/la vista de héroe) llaman a
-`equipItemFromInventory(idx)` y `deleteItemFromInventory(idx)`, pero ninguna
-de las dos funciones existe en el proyecto — ni siquiera existían en el
-monolito viejo. Los botones no hacen nada al tocarlos. Falta averiguar cuál
-era la función real pensada para esto (o escribirla de cero) y cablearla ahí.
+**Nota de diseño (revisión más reciente):** el panel de cabecera de
+`secHunt` (`.hunt-command-panel` en `index.html`) decía lo mismo tres veces
+con distintas palabras: la bajada del header, el banner "Una vida. Una ruta.
+Una decisión." y los 3 pasos "Elegí ruta / Superá desafíos / Cobrá el
+botín". Se sacaron el banner y los 3 pasos, y se condensó la idea en una
+sola línea dentro del header. Las 4 tarjetas de datos en vivo (Expedición,
+Profundidad, Vencidos, Botín de run) se mantuvieron sin cambios. Ojo: la
+clase `.hunt-intro` (la del banner que se sacó de acá) sigue viva porque
+también la usa el banner de introducción de Pesca — no se tocó su CSS.
+`.hunt-flow`/`.hunt-flow-step` quedaron sin uso en el HTML pero se dejó su
+CSS (no rompe nada, bajo riesgo).
+
+**Nota de optimización (revisión más reciente):** se repitió de forma
+sistemática el chequeo "¿esta clase que crea el JS tiene CSS de verdad?"
+sobre las 570 clases usadas en todo `js/*.js`, comparándolas contra las 844
+definidas en `css/`. Se encontraron y arreglaron 4 casos reales (aparte de
+falsos positivos por prefijos dinámicos como `biome-${key}`):
+- La pestaña **Héroe → Estadísticas** (`activeHeroTab==='detailed_stats'` en
+  `script-views.js`, markup `sd-card`/`sd-grid`/`sd-power-banner`/etc.) no
+  tenía CSS propio y encima había DOS reglas viejas conflictivas para
+  `.stats-detailed h4` (un `<h4>` que ya no existe en el markup actual, en
+  `08-equipo-inventario.css` y `09-combate-extra.css`). Se consolidó todo en
+  `css/sections/05-heroe-stats.css`, junto al resto de estilos de stats del
+  héroe, y se borraron las reglas muertas.
+- `.stat-mini-spark` (chispas al invertir 5 puntos seguidos en una stat) sin
+  animación — se le dio el `@keyframes sparkBurst` que ya usa el combate.
+- `.hud-weekly` sin color distintivo (su hermano `.hud-next-win` sí tenía).
+- `body.account-locked` sin `overflow:hidden` (se podía scrollear detrás del
+  gate de login).
+
+También se limpiaron **16 imágenes huérfanas** (17.2 MB, `assets/images/`
+bajó de 52 MB a 35 MB): 15 archivos `_chromakey.png` en
+`assets/images/subclasses/` (restos del proceso de quitarles el fondo verde,
+cero referencias en el código) y `traveler_set_emblem.png`. Ojo antes de
+borrar assets "sin uso": muchos íconos de equipo se arman con rutas
+dinámicas (`` `assets/images/equipment-pieces/${type}.png` `` en
+`classes.js`), así que un simple `grep` del nombre de archivo da falsos
+positivos — hay que buscar también el patrón de la plantilla.
+
+**Nota de reparación (revisión anterior):** el repo volvió a tener `js/combat.js`
+y `js/script.js` (los monolitos viejos, pre-división) sin uso — `index.html`
+ya cargaba los archivos divididos, así que eran 5246 líneas muertas que no
+afectaban al juego real pero sí confundían a cualquiera que abriera el repo.
+Se verificó que ninguna función viva dependía de ellos (solo 3 funciones,
+`eliteGearProgress`, `guardianGearProgress`, `rollDiceSet`, existían solo
+ahí, y ninguna se llama desde ningún archivo activo) y se borraron los dos.
+
+También se encontró y arregló un bug real en el juego que estaba corriendo:
+`showStatDelta()` (el indicador de "qué mejoró" al equipar algo o asignar
+puntos, en `combat-battle-vfx.js`) crea un `<div class="stat-delta-toast">`
+con clases (`.sd-title`, `.stat-delta-row`, `.sd-icon`, etc.) para las que no
+existía NINGÚN CSS en el proyecto. Sin estilo, el toast se renderizaba con
+`position:static` al final del `<body>`, muy por debajo de la pantalla
+visible — la función corría sin errores pero el jugador nunca veía nada. Se
+agregó el CSS correspondiente en `css/sections/09-combate-extra.css`, junto
+a `.feedback-toast` (mismo lenguaje visual: panel oscuro, borde dorado,
+Cinzel). Los dos bugs de la nota anterior (funciones `equipItemFromInventory`
+y `deleteItemFromInventory` faltantes, y funciones de `renderProfileHub()`
+faltantes) ya estaban resueltos en este repo — se quita esa nota.
+
+**Al agregar un elemento visual nuevo con JS (toast, panel, etc.), escribir
+su CSS en el mismo cambio.** Es fácil que un `document.createElement` con
+clases nuevas funcione "sin errores" en la consola y aun así sea invisible
+para el jugador — JS no avisa si falta el CSS.
 
 Este documento es un **punto de entrada rápido** para cualquier IA (o persona) que
 necesite orientarse en el código sin tener que leer miles de líneas de JS de una.
@@ -277,6 +337,21 @@ general de UI).
   dispara en `equipItemFromInventory()`/`unequipItem()` (script-shop.js) y
   en `savePendingPoints()` (script-ui-core.js, usando `statAllocSnapshot`
   capturado en `editPendingAllocation()` al primer punto de la tanda).
+- **Layout de la sección Cacería (HUD, mapa, log)** → `index.html` `#secHunt`
+  ya NO tiene subtabs "Combate"/"Progreso" (se sacaron: la pestaña
+  "Progreso" solo tenía el HUD `#runStatusBar`, obligando a cambiar de
+  pestaña para ver vida/maná mientras elegías un nodo). Ahora todo vive en
+  una sola vista: `#huntOverview` (tarjetas de bienvenida, solo visible sin
+  run activa — ver `updateHuntOverview()`, combat-run-render.js) → `#runStatusBar`
+  (HUD completo, sticky arriba, solo visible CON run activa) → `#arena`/`#actionBtns`.
+  La "cacería clásica" (`huntMode==='free'`, peleas sueltas 1v1 con
+  `#tierGrid`) se eliminó por completo — su botón de acceso
+  (`#huntModeToggle`) ya no existía en el HTML, así que todo el código
+  (`startBattle`, `buildTierGrid`, `switchHuntMode`, `selectedTier`,
+  `.tier-grid`/`.tier-btn`) era inalcanzable. `huntMode` sigue existiendo
+  pero ahora siempre vale `'run'`. Quedó una rama `!isRun` sin uso dentro de
+  `endBattle()` (combat-battle-core.js) — no se tocó por ser lógica central
+  de combate; si se quiere, es la próxima candidata a simplificar.
 
 ## 6. Convenciones a respetar si se edita código
 

@@ -12,6 +12,12 @@ function updateHuntOverview(){
   const overview=document.getElementById('huntOverview');
   if(!overview) return;
   const active=!!runState;
+  // Con una expedición en curso, el HUD de abajo (renderRunStatusBar) ya
+  // muestra profundidad/racha/vencidos/esencia/reliquias con más detalle
+  // (más HP, maná, próximo peligro y oro en riesgo) — mostrar estas tarjetas
+  // también sería repetir la misma info dos veces. Solo sirven como resumen
+  // de bienvenida antes de arrancar.
+  overview.style.display = active ? 'none' : '';
   const depth=active ? Math.max(1,finiteNumber(runState.depth,1)) : 0;
   const biome=biomeForDepth(active ? depth : 1);
   const phase=active ? (runState.phase||'idle') : 'idle';
@@ -101,8 +107,6 @@ function renderRunStatusBar(){
  * No confundir con `renderRunStatusBar` (la barra compacta de HP/maná/oro).
  */
 function renderRunMode(){
-  const grid = document.getElementById('tierGrid');
-  if(grid) grid.style.display = 'none';
   // Limpia reliquias de partidas iniciadas antes de retirar el kit universal antiguo.
   // También corrige antiguas runs con reliquias duplicadas para que no arrastren el desbalance.
   if(purgeRemovedRunRelics()) saveState();
@@ -120,7 +124,7 @@ function renderRunMode(){
   arena.classList.toggle('has-companion', !!(battle && state.characterClass==='tamer' && state.companion));
 
   if(!runState){
-    arena.innerHTML = `<div class="arena-idle" id="arenaIdle">Comenzá tu descenso: el primer combate siempre es contra un monstruo común.</div>`;
+    arena.innerHTML = `<div class="arena-idle" id="arenaIdle">Comenzá tu descenso y elegí un camino. Cada ruta revela un desafío distinto.</div>`;
     box.innerHTML = `<button id="startRunBtn" style="grid-column:1/-1;">Comenzar Cacería Roguelike</button>`;
     document.getElementById('startRunBtn').addEventListener('click', ()=>startRun());
     return;
@@ -306,4 +310,3 @@ function renderRunMode(){
     return;
   }
 }
-

@@ -35,9 +35,11 @@ function renderCharacterGate(roster){
       const id = button.dataset.deleteCharacter;
       const character = roster.find(entry=>entry.id===id);
       if(!character || !confirm(`Borrar a ${character.name}? Esta accion no se puede deshacer.`)) return;
+      await markCloudTombstone(id);
       await removeStored(characterKey(id));
       await clearRunSnapshot(id);
       await saveRoster(roster.filter(entry=>entry.id!==id));
+      scheduleCloudBackup(0);
       Sound.click();
       showFeedback('PERSONAJE BORRADO', character.name, 'danger');
       renderCharacterGate(await loadRoster());
@@ -51,15 +53,8 @@ function renderCharacterGate(roster){
 
 function syncMusicScene(){
   if(!state){ Sound.setScene('menu'); return; }
-  if(battle){
-    const monster = battle.monster;
-    const lowHealth = monster && monster.hp>0 && monster.hp/monster.maxHp<=.30;
-    if(lowHealth && !(monster.isBoss && monster.phaseTwo)){ Sound.setScene('danger'); return; }
-    Sound.setScene(monster && monster.isBoss ? (monster.phaseTwo ? 'bossPhase' : 'boss') : 'battle');
-    return;
-  }
-  const huntOpen = document.getElementById('secHunt')?.classList.contains('active');
-  Sound.setScene(huntOpen ? 'hunt' : 'menu');
+  if(window.CardHunt?.isOpen?.()) return;
+  Sound.setScene('menu');
 }
 
 async function activateCharacter(id){
@@ -71,17 +66,17 @@ async function activateCharacter(id){
   battle = null;
   runState = null;
   winStreak = 0;
-  // El modo Cacería anterior fue retirado para reconstruirlo desde cero.
-  // Su snapshot no se restaura: evita que una pelea antigua vuelva a abrirse.
-  await clearRunSnapshot(id);
-  const resumed = false;
+  const legacyMigration = await migrateLegacyHuntSnapshot(id);
   applyVisualSettings();
   Sound.musicEnabled = !!state.settings.musicEnabled;
   Sound.applyVolumes();
   Sound.updateMusicControl();
   Sound.click();
   showGame();
-  if(resumed) showFeedback('EXPEDICIÓN RESTAURADA', `Retomaste la profundidad ${runState.depth}`, 'reward');
+  if(legacyMigration?.migrated && !legacyMigration.alreadyMigrated){
+    const rewardText=legacyMigration.reward ? ` y aseguraste ${legacyMigration.reward} de oro` : '';
+    showFeedback('CACERÍA CONSOLIDADA', `Se conservó la profundidad ${legacyMigration.depth}${rewardText}.`, 'reward');
+  }
   checkDailyLogin();
   updateDeveloperPanel();
 }
@@ -185,7 +180,15 @@ async function toggleGameMode(){
  */
 async function launchGamePortal() {
   if(gamePortalBooted) return;
+  await Promise.all([
+    window.FeatureLoader?.loadGameStyles?.(),
+    window.FeatureLoader?.loadGameplayScripts?.()
+  ]);
   gamePortalBooted=true;
+  document.querySelectorAll('img[data-portal-src]').forEach(image=>{
+    image.src=image.dataset.portalSrc;
+    image.removeAttribute('data-portal-src');
+  });
   document.getElementById('musicToggle').addEventListener('click', () => {
     Sound.toggleMusic();
   });

@@ -2,7 +2,10 @@
 (function(){
   'use strict';
   const SECTION_ID = 'secCardHunt';
+  const SNAPSHOT_VERSION = 1;
+  const MAX_SETTLEMENT_HISTORY = 30;
   let hunt = null;
+  let huntStateRef = null;
   const TYPES = {
     fight:{icon:'⚔',name:'Combate',text:'Una criatura bloquea la senda.',danger:'Moderado',reward:'Oro de run y progreso',asset:'nodo-combate-v2.webp'},
     elite:{icon:'✦',name:'Élite',text:'Un rival fortalecido protege una recompensa superior.',danger:'Alto',reward:'Más oro y botín especial',asset:'nodo-elite-v2.webp'},
@@ -377,15 +380,112 @@
     return {...HUNT_SCENES[index],...ACT_IDENTITIES[index]};
   }
 
+  function currentCharacterId(){ return String(activeCharacterId||''); }
+  function makeRunId(){
+    return safe(()=>crypto.randomUUID(),`card-hunt-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  }
+  function cloneForSave(value){ return JSON.parse(JSON.stringify(value)); }
+  function runDepth(){
+    if(!hunt) return 0;
+    return Math.max(1,((Math.max(1,Math.floor(n(hunt.act,1)))-1)*Math.max(1,Math.floor(n(hunt.maxFloor,5))))+Math.max(0,Math.floor(n(hunt.floor,0)))+1);
+  }
+  function canRetire(){
+    return !!hunt && hunt.status==='active' && hunt.reward>0 && ['map','event','sanctuary','treasure','shop','victory'].includes(hunt.screen);
+  }
+  function persistedRun(){
+    const owner=currentCharacterId();
+    if(hunt && hunt.ownerCharacterId===owner && huntStateRef===state) return hunt;
+    const snapshot=state?.cardHuntSnapshot;
+    if(snapshot?.ownerCharacterId===owner && snapshot.run && typeof snapshot.run==='object') return snapshot.run;
+    return null;
+  }
+  function hasStartedProgress(run=persistedRun()){
+    return !!run && ['active','won'].includes(run.status) && !['intro','lost','settled'].includes(run.screen);
+  }
+  function isFinalVictory(){
+    return !!hunt && hunt.screen==='victory' && hunt.act>=HUNT_SCENES.length && hunt.floor>=hunt.maxFloor-1 && hunt.enemy?.type==='boss';
+  }
+  function snapshotCardHunt(){
+    if(!state || !activeCharacterId || !hunt || hunt.ownerCharacterId!==currentCharacterId()) return;
+    if(['lost','settled'].includes(hunt.status)){
+      state.cardHuntSnapshot=null;
+    }else{
+      state.cardHuntSnapshot={
+        version:SNAPSHOT_VERSION,
+        ownerCharacterId:hunt.ownerCharacterId,
+        savedAt:Date.now(),
+        run:cloneForSave(hunt)
+      };
+    }
+    safe(()=>saveState());
+  }
+  function restoreCardHunt(snapshot){
+    const owner=currentCharacterId();
+    if(!owner || !snapshot || snapshot.version!==SNAPSHOT_VERSION || snapshot.ownerCharacterId!==owner || !snapshot.run || typeof snapshot.run!=='object') return false;
+    const saved=snapshot.run;
+    if(['lost','settled'].includes(saved.status)) return false;
+    createRun();
+    const fallback=hunt;
+    hunt={...fallback,...saved};
+    hunt.ownerCharacterId=owner;
+    hunt.runId=typeof saved.runId==='string' && saved.runId.trim() ? saved.runId.slice(0,120) : fallback.runId;
+    hunt.status=['active','won'].includes(saved.status) ? saved.status : 'active';
+    hunt.act=Math.max(1,Math.min(HUNT_SCENES.length,Math.floor(n(saved.act,1))));
+    hunt.maxFloor=5;
+    hunt.floor=Math.max(0,Math.min(hunt.maxFloor-1,Math.floor(n(saved.floor,0))));
+    hunt.maxHp=Math.max(1,Math.floor(n(saved.maxHp,fallback.maxHp)));
+    hunt.hp=Math.max(1,Math.min(hunt.maxHp,n(saved.hp,hunt.maxHp)));
+    hunt.maxMana=Math.max(1,Math.floor(n(saved.maxMana,fallback.maxMana)));
+    hunt.mana=Math.max(0,Math.min(hunt.maxMana,n(saved.mana,hunt.maxMana)));
+    hunt.reward=Math.max(0,Math.min(1000000,Math.floor(n(saved.reward,0))));
+    hunt.defeatedCount=Math.max(0,Math.floor(n(saved.defeatedCount,0)));
+    hunt.maxDepth=Math.max(0,Math.floor(n(saved.maxDepth,0)));
+    hunt.startedAt=Math.max(0,Math.floor(n(saved.startedAt,Date.now())));
+    ['deck','draw','hand','discard','cardPool','shopOffers','unlockedCards','routeHistory','notes','traps'].forEach(key=>{
+      hunt[key]=Array.isArray(saved[key]) ? saved[key] : fallback[key];
+    });
+    hunt.arcane=Math.max(0,Math.min(5,Math.floor(n(saved.arcane,0))));
+    hunt.faith=Math.max(0,Math.min(9,Math.floor(n(saved.faith,0))));
+    hunt.combo=Math.max(0,Math.min(5,Math.floor(n(saved.combo,0))));
+    hunt.bond=Math.max(0,Math.min(5,Math.floor(n(saved.bond,0))));
+    const knownPoolKeys=new Set([...(hunt.cardPool||[]),...(hunt.shopOffers||[])].map(card=>card?.key).filter(Boolean));
+    const unlockedKeys=new Set(hunt.unlockedCards||[]);
+    buildAdvancedPool().forEach(card=>{
+      if(!knownPoolKeys.has(card.key)&&!unlockedKeys.has(card.key)) hunt.cardPool.push(card);
+    });
+    hunt.cardChoice=Array.isArray(saved.cardChoice) ? saved.cardChoice : null;
+    const validMap=Array.isArray(saved.map) && saved.map.length===hunt.maxFloor && saved.map.every(row=>Array.isArray(row)&&row.length);
+    hunt.map=validMap ? saved.map : fallback.map;
+    hunt.enemy=saved.enemy && typeof saved.enemy==='object' ? saved.enemy : null;
+    hunt.selectedNode=typeof saved.selectedNode==='string' ? saved.selectedNode : null;
+    hunt.routeLane=Number.isInteger(saved.routeLane) ? saved.routeLane : null;
+    const allowedScreens=['intro','map','event','sanctuary','treasure','shop','combat','victory','retire-confirm','complete'];
+    hunt.screen=allowedScreens.includes(saved.screen) ? saved.screen : 'map';
+    hunt.returnScreen=['map','event','sanctuary','treasure','shop','victory'].includes(saved.returnScreen) ? saved.returnScreen : 'map';
+    if(['combat','victory'].includes(hunt.screen) && !hunt.enemy) hunt.screen='map';
+    if(hunt.screen==='complete') hunt.status='won';
+    if(hunt.status==='won') hunt.screen='complete';
+    hunt.settling=false;
+    note('Expedición restaurada desde el último punto seguro.');
+    return true;
+  }
+  function syncCardHuntOwner(){
+    const owner=currentCharacterId();
+    if(hunt?.ownerCharacterId===owner && huntStateRef===state) return;
+    hunt=null;
+    if(!restoreCardHunt(state?.cardHuntSnapshot)) createRun();
+  }
+
   function createRun(){
     const hp=heroMaxHp(), mana=heroMaxMana();
-    hunt={screen:'intro', act:1, floor:0, maxFloor:5, hp, maxHp:hp, mana, maxMana:mana,
-      block:0, strength:0, thorns:0, faith:0, combo:0, bond:0, retainBlock:0, attacksThisTurn:0, defensesThisTurn:0,
+    huntStateRef=state;
+    hunt={screen:'intro', status:'active', ownerCharacterId:currentCharacterId(), runId:makeRunId(), startedAt:Date.now(), act:1, floor:0, maxFloor:5, hp, maxHp:hp, mana, maxMana:mana,
+      block:0, strength:0, thorns:0, arcane:0, faith:0, combo:0, bond:0, retainBlock:0, attacksThisTurn:0, defensesThisTurn:0,
       evade:0, nextCritical:false, cardChoice:null, traps:[], trapMastery:0,
       deck:buildDeck(), draw:[], hand:[], discard:[], enemy:null,
       cardPool:buildAdvancedPool(), shopOffers:[], unlockedCards:[],
       map:makeMap(), selectedNode:null, routeLane:null, routeHistory:[],
-      notes:['La senda se abre. Elegí el primer destino.'], reward:0, turn:1, lastAction:null};
+      notes:['La senda se abre. Elegí el primer destino.'], reward:0, defeatedCount:0, maxDepth:0, turn:1, lastAction:null};
   }
   function resetHunt(){
     const confirmed=window.confirm(
@@ -395,6 +495,106 @@
     createRun();
     render();
     safe(()=>window.Sound?.click?.());
+  }
+  function finalRunSummary(outcome,reward){
+    const completed=outcome==='completed';
+    return {
+      finishedAt:Date.now(),
+      retreated:outcome==='retired',
+      completed,
+      maxDepth:Math.max(hunt.maxDepth||0,completed?HUNT_SCENES.length*hunt.maxFloor:0),
+      enemies:Math.max(0,Math.floor(n(hunt.defeatedCount,0))),
+      runGold:reward,
+      runGoldClaimed:true,
+      routeTaken:(hunt.routeHistory||[]).map(step=>({
+        type:step.type||'event',
+        icon:TYPES[step.type]?.icon||'✦',
+        label:TYPES[step.type]?.name||'Paso'
+      })),
+      mastery:{}
+    };
+  }
+  function rememberSettlement(runId,record){
+    state.cardHuntSettlements=state.cardHuntSettlements && typeof state.cardHuntSettlements==='object' ? state.cardHuntSettlements : {};
+    state.cardHuntSettlements[runId]=record;
+    state.cardHuntSettlements=Object.fromEntries(
+      Object.entries(state.cardHuntSettlements)
+        .sort((a,b)=>(n(b[1]?.settledAt,0)-n(a[1]?.settledAt,0)))
+        .slice(0,MAX_SETTLEMENT_HISTORY)
+    );
+  }
+  async function settleCardHunt(outcome){
+    if(!hunt || hunt.settling || hunt.ownerCharacterId!==currentCharacterId()) return;
+    const completed=outcome==='completed';
+    if((completed && hunt.screen!=='complete') || (!completed && hunt.screen!=='retire-confirm')) return;
+    const existing=state.cardHuntSettlements?.[hunt.runId];
+    if(existing){
+      hunt.status='settled';
+      hunt.screen='settled';
+      hunt.settledOutcome=existing.outcome||outcome;
+      hunt.settledReward=Math.max(0,Math.floor(n(existing.gold,0)));
+      hunt.settledEssence=Math.max(0,Math.floor(n(existing.essence,0)));
+      hunt.reward=0;
+      state.cardHuntSnapshot=null;
+      await saveState();
+      render();
+      return;
+    }
+    hunt.settling=true;
+    const reward=Math.max(0,Math.min(1000000,Math.floor(n(hunt.reward,0))));
+    const essence=completed?10:0;
+    const settledAt=Date.now();
+    rememberSettlement(hunt.runId,{outcome,gold:reward,essence,settledAt});
+    if(reward>0){
+      if(typeof gainGold==='function') gainGold(reward);
+      else state.gold=Math.max(0,n(state.gold,0))+reward;
+    }
+    if(essence>0){
+      state.materials=state.materials||{};
+      state.materials.essence=Math.max(0,n(state.materials.essence,0))+essence;
+      state.campaignWins=Math.max(0,n(state.campaignWins,0))+1;
+    }
+    const summary=finalRunSummary(outcome,reward);
+    state.lastRunSummary=summary;
+    const previous=state.bestRunSummary;
+    if(!previous || summary.maxDepth>n(previous.maxDepth,0) || (summary.maxDepth===n(previous.maxDepth,0)&&summary.enemies>n(previous.enemies,0))){
+      state.bestRunSummary=summary;
+    }
+    state.cardHuntSnapshot=null;
+    hunt.status='settled';
+    hunt.screen='settled';
+    hunt.settledOutcome=outcome;
+    hunt.settledReward=reward;
+    hunt.settledEssence=essence;
+    hunt.reward=0;
+    hunt.settling=false;
+    safe(()=>addLog(
+      completed
+        ? `♛ Completaste la Cacería de cartas y aseguraste ${reward} oro y ${essence} de esencia.`
+        : `🏳 Te retiraste de la Cacería de cartas y aseguraste ${reward} oro.`,
+      completed?'level':'win'
+    ));
+    safe(()=>showFeedback('BOTÍN ASEGURADO',`+${reward} oro${essence?` · +${essence} esencia`:''}`,'reward'));
+    safe(()=>window.Sound?.reward?.());
+    await saveState();
+    render();
+  }
+  function retireCardHunt(){
+    if(!hunt || hunt.status!=='active' || hunt.reward<=0) return;
+    hunt.returnScreen=hunt.screen;
+    hunt.screen='retire-confirm';
+    try{
+      render();
+    }catch(error){
+      hunt.screen=hunt.returnScreen||'map';
+      console.error('card hunt retirement render failed',error);
+    }
+  }
+  function cancelRetirement(){
+    if(hunt?.screen!=='retire-confirm') return;
+    hunt.screen=['map','event','sanctuary','treasure','shop','victory'].includes(hunt.returnScreen) ? hunt.returnScreen : 'map';
+    hunt.returnScreen=null;
+    render();
   }
   function makeMap(){
     return [
@@ -488,11 +688,7 @@
   }
   function buildAdvancedPool(){
     const classId=heroClass();
-    const cards=classId==='warrior'
-      ? warriorSynergyCards(Math.max(7,Math.round(heroAttack()*.75)))
-      : classId==='archer'
-        ? [...archerSynergyCards(heroAttack()),...archerHunterCards(heroAttack()),...archerTrapCards(heroAttack())]
-        : [];
+    const cards=advancedCardsForClass(classId);
     return cards.map((card,index)=>{
       const price=card.mana>=15?54:card.mana>=11?44:card.mana?36:28;
       const rarity=price>=54?'RARA':price>=44?'POCO COMÚN':'COMÚN';
@@ -553,6 +749,107 @@
       {key:'archer-trap-mastery',name:'Preparación Magistral',art:'archer-preparacion-magistral.webp',kind:'utility',value:0,mana:18,tag:'TÁCTICA',effect:'trap_mastery',fx:'trap-mastery',desc:'Las próximas 2 trampas se preparan mejoradas: duplican su daño y control.'}
     ];
   }
+  function mageAdvancedCards(attack){
+    const bolt=Math.max(7,Math.round(attack*.78));
+    return [
+      {key:'mage-arcane-spark',name:'Chispa Arcana',art:'mage-misil-arcano.webp',kind:'spell',value:bolt,arcaneGain:1,tag:'ATAQUE',fx:'arcane',desc:`Inflige ${Math.round(bolt*1.1)} de daño arcano y genera 1 Carga.`},
+      {key:'mage-arcane-orbit',name:'Órbita de Cristal',art:'mage-ecos-arcanos.webp',kind:'spell',value:Math.max(4,Math.round(attack*.34)),hits:3,mana:10,arcaneGain:1,tag:'TÁCTICA',fx:'echoes',desc:'Golpea 3 veces y genera 1 Carga Arcana.'},
+      {key:'mage-arcane-channel',name:'Canalizar el Éter',art:'mage-barrera-runica.webp',kind:'mana',value:16,arcaneGain:2,tag:'HABILIDAD',fx:'rune',desc:'Recupera 16 de maná y genera 2 Cargas Arcanas.'},
+      {key:'mage-arcane-overload',name:'Sobrecarga Astral',art:'mage-nova-celeste.webp',kind:'spell',value:Math.round(attack*.8),mana:14,arcaneConsume:3,arcaneDamage:Math.max(5,Math.round(attack*.4)),tag:'TÁCTICA',fx:'nova',desc:`Consume hasta 3 Cargas: +${Math.max(5,Math.round(attack*.4))} de daño por cada una.`},
+      {key:'mage-arcane-singularity',name:'Singularidad Celeste',art:'mage-nova-celeste.webp',kind:'spell',value:Math.round(attack*1.05),mana:18,arcaneConsume:5,arcaneDamage:Math.max(6,Math.round(attack*.48)),vulnerable:2,tag:'TÁCTICA',fx:'nova',desc:'Consume hasta 5 Cargas para causar daño masivo y aplica Vulnerable 2.'},
+
+      {key:'mage-rune-shield',name:'Escudo de Glifos',art:'mage-barrera-runica.webp',kind:'block',value:14,arcaneGain:1,tag:'DEFENSA',fx:'rune',desc:'Obtiene 14 de bloqueo y genera 1 Carga Arcana.'},
+      {key:'mage-rune-mirror',name:'Espejo Rúnico',art:'mage-barrera-runica.webp',kind:'block',value:9,mana:10,thorns:8,tag:'TÁCTICA',fx:'rune',desc:'Obtiene 9 de bloqueo y devuelve 8 de daño al próximo atacante.'},
+      {key:'mage-rune-ward',name:'Runa Persistente',art:'mage-barrera-runica.webp',kind:'block',value:12,mana:12,retain:.5,tag:'TÁCTICA',fx:'rune',desc:'Obtiene 12 de bloqueo y conserva 50% al terminar el turno.'},
+      {key:'mage-rune-expansion',name:'Geometría Imposible',art:'mage-sello-fractura.webp',kind:'block',value:7,mana:14,doubleBlock:true,tag:'TÁCTICA',fx:'fracture',desc:'Obtiene 7 de bloqueo y luego duplica el bloqueo actual.'},
+      {key:'mage-rune-fortress',name:'Fortaleza Astral',art:'mage-barrera-runica.webp',kind:'block',value:8,mana:16,arcaneConsume:5,arcaneBlock:5,tag:'TÁCTICA',fx:'rune',desc:'Obtiene 8 de bloqueo +5 por cada Carga consumida.'},
+
+      {key:'mage-control-needle',name:'Aguja Temporal',art:'mage-misil-arcano.webp',kind:'spell',value:Math.round(bolt*.72),mana:9,weak:2,tag:'TÁCTICA',fx:'arcane',desc:'Inflige daño arcano y aplica Debilidad durante 2 turnos.'},
+      {key:'mage-control-fracture',name:'Fractura de Maná',art:'mage-sello-fractura.webp',kind:'bash',value:Math.round(bolt*.86),mana:12,vulnerable:3,tag:'TÁCTICA',fx:'fracture',desc:'Inflige daño y aplica Vulnerable durante 3 turnos.'},
+      {key:'mage-control-spellbind',name:'Sello de Silencio',art:'mage-sello-fractura.webp',kind:'spell',value:Math.round(bolt*.7),mana:15,stun:true,tag:'TÁCTICA',fx:'fracture',desc:'Inflige daño. Si el enemigo no tiene guardia, pierde su próximo turno.'},
+      {key:'mage-control-gravity',name:'Pozo Gravitatorio',art:'mage-nova-celeste.webp',kind:'debuff',value:0,mana:13,weak:2,vulnerable:1,tag:'TÁCTICA',fx:'nova',desc:'Aplica Debilidad 2 y Vulnerable 1.'},
+      {key:'mage-control-meteor',name:'Meteorito del Vacío',art:'mage-nova-celeste.webp',kind:'spell',value:Math.round(attack*1.75),mana:18,tag:'TÁCTICA',fx:'nova',desc:`Inflige ${Math.round(Math.round(attack*1.75)*1.1)} de daño arcano.`}
+    ];
+  }
+  function priestAdvancedCards(attack){
+    const light=Math.max(7,Math.round(attack*.74));
+    const heal=Math.max(7,Math.round(heroMaxHp()*.055));
+    return [
+      {key:'priest-devotion-verse',name:'Versículo Radiante',art:'priest-castigo-radiante.webp',kind:'spell',value:light,faithGain:2,tag:'ATAQUE',fx:'holy',desc:'Inflige daño sagrado y genera 2 Fe.'},
+      {key:'priest-devotion-hymn',name:'Himno Reparador',art:'priest-plegaria-serena.webp',kind:'heal',value:heal,faithGain:2,tag:'HABILIDAD',fx:'heal',desc:`Cura ${heal} de vida y genera 2 Fe.`},
+      {key:'priest-devotion-communion',name:'Comunión Serena',art:'priest-plegaria-serena.webp',kind:'mana',value:14,faithGain:2,tag:'HABILIDAD',fx:'heal',desc:'Recupera 14 de maná y genera 2 Fe.'},
+      {key:'priest-devotion-vow',name:'Voto del Alba',art:'priest-egida-fe.webp',kind:'block',value:11,faithGain:2,tag:'DEFENSA',fx:'aegis',desc:'Obtiene 11 de bloqueo y genera 2 Fe.'},
+      {key:'priest-devotion-miracle',name:'Milagro de Renovación',art:'priest-plegaria-serena.webp',kind:'heal',value:heal,mana:18,faithConsume:6,faithHeal:6,tag:'TÁCTICA',fx:'heal',desc:`Cura ${heal} +6 por cada Fe consumida, hasta 6.`},
+
+      {key:'priest-guardian-aegis',name:'Égida Solar',art:'priest-egida-fe.webp',kind:'block',value:16,faithGain:1,tag:'DEFENSA',fx:'aegis',desc:'Obtiene 16 de bloqueo y genera 1 Fe.'},
+      {key:'priest-guardian-reprisal',name:'Halo de Reprensión',art:'priest-custodia-consagrada.webp',kind:'block',value:10,mana:10,thorns:8,faithGain:1,tag:'TÁCTICA',fx:'consecration',desc:'Obtiene 10 de bloqueo, genera 1 Fe y devuelve 8 de daño.'},
+      {key:'priest-guardian-sanctuary',name:'Santuario Persistente',art:'priest-custodia-consagrada.webp',kind:'block',value:13,mana:12,retain:.5,tag:'TÁCTICA',fx:'consecration',desc:'Obtiene 13 de bloqueo y conserva 50% al terminar el turno.'},
+      {key:'priest-guardian-providence',name:'Providencia',art:'priest-egida-fe.webp',kind:'block',value:9,mana:14,faithConsume:4,faithBlock:6,tag:'TÁCTICA',fx:'aegis',desc:'Obtiene 9 de bloqueo +6 por cada Fe consumida, hasta 4.'},
+      {key:'priest-guardian-bastion',name:'Bastión Consagrado',art:'priest-custodia-consagrada.webp',kind:'block',value:8,mana:16,doubleBlock:true,tag:'TÁCTICA',fx:'consecration',desc:'Obtiene 8 de bloqueo y luego duplica el bloqueo actual.'},
+
+      {key:'priest-judgement-lance',name:'Lanza del Alba',art:'priest-castigo-radiante.webp',kind:'spell',value:Math.round(light*1.05),faithGain:1,tag:'ATAQUE',fx:'holy',desc:'Inflige daño sagrado y genera 1 Fe.'},
+      {key:'priest-judgement-purge',name:'Palabra de Expiación',art:'priest-castigo-radiante.webp',kind:'spell',value:Math.round(light*.7),mana:10,weak:2,faithGain:1,tag:'TÁCTICA',fx:'holy',desc:'Inflige daño, aplica Debilidad 2 y genera 1 Fe.'},
+      {key:'priest-judgement-sentence',name:'Sentencia Solar',art:'priest-juicio-alba.webp',kind:'bash',value:Math.round(light*.9),mana:13,faithConsume:3,faithDamage:Math.max(4,Math.round(attack*.35)),faithHeal:2,vulnerable:2,tag:'TÁCTICA',fx:'judgement',desc:'Consume hasta 3 Fe para sumar daño, curarte y aplicar Vulnerable 2.'},
+      {key:'priest-judgement-revelation',name:'Revelación',art:'priest-juicio-alba.webp',kind:'spell',value:Math.round(light*.8),mana:15,faithConsume:5,faithDamage:Math.max(5,Math.round(attack*.4)),healPerResource:2,tag:'TÁCTICA',fx:'judgement',desc:'Consume hasta 5 Fe: suma daño y cura 2 de vida por cada una.'},
+      {key:'priest-judgement-apocalypse',name:'Juicio Final',art:'priest-juicio-alba.webp',kind:'bash',value:Math.round(attack*1.15),mana:18,faithConsume:9,faithDamage:Math.max(4,Math.round(attack*.3)),faithHeal:2,vulnerable:3,tag:'TÁCTICA',fx:'judgement',desc:'Consume toda la Fe para un gran juicio, curarte y aplicar Vulnerable 3.'}
+    ];
+  }
+  function assassinAdvancedCards(attack){
+    const cut=Math.max(7,Math.round(attack*.7));
+    return [
+      {key:'assassin-combo-feint',name:'Finta Encadenada',art:'assassin-corte-umbrio.webp',kind:'attack',value:cut,comboGain:2,tag:'ATAQUE',fx:'shadow',desc:'Inflige daño y genera 2 Combo.'},
+      {key:'assassin-combo-flurry',name:'Ráfaga de Dagas',art:'assassin-danza-dagas.webp',kind:'attack',value:Math.max(3,Math.round(attack*.25)),hits:4,mana:10,comboGain:2,tag:'TÁCTICA',fx:'daggers',desc:'Golpea 4 veces y genera 2 Combo.'},
+      {key:'assassin-combo-opening',name:'Apertura Mortal',art:'assassin-paso-fantasma.webp',kind:'block',value:9,comboGain:2,draw:1,tag:'DEFENSA',fx:'smoke',desc:'Obtiene 9 de bloqueo, roba 1 carta y genera 2 Combo.'},
+      {key:'assassin-combo-rend',name:'Desgarro Preciso',art:'assassin-corte-umbrio.webp',kind:'attack',value:Math.round(cut*.8),mana:13,comboConsume:3,comboDamage:Math.max(5,Math.round(attack*.4)),tag:'TÁCTICA',fx:'daggers',desc:'Consume hasta 3 Combo para sumar daño.'},
+      {key:'assassin-combo-finale',name:'Final de las Cien Hojas',art:'assassin-sentencia-umbria.webp',kind:'attack',value:Math.round(attack*1.05),mana:18,comboConsume:5,comboDamage:Math.max(6,Math.round(attack*.45)),effect:'assassin_execute',tag:'TÁCTICA',fx:'execution',desc:'Consume hasta 5 Combo. Devastadora contra enemigos bajo 35% de vida.'},
+
+      {key:'assassin-poison-fang',name:'Colmillo Tóxico',art:'assassin-veneno-medianoche.webp',kind:'attack',value:Math.round(cut*.7),poison:3,tag:'ATAQUE',fx:'poison',desc:'Inflige daño y aplica 3 de Veneno.'},
+      {key:'assassin-poison-needles',name:'Agujas Negras',art:'assassin-danza-dagas.webp',kind:'attack',value:Math.max(3,Math.round(attack*.23)),hits:4,poison:2,mana:11,tag:'TÁCTICA',fx:'poison',desc:'Golpea 4 veces y aplica 2 de Veneno.'},
+      {key:'assassin-poison-cloud',name:'Nube de Belladona',art:'assassin-veneno-medianoche.webp',kind:'debuff',value:0,mana:10,poison:4,weak:2,tag:'TÁCTICA',fx:'poison',desc:'Aplica 4 de Veneno y Debilidad durante 2 turnos.'},
+      {key:'assassin-poison-catalyst',name:'Catalizador Umbrío',art:'assassin-veneno-medianoche.webp',kind:'attack',value:Math.round(cut*.6),mana:14,effect:'poison_detonate',poisonMultiplier:3,tag:'TÁCTICA',fx:'poison',desc:'Consume todo el Veneno y suma 3 de daño por cada carga.'},
+      {key:'assassin-poison-plague',name:'Plaga de Medianoche',art:'assassin-veneno-medianoche.webp',kind:'attack',value:Math.round(cut*.75),poison:7,mana:18,vulnerable:1,tag:'TÁCTICA',fx:'poison',desc:'Inflige daño, aplica 7 de Veneno y Vulnerable 1.'},
+
+      {key:'assassin-shadow-step',name:'Paso entre Sombras',art:'assassin-paso-fantasma.webp',kind:'block',value:8,evade:1,comboGain:1,tag:'DEFENSA',fx:'smoke',desc:'Obtiene 8 de bloqueo, evade el próximo ataque y genera 1 Combo.'},
+      {key:'assassin-shadow-focus',name:'Ojo del Verdugo',art:'assassin-sentencia-umbria.webp',kind:'utility',value:0,mana:10,nextCritical:true,draw:1,tag:'TÁCTICA',fx:'execution',desc:'Roba 1 carta y hace crítico tu próximo ataque.'},
+      {key:'assassin-shadow-veil',name:'Velo Impenetrable',art:'assassin-paso-fantasma.webp',kind:'block',value:11,mana:12,retain:.5,comboGain:1,tag:'TÁCTICA',fx:'smoke',desc:'Obtiene 11 de bloqueo, conserva 50% y genera 1 Combo.'},
+      {key:'assassin-shadow-terror',name:'Terror Silencioso',art:'assassin-corte-umbrio.webp',kind:'debuff',value:0,mana:13,weak:2,vulnerable:2,tag:'TÁCTICA',fx:'shadow',desc:'Aplica Debilidad 2 y Vulnerable 2.'},
+      {key:'assassin-shadow-eclipse',name:'Eclipse Letal',art:'assassin-sentencia-umbria.webp',kind:'attack',value:Math.round(attack*1.5),mana:18,nextCritical:true,tag:'TÁCTICA',fx:'execution',desc:'Inflige un golpe devastador y prepara un crítico para el próximo ataque.'}
+    ];
+  }
+  function tamerAdvancedCards(attack){
+    const strike=Math.max(7,Math.round(attack*.72));
+    return [
+      {key:'tamer-bond-call',name:'Llamado del Compañero',art:'tamer-latigazo-vinculo.webp',kind:'attack',value:strike,bondGain:2,tag:'ATAQUE',fx:'whip',desc:'Inflige daño junto a tu bestia y genera 2 Vínculo.'},
+      {key:'tamer-bond-guard',name:'Pacto Protector',art:'tamer-guardian-bestial.webp',kind:'block',value:12,bondGain:2,tag:'DEFENSA',fx:'beastguard',desc:'Obtiene 12 de bloqueo y genera 2 Vínculo.'},
+      {key:'tamer-bond-howl',name:'Aullido de Unión',art:'tamer-aullido-manada.webp',kind:'strength',value:2,mana:10,bondGain:2,tag:'TÁCTICA',fx:'howl',desc:'Gana +2 Fuerza y genera 2 Vínculo.'},
+      {key:'tamer-bond-fortress',name:'Lazo Inquebrantable',art:'tamer-guardian-bestial.webp',kind:'block',value:8,mana:14,bondConsume:4,bondBlock:6,tag:'TÁCTICA',fx:'beastguard',desc:'Consume hasta 4 Vínculo: +6 de bloqueo por cada uno.'},
+      {key:'tamer-bond-alpha',name:'Juramento Alfa',art:'tamer-embestida-alfa.webp',kind:'attack',value:Math.round(attack*.95),mana:18,bondConsume:5,bondDamage:Math.max(6,Math.round(attack*.45)),vulnerable:2,tag:'TÁCTICA',fx:'alpha-charge',desc:'Consume hasta 5 Vínculo para sumar daño y aplicar Vulnerable 2.'},
+
+      {key:'tamer-pack-pounce',name:'Salto de la Manada',art:'tamer-mordida-coordinada.webp',kind:'attack',value:Math.max(3,Math.round(attack*.3)),hits:3,bondGain:1,tag:'ATAQUE',fx:'packbite',desc:'La manada golpea 3 veces y genera 1 Vínculo.'},
+      {key:'tamer-pack-frenzy',name:'Frenesí Bestial',art:'tamer-mordida-coordinada.webp',kind:'attack',value:Math.max(3,Math.round(attack*.25)),hits:5,mana:12,bondGain:1,tag:'TÁCTICA',fx:'packbite',desc:'La manada golpea 5 veces y genera 1 Vínculo.'},
+      {key:'tamer-pack-intercept',name:'Intercepción Feral',art:'tamer-guardian-bestial.webp',kind:'block',value:10,mana:10,thorns:7,bondGain:1,tag:'TÁCTICA',fx:'beastguard',desc:'Obtiene 10 de bloqueo, genera 1 Vínculo y devuelve 7 de daño.'},
+      {key:'tamer-pack-hunt',name:'Caza Coordinada',art:'tamer-mordida-coordinada.webp',kind:'attack',value:Math.round(strike*.8),mana:13,weak:2,bondGain:1,tag:'TÁCTICA',fx:'packbite',desc:'Inflige daño, aplica Debilidad 2 y genera 1 Vínculo.'},
+      {key:'tamer-pack-onslaught',name:'Asalto de la Manada',art:'tamer-embestida-alfa.webp',kind:'attack',value:Math.max(4,Math.round(attack*.36)),hits:4,mana:18,bondConsume:3,bondDamage:Math.max(4,Math.round(attack*.28)),tag:'TÁCTICA',fx:'alpha-charge',desc:'Golpea 4 veces y consume hasta 3 Vínculo para sumar daño.'},
+
+      {key:'tamer-command-track',name:'Orden: Rastrear',art:'tamer-latigazo-vinculo.webp',kind:'utility',value:0,draw:2,bondGain:1,tag:'HABILIDAD',fx:'whip',desc:'Roba 2 cartas y genera 1 Vínculo.'},
+      {key:'tamer-command-harass',name:'Orden: Hostigar',art:'tamer-mordida-coordinada.webp',kind:'debuff',value:0,mana:10,weak:2,bondGain:1,tag:'TÁCTICA',fx:'packbite',desc:'Aplica Debilidad 2 y genera 1 Vínculo.'},
+      {key:'tamer-command-shelter',name:'Orden: Refugio',art:'tamer-guardian-bestial.webp',kind:'block',value:13,mana:12,retain:.5,bondGain:1,tag:'TÁCTICA',fx:'beastguard',desc:'Obtiene 13 de bloqueo, conserva 50% y genera 1 Vínculo.'},
+      {key:'tamer-command-maul',name:'Orden: Desgarrar',art:'tamer-mordida-coordinada.webp',kind:'bash',value:Math.round(strike*.9),mana:14,vulnerable:3,bondGain:1,tag:'TÁCTICA',fx:'packbite',desc:'Inflige daño, aplica Vulnerable 3 y genera 1 Vínculo.'},
+      {key:'tamer-command-primal',name:'Dominio Primordial',art:'tamer-embestida-alfa.webp',kind:'strength',value:4,mana:18,bondGain:3,tag:'TÁCTICA',fx:'howl',desc:'Gana +4 Fuerza y genera 3 Vínculo.'}
+    ];
+  }
+  function advancedCardsForClass(classId){
+    const attack=heroAttack();
+    const pools={
+      warrior:()=>warriorSynergyCards(Math.max(7,Math.round(attack*.75))),
+      archer:()=>[...archerSynergyCards(attack),...archerHunterCards(attack),...archerTrapCards(attack)],
+      mage:()=>mageAdvancedCards(attack),
+      priest:()=>priestAdvancedCards(attack),
+      assassin:()=>assassinAdvancedCards(attack),
+      tamer:()=>tamerAdvancedCards(attack)
+    };
+    return pools[classId]?.()||[];
+  }
   function uniqueCards(cards){
     const found=new Map();
     (cards||[]).forEach(card=>{
@@ -566,25 +863,27 @@
     if(card?.kind==='debuff' || ['weak','armor_break','disarm','stun','intimidate'].includes(card?.effect)) return 'DOMINIO';
     return 'ASALTO';
   }
+  function advancedCardFamily(classId,card){
+    const key=String(card?.key||'');
+    const classFamilies={
+      archer:[['archer-hunter-','ACECHO DEL CAZADOR'],['archer-trap-','MAESTRO DE TRAMPAS'],['archer-','ALQUIMIA DE CAZA']],
+      mage:[['mage-arcane-','DOMINIO ARCANO'],['mage-rune-','ESCUELA RÚNICA'],['mage-control-','CONTROL DEL ÉTER']],
+      priest:[['priest-devotion-','DEVOCIÓN'],['priest-guardian-','CUSTODIA SAGRADA'],['priest-judgement-','JUICIO SOLAR']],
+      assassin:[['assassin-combo-','CADENA LETAL'],['assassin-poison-','ALQUIMIA UMBRÍA'],['assassin-shadow-','ARTE DE LAS SOMBRAS']],
+      tamer:[['tamer-bond-','VÍNCULO PRIMORDIAL'],['tamer-pack-','FUERZA DE MANADA'],['tamer-command-','DOMINIO BESTIAL']]
+    };
+    const match=(classFamilies[classId]||[]).find(([prefix])=>key.startsWith(prefix));
+    return match?.[1]||cardFamily(card);
+  }
   function catalogForClass(classId){
     const starter=uniqueCards(classStarterDeck(classId)).map(card=>({...card,family:'INICIAL',rarity:'INICIAL',starter:true}));
-    const advancedSource=classId==='warrior'
-      ? warriorSynergyCards(Math.max(7,Math.round(heroAttack()*.75)))
-      : classId==='archer'
-        ? [...archerSynergyCards(heroAttack()),...archerHunterCards(heroAttack()),...archerTrapCards(heroAttack())]
-        : [];
+    const advancedSource=advancedCardsForClass(classId);
     if(!advancedSource.length) return starter;
     const advanced=advancedSource.map(card=>{
       const mana=Math.max(0,n(card.mana,0));
       return {
         ...card,
-        family:classId==='archer'
-          ? (String(card.key).startsWith('archer-hunter-')
-              ? 'ACECHO DEL CAZADOR'
-              : String(card.key).startsWith('archer-trap-')
-                ? 'MAESTRO DE TRAMPAS'
-                : 'ALQUIMIA DE CAZA')
-          : cardFamily(card),
+        family:advancedCardFamily(classId,card),
         rarity:mana>=15?'RARA':mana>=11?'POCO COMÚN':'COMÚN',
         starter:false
       };
@@ -679,7 +978,7 @@
     render();
   }
   function startFight(choice){
-    hunt.enemy=enemyFor(choice.type); hunt.screen='combat'; hunt.block=0; hunt.faith=0; hunt.combo=0; hunt.bond=0;
+    hunt.enemy=enemyFor(choice.type); hunt.screen='combat'; hunt.block=0; hunt.arcane=0; hunt.faith=0; hunt.combo=0; hunt.bond=0;
     hunt.evade=0; hunt.nextCritical=false; hunt.cardChoice=null; hunt.traps=[]; hunt.trapMastery=0;
     hunt.draw=shuffle(hunt.deck); hunt.hand=[]; hunt.discard=[]; draw(5);
     note(`${hunt.enemy.name} bloquea el camino.`, 'danger');
@@ -833,6 +1132,15 @@
     render();
   }
   function advance(){
+    if(isFinalVictory()){
+      hunt.status='won';
+      hunt.screen='complete';
+      hunt.maxDepth=HUNT_SCENES.length*hunt.maxFloor;
+      note('El Abismo Carmesí cayó. Tu expedición está completa y el botín espera ser asegurado.');
+      safe(()=>window.Sound?.setScene?.('hunt'));
+      render();
+      return;
+    }
     hunt.floor++;
     if(hunt.floor>=hunt.maxFloor){
       hunt.act++; hunt.floor=0; hunt.map=makeMap(); hunt.routeLane=null; hunt.routeHistory=[];
@@ -912,8 +1220,8 @@
   function playCard(id){
     if(hunt.cardChoice?.length) return;
     const card=hunt.hand.find(c=>c.id===id);
-    const manaCost=cardManaCost(card);
     if(!card) return;
+    const manaCost=cardManaCost(card);
     if(manaCost>hunt.mana){
       safe(()=>window.Sound?.miss?.());
       return;
@@ -931,13 +1239,17 @@
     const bondSpent=heroClass()==='tamer'&&card.bondConsume
       ?Math.min(bondBefore,Math.max(0,Math.round(n(card.bondConsume,0))))
       :0;
+    const arcaneBefore=Math.max(0,Math.round(n(hunt.arcane,0)));
+    const arcaneSpent=heroClass()==='mage'&&card.arcaneConsume
+      ?Math.min(arcaneBefore,Math.max(0,Math.round(n(card.arcaneConsume,0))))
+      :0;
     hunt.mana-=manaCost;
     if(card.kind==='attack'||card.kind==='spell'){
       let dmg=card.value+(hunt.strength||0);
       const markTurns=Math.max(0,hunt.enemy.marked||0);
       let critical=false;
       if(card.effect==='attack_chain') dmg+=(hunt.attacksThisTurn||0)*3;
-      if(['multi_hit','acid_multi','acid_rain','acid_storm','assassin_multi','tamer_multi'].includes(card.effect)) dmg=(card.value*(card.hits||1))+((hunt.strength||0)*(card.hits||1));
+      if((card.hits||1)>1) dmg=(card.value*(card.hits||1))+((hunt.strength||0)*(card.hits||1));
       if(card.effect==='acid_storm') dmg+=Math.max(0,hunt.enemy.acid||0)*(card.hits||1);
       if(card.effect==='acid_detonate'){
         dmg+=Math.max(0,hunt.enemy.acid||0)*3;
@@ -948,11 +1260,17 @@
         if(hunt.enemy.hp/hunt.enemy.maxHp<=.35) dmg=Math.round(dmg*1.7);
         hunt.enemy.marked=0;
       } else if(markTurns>0) dmg=Math.round(dmg*1.25);
+      if(comboSpent) dmg+=comboSpent*Math.max(0,n(card.comboDamage,0));
+      if(faithSpent) dmg+=faithSpent*Math.max(0,n(card.faithDamage,0));
+      if(bondSpent) dmg+=bondSpent*Math.max(0,n(card.bondDamage,0));
+      if(arcaneSpent) dmg+=arcaneSpent*Math.max(0,n(card.arcaneDamage,0));
       if(card.effect==='assassin_execute'){
-        dmg+=comboSpent*Math.max(0,n(card.comboDamage,0));
         if(hunt.enemy.hp/hunt.enemy.maxHp<=.35) dmg=Math.round(dmg*1.75);
       }
-      if(card.effect==='tamer_alpha') dmg+=bondSpent*Math.max(0,n(card.bondDamage,0));
+      if(card.effect==='poison_detonate'){
+        dmg+=Math.max(0,hunt.enemy.poison||0)*Math.max(1,n(card.poisonMultiplier,3));
+        hunt.enemy.poison=0;
+      }
       if(hunt.nextCritical){
         dmg=Math.round(dmg*1.75);
         hunt.nextCritical=false;
@@ -982,24 +1300,29 @@
       if(!pierces) hunt.enemy.guard-=absorbed;
       dmg-=absorbed;
       hunt.enemy.hp=Math.max(0,hunt.enemy.hp-dmg);
-      if(card.effect==='tamer_alpha'&&bondSpent>=5) hunt.enemy.vulnerable=Math.max(hunt.enemy.vulnerable||0,1);
+      if(card.vulnerable) hunt.enemy.vulnerable=Math.max(hunt.enemy.vulnerable||0,card.vulnerable);
       if(card.acid) hunt.enemy.acid=Math.max(0,hunt.enemy.acid||0)+card.acid;
       if(card.poison) hunt.enemy.poison=Math.max(0,hunt.enemy.poison||0)+card.poison;
       if(heroClass()==='warrior') hunt.block+=2;
       if(card.key==='class'&&heroClass()==='warrior') hunt.block+=8;
-      if(card.effect==='weak') hunt.enemy.weak=Math.max(hunt.enemy.weak||0,card.weak||2);
+      if(card.weak) hunt.enemy.weak=Math.max(hunt.enemy.weak||0,card.weak);
       if(card.effect==='disarm') hunt.enemy.attackDown=(hunt.enemy.attackDown||0)+(card.attackDown||2);
-      if(card.effect==='stun' && hunt.enemy.guard<=0) hunt.enemy.stunned=Math.max(hunt.enemy.stunned||0,1);
+      if((card.stun||card.effect==='stun') && hunt.enemy.guard<=0) hunt.enemy.stunned=Math.max(hunt.enemy.stunned||0,1);
+      if(card.blockOnHit) hunt.block+=Math.max(0,Math.round(n(card.blockOnHit,0)));
+      if(card.healPerResource){
+        const healed=(arcaneSpent+faithSpent+comboSpent+bondSpent)*Math.max(0,n(card.healPerResource,0));
+        hunt.hp=Math.min(hunt.maxHp,hunt.hp+healed);
+      }
       hunt.attacksThisTurn=(hunt.attacksThisTurn||0)+1;
       hunt.lastAction={icon:card.icon||'⚔',text:dmg?`${critical?'CRÍTICO · ':''}${dmg} DE DAÑO${comboSpent?` · COMBO ×${comboSpent}`:''}${bondSpent?` · VÍNCULO ×${bondSpent}`:''}`:`GUARDIA ROTA`,kind:'hero'};
-      note(`${card.name}: ${critical?'crítico de ':''}${dmg} de daño${pierces?' · atraviesa la guardia':absorbed?` · ${absorbed} absorbido`:''}${card.poison?` · Veneno +${card.poison}`:''}${comboSpent?` · consumís ${comboSpent} Combo`:''}${bondSpent?` · consumís ${bondSpent} Vínculo`:''}${card.effect==='tamer_alpha'&&bondSpent>=5?' · aplica Vulnerable 1':''}.`);
+      note(`${card.name}: ${critical?'crítico de ':''}${dmg} de daño${pierces?' · atraviesa la guardia':absorbed?` · ${absorbed} absorbido`:''}${card.poison?` · Veneno +${card.poison}`:''}${arcaneSpent?` · consumís ${arcaneSpent} Carga${arcaneSpent===1?'':'s'}`:''}${faithSpent?` · consumís ${faithSpent} Fe`:''}${comboSpent?` · consumís ${comboSpent} Combo`:''}${bondSpent?` · consumís ${bondSpent} Vínculo`:''}${card.vulnerable?` · aplica Vulnerable ${card.vulnerable}`:''}.`);
     } else if(card.kind==='bash'){
       let dmg=card.value+(hunt.strength||0);
-      if(card.effect==='faith_judgement') dmg+=faithSpent*Math.max(0,n(card.faithDamage,0));
+      if(card.faithDamage) dmg+=faithSpent*Math.max(0,n(card.faithDamage,0));
       if(hunt.enemy.vulnerable>0) dmg=Math.round(dmg*1.5);
       const absorbed=Math.min(hunt.enemy.guard,dmg); hunt.enemy.guard-=absorbed; dmg-=absorbed;
       hunt.enemy.hp=Math.max(0,hunt.enemy.hp-dmg); hunt.enemy.vulnerable=card.vulnerable||2;
-      if(card.effect==='faith_judgement'&&faithSpent){
+      if(card.faithHeal&&faithSpent){
         hunt.hp=Math.min(hunt.maxHp,hunt.hp+(faithSpent*Math.max(0,n(card.faithHeal,0))));
       }
       hunt.attacksThisTurn=(hunt.attacksThisTurn||0)+1;
@@ -1007,18 +1330,20 @@
       note(`${card.name}: ${dmg} de daño. ${hunt.enemy.name} queda Vulnerable${faithSpent?` · consumís ${faithSpent} Fe y recuperás ${faithSpent*Math.max(0,n(card.faithHeal,0))} de vida`:''}.`);
     } else if(card.kind==='block'){
       let gained=card.value;
+      if(card.arcaneBlock) gained+=arcaneSpent*Math.max(0,n(card.arcaneBlock,0));
       if(card.effect==='faith_guard') gained+=faithSpent*Math.max(0,n(card.faithBlock,0));
+      else if(card.faithBlock) gained+=faithSpent*Math.max(0,n(card.faithBlock,0));
+      if(card.comboBlock) gained+=comboSpent*Math.max(0,n(card.comboBlock,0));
+      if(card.bondBlock) gained+=bondSpent*Math.max(0,n(card.bondBlock,0));
       if(card.effect==='guard_chain') gained+=(hunt.defensesThisTurn||0)*3;
       const hadBlock=hunt.block>0;
       hunt.block+=gained;
-      if(card.effect==='double_block') hunt.block*=2;
-      if(card.effect==='thorns') hunt.thorns=Math.max(hunt.thorns||0,card.thorns||7);
-      if(card.effect==='retain_block') hunt.retainBlock=Math.max(hunt.retainBlock||0,card.retain||.5);
+      if(card.doubleBlock||card.effect==='double_block') hunt.block*=2;
+      if(card.thorns||card.effect==='thorns') hunt.thorns=Math.max(hunt.thorns||0,card.thorns||7);
+      if(card.retain||card.effect==='retain_block') hunt.retainBlock=Math.max(hunt.retainBlock||0,card.retain||.5);
       if(card.effect==='block_strength'&&hadBlock) hunt.strength+=1;
-      if(card.effect==='hunter_evade'){
-        hunt.evade=Math.max(1,hunt.evade||0);
-        draw(1);
-      }
+      if(card.evade||card.effect==='hunter_evade') hunt.evade=Math.max(hunt.evade||0,card.evade||1);
+      if(card.draw||card.effect==='hunter_evade') draw(card.draw||1);
       hunt.defensesThisTurn=(hunt.defensesThisTurn||0)+1;
       hunt.lastAction={icon:'⬡',text:`+${gained} BLOQUEO`,kind:'hero'};
       note(`${card.name}: Guardia +${gained}${faithSpent?` · consumís ${faithSpent} Fe`:''}${card.effect==='double_block'?' · bloqueo duplicado':''}${card.effect==='hunter_evade'?' · próximo ataque evadido · roba 1':''}.`);
@@ -1039,31 +1364,44 @@
       } else if(String(card.effect||'').startsWith('trap_')){
         armTrap(card);
       }
+      if(card.draw) draw(card.draw);
+      if(card.nextCritical) hunt.nextCritical=true;
     }
     else if(card.kind==='debuff'){
       hunt.enemy.weak=Math.max(hunt.enemy.weak||0,card.weak||1);
       hunt.enemy.vulnerable=Math.max(hunt.enemy.vulnerable||0,card.vulnerable||1);
+      if(card.poison) hunt.enemy.poison=Math.max(0,hunt.enemy.poison||0)+card.poison;
       hunt.lastAction={icon:'◉',text:'ENEMIGO DEBILITADO',kind:'hero'};
       note(`${card.name}: aplica Debilidad ${card.weak||1} y Vulnerable ${card.vulnerable||1}.`);
     }
     else if(card.kind==='mana'){ hunt.mana=Math.min(hunt.maxMana,hunt.mana+card.value); note(`Maná +${card.value}.`); }
     else if(card.kind==='heal'){
-      const healed=card.value+(card.effect==='faith_heal'?faithSpent*Math.max(0,n(card.faithHeal,0)):0);
+      const healed=card.value+(faithSpent*Math.max(0,n(card.faithHeal,0)))+(bondSpent*Math.max(0,n(card.bondHeal,0)));
       hunt.hp=Math.min(hunt.maxHp,hunt.hp+healed);
       note(`${card.name}: curás ${healed}${faithSpent?` y consumís ${faithSpent} Fe`:''}.`);
       hunt.lastAction={icon:card.icon,text:`+${healed} VIDA${faithSpent?` · FE ${faithSpent}`:''}`,kind:'hero'};
     }
     else if(card.kind==='strength'){ hunt.strength+=card.value; hunt.lastAction={icon:'⚑',text:`FUERZA +${card.value}`,kind:'hero'}; note(`${card.name}: Fuerza +${card.value} durante este combate.`); }
     if(card.kind==='mana') hunt.lastAction={icon:card.icon,text:`+${card.value} MANÁ`,kind:'hero'};
+    if(card.draw&&!['block','utility'].includes(card.kind)) draw(card.draw);
+    if(card.nextCritical&&card.kind!=='utility') hunt.nextCritical=true;
+    if(arcaneSpent) hunt.arcane=Math.max(0,arcaneBefore-arcaneSpent);
+    if(card.arcaneGain){
+      const gained=Math.max(0,Math.round(n(card.arcaneGain,0)));
+      hunt.arcane=Math.min(5,Math.max(0,n(hunt.arcane,arcaneBefore))+gained);
+      note(`${card.name} genera ${gained} Carga${gained===1?'':'s'} Arcana${gained===1?'':'s'}. Cargas actuales: ${hunt.arcane}/5.`);
+    }
     if(comboSpent) hunt.combo=Math.max(0,comboBefore-comboSpent);
     if(card.comboGain){
-      hunt.combo=Math.min(5,Math.max(0,n(hunt.combo,comboBefore))+Math.max(0,Math.round(n(card.comboGain,0))));
-      note(`${card.name} genera 1 Combo. Combo actual: ${hunt.combo}/5.`);
+      const gained=Math.max(0,Math.round(n(card.comboGain,0)));
+      hunt.combo=Math.min(5,Math.max(0,n(hunt.combo,comboBefore))+gained);
+      note(`${card.name} genera ${gained} Combo. Combo actual: ${hunt.combo}/5.`);
     }
     if(faithSpent) hunt.faith=Math.max(0,faithBefore-faithSpent);
     if(card.faithGain){
-      hunt.faith=Math.min(9,Math.max(0,n(hunt.faith,faithBefore))+Math.max(0,Math.round(n(card.faithGain,0))));
-      note(`${card.name} genera 1 Fe. Fe actual: ${hunt.faith}/9.`);
+      const gained=Math.max(0,Math.round(n(card.faithGain,0)));
+      hunt.faith=Math.min(9,Math.max(0,n(hunt.faith,faithBefore))+gained);
+      note(`${card.name} genera ${gained} Fe. Fe actual: ${hunt.faith}/9.`);
     }
     if(bondSpent) hunt.bond=Math.max(0,bondBefore-bondSpent);
     if(card.bondGain){
@@ -1081,6 +1419,13 @@
     const reward=12+hunt.floor*5+(hunt.enemy.type==='elite'?22:0)+(hunt.enemy.type==='boss'?45:0);
     hunt.mana=Math.min(hunt.maxMana,hunt.mana+Math.max(8,Math.round(hunt.maxMana*.12)));
     hunt.reward+=reward; note(`Victoria sobre ${hunt.enemy.name}. +${reward} oro de expedición.`);
+    hunt.defeatedCount=Math.max(0,Math.floor(n(hunt.defeatedCount,0)))+1;
+    hunt.maxDepth=Math.max(Math.floor(n(hunt.maxDepth,0)),runDepth());
+    state.totalWins=Math.max(0,n(state.totalWins,0))+1;
+    if(hunt.enemy.type==='boss') state.totalBossWins=Math.max(0,n(state.totalBossWins,0))+1;
+    state.maxHuntDepth=Math.max(Math.floor(n(state.maxHuntDepth,0)),hunt.maxDepth);
+    state.missions.day.hunts=Math.max(0,n(state.missions.day.hunts,0))+1;
+    state.missions.week.wins=Math.max(0,n(state.missions.week.wins,0))+1;
     hunt.screen='victory';
     safe(()=>window.setTimeout(()=>{
       window.Sound?.setScene?.('hunt');
@@ -1144,6 +1489,12 @@
     if(e.hp<=0){ victory(); return; }
     if(hunt.hp<=0){
       hunt.screen='defeat';
+      hunt.status='lost';
+      const lostReward=Math.max(0,Math.floor(n(hunt.reward,0)));
+      hunt.reward=0;
+      state.cardHuntSnapshot=null;
+      state.missions.day.hunts=Math.max(0,n(state.missions.day.hunts,0))+1;
+      safe(()=>addLog(`☠ La Cacería de cartas terminó: perdiste ${lostReward} oro de expedición.`, 'lose'));
       safe(()=>window.Sound?.setScene?.('danger'));
       safe(()=>window.setTimeout(()=>window.Sound?.defeat?.(),260));
       render();
@@ -1170,7 +1521,7 @@
   }
   function pct(value,max){ return `${Math.max(0,Math.min(100,(value/max)*100))}%`; }
   function show(){
-    if(!hunt) createRun();
+    syncCardHuntOwner();
     document.body.classList.remove('profile-screen-open');
     document.body.classList.add('card-hunt-open');
     document.querySelectorAll('.nav-btn[data-sec]').forEach(x=>x.classList.remove('active'));
@@ -1179,12 +1530,13 @@
     safe(()=>window.Sound?.huntOpen?.());
     render();
   }
-  function back(){ document.body.classList.remove('card-hunt-open'); document.querySelector('.nav-btn[data-sec="secHero"]')?.click(); }
+  function back(){ snapshotCardHunt(); document.body.classList.remove('card-hunt-open'); document.querySelector('.nav-btn[data-sec="secHero"]')?.click(); }
   function escape(v){ return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
   function render(){
     const app=document.getElementById('cardSpireApp'); if(!app||!hunt) return;
     const vis=visual(), img=vis.image ? `<img src="${escape(vis.image)}" alt="">` : '<span>⚔</span>';
     const scene=huntScene();
+    const retireButton=canRetire()?`<button data-action="restart" data-hunt-command="retire" class="cardspire-retire" title="Terminar la expedición y guardar el oro acumulado">⚑ Guardar botín</button>`:'';
     const hud=`<header class="cardspire-hud"><div class="cardspire-hud-actions"><button data-action="back" class="cardspire-back">← Santuario</button><button data-action="reset-hunt" class="cardspire-reset" title="Reiniciar la expedición si quedó trabada" aria-label="Reiniciar Cacería">↻ Reiniciar</button></div><div class="cardspire-title"><small>${scene.mark} ${escape(scene.name.toUpperCase())}</small><b>ACTO ${hunt.act} · SENDA ${hunt.floor+1}/${hunt.maxFloor}</b></div><div class="cardspire-resources"><span>♥ ${Math.ceil(hunt.hp)}/${hunt.maxHp}</span><span>✦ ${Math.ceil(hunt.mana)}/${hunt.maxMana}</span><span>◈ ${hunt.reward}</span></div></header>`;
     let content='';
     if(hunt.screen==='intro') content=`<section class="cardspire-intro"><div class="cardspire-seal">✦</div><p class="cardspire-kicker">LA SENDA DEL ABISMO</p><h2>Una expedición.<br>Un mazo. Mil decisiones.</h2><p>Elegí tu ruta, usá las cartas con inteligencia y llevá el botín hasta el final.</p><button data-action="begin" class="cardspire-primary">COMENZAR EXPEDICIÓN <b>→</b></button><div class="cardspire-features"><span>⚔ Combate por turnos</span><span>◇ Rutas cambiantes</span><span>✦ Recompensas de run</span></div></section>`;
@@ -1194,10 +1546,15 @@
     else if(hunt.screen==='treasure') content=treasureMarkup();
     else if(hunt.screen==='shop') content=shopMarkup();
     else if(hunt.screen==='combat') content=combatMarkup(img);
-    else if(hunt.screen==='victory') content=`<section class="cardspire-result win"><div class="result-icon">✦</div><p>VICTORIA</p><h2>${escape(hunt.enemy.name)} cayó</h2><span>El botín de expedición crece.</span><button data-action="advance" class="cardspire-primary">SEGUIR POR LA SENDA →</button></section>`;
-    else content=`<section class="cardspire-result loss"><div class="result-icon">☾</div><p>LA SENDA TE RECHAZÓ</p><h2>La expedición terminó</h2><span>El oro de expedición se pierde, pero tu leyenda continúa.</span><button data-action="restart" class="cardspire-primary">INTENTAR OTRA VEZ →</button></section>`;
+    else if(hunt.screen==='victory') content=`<section class="cardspire-result win"><div class="result-icon">✦</div><p>VICTORIA</p><h2>${escape(hunt.enemy.name)} cayó</h2><span>El botín de expedición crece.</span><button data-action="advance" class="cardspire-primary">${isFinalVictory()?'CULMINAR EXPEDICIÓN':'SEGUIR POR LA SENDA'} →</button></section>`;
+    else if(hunt.screen==='retire-confirm') content=`<section class="cardspire-result cardspire-retirement"><div class="result-icon">⚑</div><p>REGRESAR CON VIDA</p><h2>¿Asegurar el botín?</h2><span>La expedición terminará y ${escape(hero().name||'tu héroe')} conservará todo el oro acumulado.</span><div class="cardspire-payout"><b>◈ ${hunt.reward} oro</b></div><div class="cardspire-result-actions"><button data-action="begin" data-hunt-command="cancel-retire" class="cardspire-secondary">CONTINUAR CACERÍA</button><button data-action="restart" data-hunt-command="confirm-retire" class="cardspire-primary">RETIRARSE Y COBRAR →</button></div></section>`;
+    else if(hunt.screen==='complete') content=`<section class="cardspire-result win cardspire-complete"><div class="result-icon">♛</div><p>ABISMO CONQUISTADO</p><h2>La senda es tuya</h2><span>Completaste los nueve actos. Asegurá ahora todo el botín de la campaña.</span><div class="cardspire-payout"><b>◈ ${hunt.reward} oro</b><b>✦ 10 esencia</b></div><button data-action="restart" data-hunt-command="settle-complete" class="cardspire-primary">ASEGURAR RECOMPENSAS →</button></section>`;
+    else if(hunt.screen==='settled') content=`<section class="cardspire-result win cardspire-complete"><div class="result-icon">${hunt.settledOutcome==='completed'?'♛':'⚑'}</div><p>BOTÍN ASEGURADO</p><h2>${hunt.settledOutcome==='completed'?'Cacería completada':'Regresaste con vida'}</h2><span>La recompensa ya fue sumada al progreso permanente de ${escape(hero().name||'tu héroe')}.</span><div class="cardspire-payout"><b>◈ +${hunt.settledReward||0} oro</b>${hunt.settledEssence?`<b>✦ +${hunt.settledEssence} esencia</b>`:''}</div><button data-action="restart" class="cardspire-primary">NUEVA EXPEDICIÓN →</button></section>`;
+    else content=`<section class="cardspire-result loss"><div class="result-icon">☾</div><p>LA SENDA TE RECHAZÓ</p><h2>La expedición terminó</h2><span>El oro de expedición se perdió, pero tu leyenda continúa.</span><button data-action="restart" class="cardspire-primary">INTENTAR OTRA VEZ →</button></section>`;
+    if(retireButton) content=`<div class="cardspire-retire-row">${retireButton}</div>${content}`;
     app.innerHTML=`<main class="cardspire-shell scene-${scene.key}" style="--cardspire-scene:url('${scene.asset}')">${hud}<div class="cardspire-main">${content}</div></main>`;
     bind();
+    snapshotCardHunt();
   }
   function mapRouteX(index,count){
     return count<=1 ? 450 : ((index+.5)/count)*900;
@@ -1369,6 +1726,7 @@
     const last=hunt.lastAction?`<div class="cardspire-impact ${hunt.lastAction.kind} fx-${escape(hunt.lastAction.fx||'impact')}"><span class="skill-fx-layer"></span><i>${hunt.lastAction.icon}</i><b>${escape(hunt.lastAction.text)}</b></div>`:'';
     const heroStates=[
       hunt.block&&`⬡ Bloqueo ${hunt.block}`,
+      heroClassId==='mage'&&`✦ Cargas ${hunt.arcane||0}/5`,
       heroClassId==='priest'&&`☀ Fe ${hunt.faith||0}/9`,
       heroClassId==='assassin'&&`✦ Combo ${hunt.combo||0}/5`,
       heroClassId==='tamer'&&`♞ Vínculo ${hunt.bond||0}/5`,
@@ -1379,7 +1737,7 @@
       hunt.traps?.length&&`⌁ Trampas listas ${hunt.traps.length}`,
       hunt.trapMastery>0&&`⚙ Preparación ${hunt.trapMastery}`,
       hunt.retainBlock>0&&`◈ Conserva ${Math.round(hunt.retainBlock*100)}%`
-    ].filter(Boolean).map(x=>`<span class="${String(x).startsWith('☀ Fe')?'faith-state':String(x).startsWith('✦ Combo')?'combo-state':String(x).startsWith('♞ Vínculo')?'bond-state':''}">${x}</span>`).join('');
+    ].filter(Boolean).map(x=>`<span class="${String(x).startsWith('✦ Cargas')?'arcane-state':String(x).startsWith('☀ Fe')?'faith-state':String(x).startsWith('✦ Combo')?'combo-state':String(x).startsWith('♞ Vínculo')?'bond-state':''}">${x}</span>`).join('');
     const enemyStates=[
       e.acid>0&&`☣ Ácido ${e.acid}`,
       e.poison>0&&`☠ Veneno ${e.poison}`,
@@ -1417,7 +1775,7 @@
             <div class="bar hp"><i style="width:${pct(hunt.hp,hunt.maxHp)}"></i></div>
             <span class="fighter-health">${Math.ceil(hunt.hp)} / ${hunt.maxHp} VIDA</span>
             <div class="combat-states hero-states">${heroStates}</div>
-            <div class="fighter-readiness"><span>MANO <b>${hunt.hand.length}</b></span><span>PROTECCIÓN <b>${hunt.block||0}</b></span>${heroClassId==='priest'?`<span class="faith-readiness">FE <b>${hunt.faith||0}/9</b></span>`:''}${heroClassId==='assassin'?`<span class="combo-readiness">COMBO <b>${hunt.combo||0}/5</b></span>`:''}${heroClassId==='tamer'?`<span class="bond-readiness">VÍNCULO <b>${hunt.bond||0}/5</b></span>`:''}</div>
+            <div class="fighter-readiness"><span>MANO <b>${hunt.hand.length}</b></span><span>PROTECCIÓN <b>${hunt.block||0}</b></span>${heroClassId==='mage'?`<span class="arcane-readiness">CARGAS <b>${hunt.arcane||0}/5</b></span>`:''}${heroClassId==='priest'?`<span class="faith-readiness">FE <b>${hunt.faith||0}/9</b></span>`:''}${heroClassId==='assassin'?`<span class="combo-readiness">COMBO <b>${hunt.combo||0}/5</b></span>`:''}${heroClassId==='tamer'?`<span class="bond-readiness">VÍNCULO <b>${hunt.bond||0}/5</b></span>`:''}</div>
           </div>
         </article>
         <div class="cardspire-versus"><span>⚔</span><b>VS</b><small>TURNO ${hunt.turn}</small></div>
@@ -1460,36 +1818,75 @@
     return `<section class="cardspire-combat"><div class="cardspire-battle-top"><span>COMBATE · TURNO ${hunt.turn}</span><span>MAZO ${hunt.draw.length} · DESCARTE ${hunt.discard.length}</span><span class="affinity">✦ ${escape(e.affinity)} <small>${e.affinity==='Blindado'?'Rompé su guardia antes de gastar cartas fuertes.':e.affinity==='Furioso'?'Sus golpes cargados hacen mucho más daño.':'Alterna entre atacar y protegerse.'}</small></span></div><div class="cardspire-fighters"><article class="fighter hero"><div class="fighter-art">${img}</div><div class="fighter-sheet"><small>${escape(label()).toUpperCase()}</small><b>${escape(hero().name||'Aventurero')}</b><div class="bar hp"><i style="width:${pct(hunt.hp,hunt.maxHp)}"></i></div><span>${Math.ceil(hunt.hp)} / ${hunt.maxHp}</span><div class="combat-states hero-states">${heroStates}</div></div></article><div class="cardspire-versus">VS<small>TURNO ${hunt.turn}</small></div><article class="fighter enemy"><div class="fighter-sheet"><small>${e.type==='boss'?'GUARDIÁN':e.type==='elite'?'ÉLITE':'CRIATURA'}</small><b>${escape(e.name)}</b><div class="bar enemyhp"><i style="width:${pct(e.hp,e.maxHp)}"></i></div><span>${Math.ceil(e.hp)} / ${e.maxHp}</span><div class="combat-states enemy-states">${enemyStates}</div><em class="intent-${e.intentKind}">⚠ ${e.intent}: ${e.intentText}</em></div><div class="enemy-symbol">${enemyArt}</div></article>${last}</div><div class="cardspire-turn"><span>MANÁ <b>${Math.ceil(hunt.mana)}/${hunt.maxMana}</b></span><button data-action="end" class="cardspire-end">TERMINAR TURNO →</button></div><p class="cardspire-hand-label">ATAQUE Y DEFENSA GRATIS · LAS TÁCTICAS CONSUMEN MANÁ</p><div class="cardspire-hand-wrap"><div class="cardspire-hand">${cards||'<p>Sin cartas: terminá el turno.</p>'}</div></div><div class="cardspire-notes">${hunt.notes.slice(0,2).map(x=>`<span>${escape(x)}</span>`).join('')}</div></section>`;
   }
   function bind(){
-    document.querySelector('[data-action="back"]')?.addEventListener('click',back);
-    document.querySelector('[data-action="reset-hunt"]')?.addEventListener('click',resetHunt);
-    document.querySelector('[data-action="begin"]')?.addEventListener('click',()=>{
+    section.querySelector('[data-action="back"]')?.addEventListener('click',back);
+    section.querySelector('[data-action="reset-hunt"]')?.addEventListener('click',resetHunt);
+    section.querySelector('[data-action="begin"]')?.addEventListener('click',event=>{
+      const command=event.currentTarget.dataset.huntCommand;
+      if(command==='cancel-retire'){ cancelRetirement(); return; }
       hunt.screen='map';
       safe(()=>window.Sound?.routeReveal?.());
       render();
     });
-    document.querySelector('[data-action="advance"]')?.addEventListener('click',advance);
-    document.querySelector('[data-action="restart"]')?.addEventListener('click',()=>{createRun();show();});
-    document.querySelector('[data-action="end"]')?.addEventListener('click',endTurn);
-    document.querySelectorAll('[data-node]').forEach(b=>b.addEventListener('click',()=>selectNode(b.dataset.node)));
-    document.querySelector('[data-action="enter-node"]')?.addEventListener('click',enterSelectedNode);
-    document.querySelectorAll('[data-event]').forEach(b=>b.addEventListener('click',()=>resolveEvent(b.dataset.event)));
-    document.querySelectorAll('[data-sanctuary]').forEach(b=>b.addEventListener('click',()=>resolveSanctuary(b.dataset.sanctuary)));
-    document.querySelector('[data-action="open-treasure"]')?.addEventListener('click',openTreasure);
-    document.querySelector('[data-action="leave-treasure"]')?.addEventListener('click',advance);
-    document.querySelectorAll('[data-card]').forEach(b=>b.addEventListener('click',()=>playCard(b.dataset.card)));
-    document.querySelectorAll('[data-hunter-choice]').forEach(b=>b.addEventListener('click',()=>chooseHunterCard(b.dataset.hunterChoice)));
-    document.querySelectorAll('[data-buy-card]').forEach(b=>b.addEventListener('click',()=>buyShopCard(b.dataset.buyCard)));
-    document.querySelector('[data-action="shop-reroll"]')?.addEventListener('click',rerollShop);
-    document.querySelector('[data-action="leave-shop"]')?.addEventListener('click',advance);
+    section.querySelector('[data-action="advance"]')?.addEventListener('click',advance);
+    section.querySelector('[data-action="restart"]')?.addEventListener('click',event=>{
+      const command=event.currentTarget.dataset.huntCommand;
+      if(command==='retire'){ retireCardHunt(); return; }
+      if(command==='confirm-retire'){ settleCardHunt('retired'); return; }
+      if(command==='settle-complete'){ settleCardHunt('completed'); return; }
+      createRun(); show();
+    });
+    section.querySelector('[data-action="end"]')?.addEventListener('click',endTurn);
+    section.querySelectorAll('[data-node]').forEach(b=>b.addEventListener('click',()=>selectNode(b.dataset.node)));
+    section.querySelector('[data-action="enter-node"]')?.addEventListener('click',enterSelectedNode);
+    section.querySelectorAll('[data-event]').forEach(b=>b.addEventListener('click',()=>resolveEvent(b.dataset.event)));
+    section.querySelectorAll('[data-sanctuary]').forEach(b=>b.addEventListener('click',()=>resolveSanctuary(b.dataset.sanctuary)));
+    section.querySelector('[data-action="open-treasure"]')?.addEventListener('click',openTreasure);
+    section.querySelector('[data-action="leave-treasure"]')?.addEventListener('click',advance);
+    section.querySelectorAll('[data-card]').forEach(b=>b.addEventListener('click',()=>playCard(b.dataset.card)));
+    section.querySelectorAll('[data-hunter-choice]').forEach(b=>b.addEventListener('click',()=>chooseHunterCard(b.dataset.hunterChoice)));
+    section.querySelectorAll('[data-buy-card]').forEach(b=>b.addEventListener('click',()=>buyShopCard(b.dataset.buyCard)));
+    section.querySelector('[data-action="shop-reroll"]')?.addEventListener('click',rerollShop);
+    section.querySelector('[data-action="leave-shop"]')?.addEventListener('click',advance);
   }
-  document.querySelector('.nav-btn[data-sec="secHunt"]')?.remove();
-  document.getElementById('secHunt')?.remove();
-  const cardNav=document.createElement('button');
-  cardNav.className='nav-btn group-start'; cardNav.dataset.sec=SECTION_ID; cardNav.style.setProperty('--acc','#e8622c');
-  cardNav.innerHTML='<span class="btn-icon">🃏</span><span class="nav-btn-text"><span class="btn-label">Cacería</span><span class="btn-hint">Senda de cartas</span></span>';
-  const forge=document.querySelector('.nav-btn[data-sec="secForge"]'); forge?.before(cardNav);
-  const section=document.createElement('section'); section.id=SECTION_ID; section.className='game-section cardspire-section'; section.innerHTML='<div id="cardSpireApp"></div>';
-  document.getElementById('game')?.append(section);
-  cardNav.addEventListener('click',()=>{ if(window.Sound) Sound.click(); show(); });
-  document.querySelectorAll('.nav-btn[data-sec]').forEach(btn=>{ if(btn!==cardNav) btn.addEventListener('click',()=>document.body.classList.remove('card-hunt-open')); });
+  const cardNav=document.querySelector(`.nav-btn[data-sec="${SECTION_ID}"]`);
+  const section=document.getElementById(SECTION_ID);
+  if(!cardNav || !section) return;
+
+  window.CardHunt={
+    open:show,
+    isOpen:()=>document.body.classList.contains('card-hunt-open') && section.classList.contains('active'),
+    isProgressLocked:()=>hasStartedProgress(),
+    snapshot:snapshotCardHunt,
+    summary:()=>{
+      const run=persistedRun();
+      const calculatedDepth=run
+        ? ((Math.max(1,Math.floor(n(run.act,1)))-1)*Math.max(1,Math.floor(n(run.maxFloor,5))))+Math.max(0,Math.floor(n(run.floor,0)))+1
+        : 0;
+      return {
+        active:hasStartedProgress(run),
+        depth:run ? Math.max(calculatedDepth,Math.floor(n(run.maxDepth,0))) : 0,
+        reward:run ? Math.max(0,Math.floor(n(run.reward,0))) : 0,
+        screen:run?.screen || 'intro'
+      };
+    },
+    prepareCharacterSwitch:()=>{
+      snapshotCardHunt();
+      document.body.classList.remove('card-hunt-open');
+      hunt=null;
+      huntStateRef=null;
+    },
+    restoreResources:()=>{
+      syncCardHuntOwner();
+      if(!hasStartedProgress(hunt)) return false;
+      hunt.hp=hunt.maxHp;
+      hunt.mana=hunt.maxMana;
+      snapshotCardHunt();
+      if(section.classList.contains('active')) render();
+      return true;
+    }
+  };
+  cardNav.addEventListener('click',show);
+  document.querySelectorAll('.nav-btn[data-sec]').forEach(btn=>{ if(btn!==cardNav) btn.addEventListener('click',()=>{ snapshotCardHunt(); document.body.classList.remove('card-hunt-open'); }); });
+  window.addEventListener('pagehide',snapshotCardHunt);
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') snapshotCardHunt(); });
 })();
