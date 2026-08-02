@@ -7,13 +7,13 @@
   let hunt = null;
   let huntStateRef = null;
   const TYPES = {
-    fight:{icon:'⚔',name:'Combate',text:'Una criatura bloquea la senda.',danger:'Moderado',reward:'Oro de run y progreso',asset:'nodo-combate-v2.webp'},
-    elite:{icon:'✦',name:'Élite',text:'Un rival fortalecido protege una recompensa superior.',danger:'Alto',reward:'Más oro y botín especial',asset:'nodo-elite-v2.webp'},
+    fight:{icon:'⚔',name:'Combate',text:'Una criatura bloquea la senda.',danger:'Moderado',reward:'Oro de run y experiencia',asset:'nodo-combate-v2.webp'},
+    elite:{icon:'✦',name:'Élite',text:'Un rival fortalecido protege una recompensa superior.',danger:'Alto',reward:'Más oro y experiencia',asset:'nodo-elite-v2.webp'},
     rest:{icon:'✚',name:'Santuario',text:'Un refugio seguro para recuperar fuerzas.',danger:'Ninguno',reward:'Recupera 30% de vida',asset:'nodo-santuario-v2.webp'},
     event:{icon:'?',name:'Misterio',text:'Una decisión desconocida puede cambiar la expedición.',danger:'Variable',reward:'Efecto o mejora temporal',asset:'nodo-misterio-v2.webp'},
     treasure:{icon:'◇',name:'Tesoro',text:'Un escondite de riquezas aguarda fuera del camino.',danger:'Bajo',reward:'Oro de expedición',asset:'nodo-tesoro-v2.webp'},
     shop:{icon:'⚖',name:'Mercader',text:'Un viajero ofrece cartas que transforman tu mazo.',danger:'Ninguno',reward:'Cartas avanzadas',asset:'nodo-mercader-v2.webp'},
-    boss:{icon:'♛',name:'Guardián',text:'El soberano del acto espera al final de la senda.',danger:'Extremo',reward:'Gran botín y nuevo acto',asset:'nodo-guardian-v2.webp'}
+    boss:{icon:'♛',name:'Guardián',text:'El soberano del acto espera al final de la senda.',danger:'Extremo',reward:'Gran botín, experiencia y nuevo acto',asset:'nodo-guardian-v2.webp'}
   };
   const MAP_ASSET_ROOT='assets/images/caceria-map/';
   const HUNT_SCENES = [
@@ -1416,9 +1416,21 @@
     render(); flashCombat('hero',card.fx||card.kind);
   }
   function victory(){
+    if(hunt.enemy.victoryResolved) return;
+    hunt.enemy.victoryResolved=true;
     const reward=12+hunt.floor*5+(hunt.enemy.type==='elite'?22:0)+(hunt.enemy.type==='boss'?45:0);
+    const finalBoss=hunt.enemy.type==='boss'&&hunt.act>=HUNT_SCENES.length&&hunt.floor>=hunt.maxFloor-1;
+    const exp=typeof cardHuntExperienceReward==='function'
+      ? cardHuntExperienceReward(hunt.enemy.type,hunt.act,finalBoss)
+      : Math.max(1,Math.floor(expToNext(state.level)*({fight:.10,elite:.22,boss:.45}[hunt.enemy.type]||.10)));
+    hunt.enemy.goldReward=reward;
+    hunt.enemy.experienceReward=exp;
+    if(exp>0){
+      if(typeof gainExp==='function') gainExp(exp);
+      else state.exp=Math.max(0,n(state.exp,0))+exp;
+    }
     hunt.mana=Math.min(hunt.maxMana,hunt.mana+Math.max(8,Math.round(hunt.maxMana*.12)));
-    hunt.reward+=reward; note(`Victoria sobre ${hunt.enemy.name}. +${reward} oro de expedición.`);
+    hunt.reward+=reward; note(`Victoria sobre ${hunt.enemy.name}. +${reward} oro de expedición${exp?` y +${exp} EXP permanente`:''}.`);
     hunt.defeatedCount=Math.max(0,Math.floor(n(hunt.defeatedCount,0)))+1;
     hunt.maxDepth=Math.max(Math.floor(n(hunt.maxDepth,0)),runDepth());
     state.totalWins=Math.max(0,n(state.totalWins,0))+1;
@@ -1426,6 +1438,7 @@
     state.maxHuntDepth=Math.max(Math.floor(n(state.maxHuntDepth,0)),hunt.maxDepth);
     state.missions.day.hunts=Math.max(0,n(state.missions.day.hunts,0))+1;
     state.missions.week.wins=Math.max(0,n(state.missions.week.wins,0))+1;
+    safe(()=>addLog(`Venciste a ${hunt.enemy.name} en Cacería: +${exp} EXP y +${reward} oro de expedición.`,'win'));
     hunt.screen='victory';
     safe(()=>window.setTimeout(()=>{
       window.Sound?.setScene?.('hunt');
@@ -1546,7 +1559,7 @@
     else if(hunt.screen==='treasure') content=treasureMarkup();
     else if(hunt.screen==='shop') content=shopMarkup();
     else if(hunt.screen==='combat') content=combatMarkup(img);
-    else if(hunt.screen==='victory') content=`<section class="cardspire-result win"><div class="result-icon">✦</div><p>VICTORIA</p><h2>${escape(hunt.enemy.name)} cayó</h2><span>El botín de expedición crece.</span><button data-action="advance" class="cardspire-primary">${isFinalVictory()?'CULMINAR EXPEDICIÓN':'SEGUIR POR LA SENDA'} →</button></section>`;
+    else if(hunt.screen==='victory') content=`<section class="cardspire-result win"><div class="result-icon">✦</div><p>VICTORIA</p><h2>${escape(hunt.enemy.name)} cayó</h2><span>+${Math.max(0,Math.floor(n(hunt.enemy.goldReward,0)))} oro de expedición · +${Math.max(0,Math.floor(n(hunt.enemy.experienceReward,0)))} EXP permanente</span><button data-action="advance" class="cardspire-primary">${isFinalVictory()?'CULMINAR EXPEDICIÓN':'SEGUIR POR LA SENDA'} →</button></section>`;
     else if(hunt.screen==='retire-confirm') content=`<section class="cardspire-result cardspire-retirement"><div class="result-icon">⚑</div><p>REGRESAR CON VIDA</p><h2>¿Asegurar el botín?</h2><span>La expedición terminará y ${escape(hero().name||'tu héroe')} conservará todo el oro acumulado.</span><div class="cardspire-payout"><b>◈ ${hunt.reward} oro</b></div><div class="cardspire-result-actions"><button data-action="begin" data-hunt-command="cancel-retire" class="cardspire-secondary">CONTINUAR CACERÍA</button><button data-action="restart" data-hunt-command="confirm-retire" class="cardspire-primary">RETIRARSE Y COBRAR →</button></div></section>`;
     else if(hunt.screen==='complete') content=`<section class="cardspire-result win cardspire-complete"><div class="result-icon">♛</div><p>ABISMO CONQUISTADO</p><h2>La senda es tuya</h2><span>Completaste los nueve actos. Asegurá ahora todo el botín de la campaña.</span><div class="cardspire-payout"><b>◈ ${hunt.reward} oro</b><b>✦ 10 esencia</b></div><button data-action="restart" data-hunt-command="settle-complete" class="cardspire-primary">ASEGURAR RECOMPENSAS →</button></section>`;
     else if(hunt.screen==='settled') content=`<section class="cardspire-result win cardspire-complete"><div class="result-icon">${hunt.settledOutcome==='completed'?'♛':'⚑'}</div><p>BOTÍN ASEGURADO</p><h2>${hunt.settledOutcome==='completed'?'Cacería completada':'Regresaste con vida'}</h2><span>La recompensa ya fue sumada al progreso permanente de ${escape(hero().name||'tu héroe')}.</span><div class="cardspire-payout"><b>◈ +${hunt.settledReward||0} oro</b>${hunt.settledEssence?`<b>✦ +${hunt.settledEssence} esencia</b>`:''}</div><button data-action="restart" class="cardspire-primary">NUEVA EXPEDICIÓN →</button></section>`;

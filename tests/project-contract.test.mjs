@@ -45,13 +45,15 @@ test('la herramienta de publicación incrementa y propaga la versión',()=>{
     copyFileSync(join(root,'js','feature-loader.js'),join(temporaryRoot,'js','feature-loader.js'));
     copyFileSync(join(root,'scripts','bump-version.mjs'),join(temporaryRoot,'scripts','bump-version.mjs'));
 
+    const [major,minor,patch]=version.split('.').map(Number);
+    const expected=`${major}.${minor}.${patch+1}`;
     const result=spawnSync(process.execPath,[join(temporaryRoot,'scripts','bump-version.mjs'),'patch'],{encoding:'utf8'});
     assert.equal(result.status,0,result.stderr);
-    assert.equal(readFileSync(join(temporaryRoot,'VERSION'),'utf8').trim(),'2.0.1');
-    assert.equal(JSON.parse(readFileSync(join(temporaryRoot,'package.json'),'utf8')).version,'2.0.1');
+    assert.equal(readFileSync(join(temporaryRoot,'VERSION'),'utf8').trim(),expected);
+    assert.equal(JSON.parse(readFileSync(join(temporaryRoot,'package.json'),'utf8')).version,expected);
     const updatedHtml=readFileSync(join(temporaryRoot,'index.html'),'utf8');
-    assert.ok(updatedHtml.includes('content="2.0.1"'));
-    assert.ok(updatedHtml.includes('?v=2.0.1'));
+    assert.ok(updatedHtml.includes(`content="${expected}"`));
+    assert.ok(updatedHtml.includes(`?v=${expected}`));
   }finally{
     rmSync(temporaryRoot,{recursive:true,force:true});
   }

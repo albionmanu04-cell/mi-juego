@@ -315,10 +315,25 @@ function gainExp(amount){
   }
   if(leveled){ addLog(`¡Subiste a nivel ${state.level}! (+3 puntos de estadística)`, 'level'); }
 }
+
+/**
+ * Experiencia permanente de la Cacería de cartas. Se calcula como una
+ * fracción de lo necesario para el siguiente nivel, por lo que sigue siendo
+ * relevante durante toda la progresión sin dispararse en niveles altos.
+ */
+function cardHuntExperienceReward(enemyType='fight', act=1, finalBoss=false){
+  if(!state || state.level>=LEVEL_CAP) return 0;
+  const ratio={fight:.10,elite:.22,boss:.45}[enemyType] || .10;
+  const actMultiplier=1+Math.min(.24,Math.max(0,Math.floor(finiteNumber(act,1))-1)*.03);
+  const finalMultiplier=finalBoss ? 1.5 : 1;
+  const barracksBonus=typeof settlementBarracksBonus==='function'
+    ? Math.max(0,finiteNumber(settlementBarracksBonus(),0))
+    : 0;
+  return Math.max(1,Math.floor(expToNext(state.level)*ratio*actMultiplier*finalMultiplier*(1+barracksBonus)));
+}
 function gainGold(amount){
   state.gold += amount;
   state.missions.day.goldEarned += amount;
   state.missions.month.goldEarned += amount;
   state.totalGoldEarnedLifetime = (state.totalGoldEarnedLifetime||0) + amount;
 }
-

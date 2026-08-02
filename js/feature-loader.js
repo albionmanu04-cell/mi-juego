@@ -7,12 +7,12 @@
     'css/sections/05-heroe-stats.css',
     'css/sections/06-combate-arena-caceria.css',
     'css/sections/07-pesca.css',
-    'css/sections/08-equipo-inventario.css?v=2.0.0',
+    'css/sections/08-equipo-inventario.css?v=2.0.1',
     'css/sections/09-combate-extra.css',
     'css/sections/10-combate-presentacion.css',
     'css/sections/11-gremio.css',
     'css/sections/13-optimizacion-rendimiento.css',
-    'css/sections/16-asentamiento.css?v=2.0.0'
+    'css/sections/16-asentamiento.css?v=2.0.1'
   ];
   const GAME_SCRIPTS=[
     'js/combat-loot.js',
@@ -20,12 +20,12 @@
     'js/combat-render.js',
     'js/forge.js',
     'js/fishing.js',
-    'js/settlement.js?v=2.0.0',
-    'js/script-ui-core.js?v=2.0.0',
-    'js/script-views.js?v=2.0.0',
-    'js/script-trade.js?v=2.0.0',
-    'js/script-shop.js?v=2.0.0',
-    'js/script-render.js?v=2.0.0'
+    'js/settlement.js?v=2.0.1',
+    'js/script-ui-core.js?v=2.0.1',
+    'js/script-views.js?v=2.0.1',
+    'js/script-trade.js?v=2.0.1',
+    'js/script-shop.js?v=2.0.1',
+    'js/script-render.js?v=2.0.1'
   ];
   let gameStylesPromise=null;
   let gameScriptsPromise=null;
@@ -93,8 +93,8 @@
     if(window.CardHunt) return Promise.resolve(window.CardHunt);
     if(!cardHuntPromise){
       cardHuntPromise=Promise.all([
-        loadStyle('css/sections/17-caceria-cartas.css?v=2.0.0','card-hunt-styles'),
-        loadScript('js/caceria-spire.js?v=2.0.0','card-hunt-script')
+        loadStyle('css/sections/17-caceria-cartas.css?v=2.0.1','card-hunt-styles'),
+        loadScript('js/caceria-spire.js?v=2.0.1','card-hunt-script')
       ]).then(()=>{
         if(!window.CardHunt) throw new Error('Cacería no pudo inicializarse.');
         return window.CardHunt;
