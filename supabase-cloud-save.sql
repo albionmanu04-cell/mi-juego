@@ -54,12 +54,12 @@ begin
      or next_payload->>'ownerId' is distinct from current_user_id::text
      or next_payload->>'season' is distinct from 'temporada-2'
      or next_payload->>'version' is distinct from '3'
-     or case
-          when jsonb_typeof(next_payload->'roster') = 'array'
-            then jsonb_array_length(next_payload->'roster') > 3
-          else true
-        end
+     or jsonb_typeof(next_payload->'roster') is distinct from 'array'
      or octet_length(next_payload::text) > 2097152 then
+    raise exception 'invalid cloud payload';
+  end if;
+
+  if jsonb_array_length(next_payload->'roster') > 3 then
     raise exception 'invalid cloud payload';
   end if;
 

@@ -56,5 +56,7 @@ assert(loader.includes('caceria-spire.js')&&loader.includes('17-caceria-cartas.c
 
 assert(cloudSql.includes('sync_player_save'),'Falta la función atómica de guardado en nube.');
 assert(/revoke insert, update, delete on public\.player_saves from authenticated/i.test(cloudSql),'Las escrituras directas de nube no están revocadas.');
+assert(cloudSql.includes("jsonb_typeof(next_payload->'roster') is distinct from 'array'"),'Falta validar que el roster remoto sea una lista.');
+assert(cloudSql.includes("jsonb_array_length(next_payload->'roster') > 3"),'Falta limitar el roster remoto a tres personajes.');
 
 console.log(`Proyecto válido · v${version} · ${initialRefs.size} recursos iniciales · ${(initialBytes/1024).toFixed(1)} KB.`);
