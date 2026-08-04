@@ -2,10 +2,11 @@
 (function(){
   'use strict';
   const SECTION_ID = 'secCardHunt';
-  const SNAPSHOT_VERSION = 1;
+  const SNAPSHOT_VERSION = 2;
   const MAX_SETTLEMENT_HISTORY = 30;
   let hunt = null;
   let huntStateRef = null;
+  let evolutionPreviewConsumed = false;
   const TYPES = {
     fight:{icon:'⚔',name:'Combate',text:'Una criatura bloquea la senda.',danger:'Moderado',reward:'Oro de run y experiencia',asset:'nodo-combate-v2.webp'},
     elite:{icon:'✦',name:'Élite',text:'Un rival fortalecido protege una recompensa superior.',danger:'Alto',reward:'Más oro y experiencia',asset:'nodo-elite-v2.webp'},
@@ -405,6 +406,88 @@
   function isFinalVictory(){
     return !!hunt && hunt.screen==='victory' && hunt.act>=HUNT_SCENES.length && hunt.floor>=hunt.maxFloor-1 && hunt.enemy?.type==='boss';
   }
+  function evolutionEngine(){ return window.CardEvolution; }
+  function evolutionClaimed(act=hunt?.act){ return !!hunt?.evolutionsClaimed?.[String(act)]; }
+  function evolutionCard(id){
+    return (hunt?.deck||[]).find(card=>card?.id===id)||null;
+  }
+  function evolutionCandidates(){
+    const engine=evolutionEngine();
+    if(!engine) return [];
+    return (hunt?.deck||[]).filter(card=>card?.id&&!card.evolution&&engine.hasBranches(card));
+  }
+  function chooseEvolutionCandidates(){
+    const available=shuffle(evolutionCandidates());
+    const chosen=[];
+    const keys=new Set();
+    available.forEach(card=>{
+      if(chosen.length<3&&!keys.has(card.key)){
+        chosen.push(card);
+        keys.add(card.key);
+      }
+    });
+    available.forEach(card=>{
+      if(chosen.length<3&&!chosen.some(entry=>entry.id===card.id)) chosen.push(card);
+    });
+    return chosen.slice(0,3).map(card=>card.id);
+  }
+  function beginEvolution(){
+    if(!hunt || hunt.enemy?.type!=='boss' || isFinalVictory() || evolutionClaimed()) return false;
+    const candidateIds=chooseEvolutionCandidates();
+    if(!candidateIds.length){
+      hunt.evolutionsClaimed[String(hunt.act)]={skipped:true,claimedAt:Date.now()};
+      note('El Altar no encontró cartas compatibles sin evolucionar en este mazo.');
+      return false;
+    }
+    hunt.pendingEvolution={act:hunt.act,candidateIds,selectedId:null,stage:'select'};
+    hunt.screen='evolution';
+    safe(()=>window.Sound?.altarReveal ? window.Sound.altarReveal() : window.Sound?.reward?.());
+    render();
+    focusEvolutionTop();
+    return true;
+  }
+  function replaceEvolvedCard(cardId,evolved){
+    ['deck','draw','hand','discard','cardChoice'].forEach(key=>{
+      if(Array.isArray(hunt[key])) hunt[key]=hunt[key].map(card=>card?.id===cardId?{...evolved,evolution:{...evolved.evolution}}:card);
+    });
+  }
+  function selectEvolutionCard(cardId){
+    const pending=hunt?.pendingEvolution;
+    if(hunt?.screen!=='evolution'||pending?.stage!=='select'||!pending.candidateIds.includes(cardId)||!evolutionCard(cardId)) return;
+    pending.selectedId=cardId;
+    safe(()=>window.Sound?.click?.());
+    render();
+    focusEvolutionTop();
+  }
+  function clearEvolutionSelection(){
+    if(hunt?.screen!=='evolution'||hunt.pendingEvolution?.stage!=='select') return;
+    hunt.pendingEvolution.selectedId=null;
+    render();
+    focusEvolutionTop();
+  }
+  function applyEvolution(branchId){
+    const pending=hunt?.pendingEvolution;
+    if(hunt?.screen!=='evolution'||pending?.stage!=='select'||pending.act!==hunt.act||evolutionClaimed()) return;
+    const card=evolutionCard(pending.selectedId);
+    const evolved=evolutionEngine()?.evolve(card,branchId);
+    if(!card||!evolved) return;
+    replaceEvolvedCard(card.id,evolved);
+    hunt.evolutionsClaimed[String(hunt.act)]={
+      cardId:card.id,
+      baseKey:card.key,
+      branchId,
+      branchName:evolved.evolution.branchName,
+      claimedAt:Date.now()
+    };
+    hunt.pendingEvolution={...pending,stage:'complete',completedCardId:card.id,branchId};
+    note(`${card.name} evolucionó en ${evolved.name}.`);
+    safe(()=>window.Sound?.cardEvolution ? window.Sound.cardEvolution(evolved.evolution.path) : window.Sound?.reward?.());
+    render();
+    focusEvolutionTop();
+  }
+  function focusEvolutionTop(){
+    requestAnimationFrame(()=>section?.querySelector('.cardspire-evolution')?.scrollIntoView({block:'start',behavior:'auto'}));
+  }
   function snapshotCardHunt(){
     if(!state || !activeCharacterId || !hunt || hunt.ownerCharacterId!==currentCharacterId()) return;
     if(['lost','settled'].includes(hunt.status)){
@@ -421,7 +504,7 @@
   }
   function restoreCardHunt(snapshot){
     const owner=currentCharacterId();
-    if(!owner || !snapshot || snapshot.version!==SNAPSHOT_VERSION || snapshot.ownerCharacterId!==owner || !snapshot.run || typeof snapshot.run!=='object') return false;
+    if(!owner || !snapshot || ![1,SNAPSHOT_VERSION].includes(Number(snapshot.version)) || snapshot.ownerCharacterId!==owner || !snapshot.run || typeof snapshot.run!=='object') return false;
     const saved=snapshot.run;
     if(['lost','settled'].includes(saved.status)) return false;
     createRun();
@@ -454,15 +537,33 @@
       if(!knownPoolKeys.has(card.key)&&!unlockedKeys.has(card.key)) hunt.cardPool.push(card);
     });
     hunt.cardChoice=Array.isArray(saved.cardChoice) ? saved.cardChoice : null;
+    hunt.evolutionsClaimed=saved.evolutionsClaimed && typeof saved.evolutionsClaimed==='object' && !Array.isArray(saved.evolutionsClaimed)
+      ? saved.evolutionsClaimed
+      : {};
+    const pending=saved.pendingEvolution && typeof saved.pendingEvolution==='object' ? saved.pendingEvolution : null;
+    const candidateIds=Array.isArray(pending?.candidateIds)
+      ? pending.candidateIds.filter(id=>typeof id==='string'&&evolutionCard(id)).slice(0,3)
+      : [];
+    hunt.pendingEvolution=pending && Number(pending.act)===hunt.act && candidateIds.length
+      ? {
+          act:hunt.act,
+          candidateIds,
+          selectedId:candidateIds.includes(pending.selectedId)?pending.selectedId:null,
+          stage:pending.stage==='complete'?'complete':'select',
+          completedCardId:typeof pending.completedCardId==='string'?pending.completedCardId:null,
+          branchId:typeof pending.branchId==='string'?pending.branchId:null
+        }
+      : null;
     const validMap=Array.isArray(saved.map) && saved.map.length===hunt.maxFloor && saved.map.every(row=>Array.isArray(row)&&row.length);
     hunt.map=validMap ? saved.map : fallback.map;
     hunt.enemy=saved.enemy && typeof saved.enemy==='object' ? saved.enemy : null;
     hunt.selectedNode=typeof saved.selectedNode==='string' ? saved.selectedNode : null;
     hunt.routeLane=Number.isInteger(saved.routeLane) ? saved.routeLane : null;
-    const allowedScreens=['intro','map','event','sanctuary','treasure','shop','combat','victory','retire-confirm','complete'];
+    const allowedScreens=['intro','map','event','sanctuary','treasure','shop','combat','victory','evolution','retire-confirm','complete'];
     hunt.screen=allowedScreens.includes(saved.screen) ? saved.screen : 'map';
     hunt.returnScreen=['map','event','sanctuary','treasure','shop','victory'].includes(saved.returnScreen) ? saved.returnScreen : 'map';
     if(['combat','victory'].includes(hunt.screen) && !hunt.enemy) hunt.screen='map';
+    if(hunt.screen==='evolution' && (!hunt.enemy||hunt.enemy.type!=='boss'||!hunt.pendingEvolution)) hunt.screen='map';
     if(hunt.screen==='complete') hunt.status='won';
     if(hunt.status==='won') hunt.screen='complete';
     hunt.settling=false;
@@ -483,7 +584,7 @@
       block:0, strength:0, thorns:0, arcane:0, faith:0, combo:0, bond:0, retainBlock:0, attacksThisTurn:0, defensesThisTurn:0,
       evade:0, nextCritical:false, cardChoice:null, traps:[], trapMastery:0,
       deck:buildDeck(), draw:[], hand:[], discard:[], enemy:null,
-      cardPool:buildAdvancedPool(), shopOffers:[], unlockedCards:[],
+      cardPool:buildAdvancedPool(), shopOffers:[], unlockedCards:[], pendingEvolution:null, evolutionsClaimed:{},
       map:makeMap(), selectedNode:null, routeLane:null, routeHistory:[],
       notes:['La senda se abre. Elegí el primer destino.'], reward:0, defeatedCount:0, maxDepth:0, turn:1, lastAction:null};
   }
@@ -511,7 +612,8 @@
         icon:TYPES[step.type]?.icon||'✦',
         label:TYPES[step.type]?.name||'Paso'
       })),
-      mastery:{}
+      mastery:{},
+      evolutions:Object.keys(hunt.evolutionsClaimed||{}).length
     };
   }
   function rememberSettlement(runId,record){
@@ -674,15 +776,16 @@
       return result;
     });
   }
-  /* Mazo base del Guerrero: diez cartas sencillas para aprender el ciclo
-     de ataque, defensa y preparación antes de desbloquear cartas avanzadas. */
+  /* Mazo base del Guerrero: diez cartas y cinco voces distintas para que
+     cada Altar pueda ofrecer fuerza, defensa, control, preparación o ritmo. */
   function warriorStarterDeck(){
     const strike=Math.max(7,Math.round(heroAttack()*.75));
     const deck=[
-      ...Array.from({length:4},()=>({key:'warrior-strike',name:'Corte de Acero',icon:'⚔',art:'warrior-corte-acero.jpg',cost:1,kind:'attack',value:strike,tag:'ATAQUE',desc:`Inflige ${strike} de daño.`})),
-      ...Array.from({length:4},()=>({key:'warrior-guard',name:'Guardia de Escudo',icon:'⬡',art:'warrior-guardia-escudo.jpg',cost:1,kind:'block',value:12,tag:'DEFENSA',desc:'Obtiene 12 de bloqueo este turno.'})),
+      ...Array.from({length:3},()=>({key:'warrior-strike',name:'Corte de Acero',icon:'⚔',art:'warrior-corte-acero.jpg',cost:1,kind:'attack',value:strike,tag:'ATAQUE',desc:`Inflige ${strike} de daño.`})),
+      ...Array.from({length:3},()=>({key:'warrior-guard',name:'Guardia de Escudo',icon:'⬡',art:'warrior-guardia-escudo.jpg',cost:1,kind:'block',value:12,tag:'DEFENSA',desc:'Obtiene 12 de bloqueo este turno.'})),
       {key:'warrior-bash',name:'Rompeguardia',icon:'✹',art:'warrior-rompeguardia.jpg',cost:2,kind:'bash',value:Math.round(strike*1.35),vulnerable:2,tag:'TÁCTICA',desc:`Inflige ${Math.round(strike*1.35)} de daño y deja al enemigo Vulnerable durante 2 turnos.`},
-      {key:'warrior-rally',name:'Grito de Guerra',icon:'⚑',art:'warrior-grito-guerra.jpg',cost:1,kind:'strength',value:2,tag:'TÁCTICA',desc:'Gana +2 Fuerza para el resto de este combate.'}
+      {key:'warrior-rally',name:'Grito de Guerra',icon:'⚑',art:'warrior-grito-guerra.jpg',cost:1,kind:'strength',value:2,tag:'TÁCTICA',desc:'Gana +2 Fuerza para el resto de este combate.'},
+      ...Array.from({length:2},()=>({key:'warrior-second-wind',name:'Segundo Aliento',icon:'❧',art:'warrior-segundo-aliento-v1.webp',cost:1,kind:'mana',value:12,tag:'HABILIDAD',desc:'Recupera 12 de maná y prepara la siguiente ofensiva.'}))
     ];
     return deck.map((c,i)=>({...c,id:c.key+'-'+i}));
   }
@@ -1043,17 +1146,7 @@
       .map((_,index)=>index)
       .filter(index=>Math.abs(mapRouteX(index,row.length)-previousX)<=245);
   }
-  function selectNode(id){
-    const options=hunt.map[hunt.floor]||[];
-    const lane=options.findIndex(x=>x.id===id);
-    if(lane<0||!reachableNodeIndexes().includes(lane)) return;
-    hunt.selectedNode=id;
-    safe(()=>window.Sound?.nodeSelect?.(options[lane]?.type||'event'));
-    render();
-  }
-  function enterSelectedNode(){
-    if(!hunt.selectedNode) return;
-    const id=hunt.selectedNode;
+  function chooseReachableNode(id){
     const options=hunt.map[hunt.floor]||[];
     const lane=options.findIndex(x=>x.id===id);
     if(lane<0||!reachableNodeIndexes().includes(lane)) return;
@@ -1061,6 +1154,7 @@
     hunt.routeHistory=Array.isArray(hunt.routeHistory)?hunt.routeHistory.filter(step=>step.floor!==hunt.floor):[];
     hunt.routeHistory.push({floor:hunt.floor,lane,id,type:options[lane]?.type||'event'});
     hunt.selectedNode=null;
+    safe(()=>window.Sound?.nodeSelect?.(options[lane]?.type||'event'));
     chooseNode(id);
   }
   function resolveEvent(kind){
@@ -1140,6 +1234,11 @@
       safe(()=>window.Sound?.setScene?.('hunt'));
       render();
       return;
+    }
+    if(hunt.screen==='victory'&&hunt.enemy?.type==='boss'&&!evolutionClaimed()&&beginEvolution()) return;
+    if(hunt.screen==='evolution'){
+      if(hunt.pendingEvolution?.stage!=='complete') return;
+      hunt.pendingEvolution=null;
     }
     hunt.floor++;
     if(hunt.floor>=hunt.maxFloor){
@@ -1296,7 +1395,9 @@
       }
       if(hunt.enemy.vulnerable>0) dmg=Math.round(dmg*1.5);
       const pierces=card.effect==='hunter_pierce'&&markTurns>0;
-      const absorbed=pierces?0:Math.min(hunt.enemy.guard,dmg);
+      const guardPierce=Math.max(0,Math.min(1,n(card.guardPierce,0)));
+      const effectiveGuard=Math.max(0,Math.ceil(hunt.enemy.guard*(1-guardPierce)));
+      const absorbed=pierces?0:Math.min(effectiveGuard,dmg);
       if(!pierces) hunt.enemy.guard-=absorbed;
       dmg-=absorbed;
       hunt.enemy.hp=Math.max(0,hunt.enemy.hp-dmg);
@@ -1322,6 +1423,7 @@
       if(hunt.enemy.vulnerable>0) dmg=Math.round(dmg*1.5);
       const absorbed=Math.min(hunt.enemy.guard,dmg); hunt.enemy.guard-=absorbed; dmg-=absorbed;
       hunt.enemy.hp=Math.max(0,hunt.enemy.hp-dmg); hunt.enemy.vulnerable=card.vulnerable||2;
+      if(card.stun&&hunt.enemy.guard<=0) hunt.enemy.stunned=Math.max(hunt.enemy.stunned||0,1);
       if(card.faithHeal&&faithSpent){
         hunt.hp=Math.min(hunt.maxHp,hunt.hp+(faithSpent*Math.max(0,n(card.faithHeal,0))));
       }
@@ -1535,6 +1637,15 @@
   function pct(value,max){ return `${Math.max(0,Math.min(100,(value/max)*100))}%`; }
   function show(){
     syncCardHuntOwner();
+    const localPreview=location.protocol==='file:'||['localhost','127.0.0.1'].includes(location.hostname);
+    if(!evolutionPreviewConsumed&&localPreview&&new URLSearchParams(location.search).has('previewAltar')){
+      evolutionPreviewConsumed=true;
+      createRun();
+      hunt.floor=hunt.maxFloor-1;
+      hunt.enemy={type:'boss',name:'Guardián del Altar de Prueba',goldReward:0,experienceReward:0};
+      note('Vista de prueba del Altar: esta expedición local fue reiniciada.');
+      beginEvolution();
+    }
     document.body.classList.remove('profile-screen-open');
     document.body.classList.add('card-hunt-open');
     document.querySelectorAll('.nav-btn[data-sec]').forEach(x=>x.classList.remove('active'));
@@ -1543,10 +1654,11 @@
     safe(()=>window.Sound?.huntOpen?.());
     render();
   }
-  function back(){ snapshotCardHunt(); document.body.classList.remove('card-hunt-open'); document.querySelector('.nav-btn[data-sec="secHero"]')?.click(); }
+  function back(){ snapshotCardHunt(); document.body.classList.remove('card-hunt-open','card-evolution-open'); document.querySelector('.nav-btn[data-sec="secHero"]')?.click(); }
   function escape(v){ return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
   function render(){
     const app=document.getElementById('cardSpireApp'); if(!app||!hunt) return;
+    document.body.classList.toggle('card-evolution-open',hunt.screen==='evolution');
     const vis=visual(), img=vis.image ? `<img src="${escape(vis.image)}" alt="">` : '<span>⚔</span>';
     const scene=huntScene();
     const retireButton=canRetire()?`<button data-action="restart" data-hunt-command="retire" class="cardspire-retire" title="Terminar la expedición y guardar el oro acumulado">⚑ Guardar botín</button>`:'';
@@ -1559,13 +1671,14 @@
     else if(hunt.screen==='treasure') content=treasureMarkup();
     else if(hunt.screen==='shop') content=shopMarkup();
     else if(hunt.screen==='combat') content=combatMarkup(img);
-    else if(hunt.screen==='victory') content=`<section class="cardspire-result win"><div class="result-icon">✦</div><p>VICTORIA</p><h2>${escape(hunt.enemy.name)} cayó</h2><span>+${Math.max(0,Math.floor(n(hunt.enemy.goldReward,0)))} oro de expedición · +${Math.max(0,Math.floor(n(hunt.enemy.experienceReward,0)))} EXP permanente</span><button data-action="advance" class="cardspire-primary">${isFinalVictory()?'CULMINAR EXPEDICIÓN':'SEGUIR POR LA SENDA'} →</button></section>`;
+    else if(hunt.screen==='victory') content=`<section class="cardspire-result win"><div class="result-icon">✦</div><p>VICTORIA</p><h2>${escape(hunt.enemy.name)} cayó</h2><span>+${Math.max(0,Math.floor(n(hunt.enemy.goldReward,0)))} oro de expedición · +${Math.max(0,Math.floor(n(hunt.enemy.experienceReward,0)))} EXP permanente</span><button data-action="advance" class="cardspire-primary">${isFinalVictory()?'CULMINAR EXPEDICIÓN':hunt.enemy?.type==='boss'&&!evolutionClaimed()?'DESPERTAR UNA CARTA':'SEGUIR POR LA SENDA'} →</button></section>`;
+    else if(hunt.screen==='evolution') content=evolutionMarkup();
     else if(hunt.screen==='retire-confirm') content=`<section class="cardspire-result cardspire-retirement"><div class="result-icon">⚑</div><p>REGRESAR CON VIDA</p><h2>¿Asegurar el botín?</h2><span>La expedición terminará y ${escape(hero().name||'tu héroe')} conservará todo el oro acumulado.</span><div class="cardspire-payout"><b>◈ ${hunt.reward} oro</b></div><div class="cardspire-result-actions"><button data-action="begin" data-hunt-command="cancel-retire" class="cardspire-secondary">CONTINUAR CACERÍA</button><button data-action="restart" data-hunt-command="confirm-retire" class="cardspire-primary">RETIRARSE Y COBRAR →</button></div></section>`;
     else if(hunt.screen==='complete') content=`<section class="cardspire-result win cardspire-complete"><div class="result-icon">♛</div><p>ABISMO CONQUISTADO</p><h2>La senda es tuya</h2><span>Completaste los nueve actos. Asegurá ahora todo el botín de la campaña.</span><div class="cardspire-payout"><b>◈ ${hunt.reward} oro</b><b>✦ 10 esencia</b></div><button data-action="restart" data-hunt-command="settle-complete" class="cardspire-primary">ASEGURAR RECOMPENSAS →</button></section>`;
     else if(hunt.screen==='settled') content=`<section class="cardspire-result win cardspire-complete"><div class="result-icon">${hunt.settledOutcome==='completed'?'♛':'⚑'}</div><p>BOTÍN ASEGURADO</p><h2>${hunt.settledOutcome==='completed'?'Cacería completada':'Regresaste con vida'}</h2><span>La recompensa ya fue sumada al progreso permanente de ${escape(hero().name||'tu héroe')}.</span><div class="cardspire-payout"><b>◈ +${hunt.settledReward||0} oro</b>${hunt.settledEssence?`<b>✦ +${hunt.settledEssence} esencia</b>`:''}</div><button data-action="restart" class="cardspire-primary">NUEVA EXPEDICIÓN →</button></section>`;
     else content=`<section class="cardspire-result loss"><div class="result-icon">☾</div><p>LA SENDA TE RECHAZÓ</p><h2>La expedición terminó</h2><span>El oro de expedición se perdió, pero tu leyenda continúa.</span><button data-action="restart" class="cardspire-primary">INTENTAR OTRA VEZ →</button></section>`;
     if(retireButton) content=`<div class="cardspire-retire-row">${retireButton}</div>${content}`;
-    app.innerHTML=`<main class="cardspire-shell scene-${scene.key}" style="--cardspire-scene:url('${scene.asset}')">${hud}<div class="cardspire-main">${content}</div></main>`;
+    app.innerHTML=`<main class="cardspire-shell scene-${scene.key}" style="--cardspire-scene:url('/${scene.asset}')">${hud}<div class="cardspire-main">${content}</div></main>`;
     bind();
     snapshotCardHunt();
   }
@@ -1611,15 +1724,13 @@
     const scene=huntScene();
     const current=hunt.map[hunt.floor]||[];
     const reachableIndexes=reachableNodeIndexes();
-    const selected=current.find(x=>x.id===hunt.selectedNode);
-    const selectedIndex=current.findIndex(x=>x.id===hunt.selectedNode);
     const displayRows=[...hunt.map].reverse();
     const rows=displayRows.map((row,index)=>{
       const real=hunt.map.length-1-index;
       const active=real===hunt.floor;
       const passed=real<hunt.floor;
       const future=real>hunt.floor;
-      const activeLane=selectedIndex>=0?selectedIndex:(hunt.routeLane===null||hunt.routeLane===undefined?null:Math.floor(n(hunt.routeLane,0)));
+      const activeLane=hunt.routeLane===null||hunt.routeLane===undefined?null:Math.floor(n(hunt.routeLane,0));
       const safeLane=activeLane===null?null:Math.max(0,Math.min(current.length-1,activeLane));
       const travelerX=active&&current.length>1&&safeLane!==null
         ? ((safeLane+.5)/current.length)*100
@@ -1628,29 +1739,19 @@
       const visitedStep=(hunt.routeHistory||[]).find(step=>step.floor===real);
       const nodes=row.map((x,lane)=>{
         const type=TYPES[x.type]||TYPES.event;
-        const chosen=x.id===hunt.selectedNode;
         const reachable=!active||reachableIndexes.includes(lane);
         const visited=passed&&visitedStep?.id===x.id;
         const unavailable=active&&!reachable;
         const status=active
-          ? (chosen?'SELECCIONADO':reachable?'INSPECCIONAR':'SIN CONEXIÓN')
+          ? (reachable?'ENTRAR':'SIN CONEXIÓN')
           : (passed?(visited?'RECORRIDO':'DESCARTADO'):'OCULTO');
-        return `<button class="cardspire-node ${x.type} ${chosen?'selected':''} ${future?'veiled':''} ${unavailable?'unreachable':''} ${visited?'visited':''} ${passed&&!visited?'abandoned':''}" data-node="${x.id}" ${active&&reachable?'':'disabled'} aria-pressed="${chosen?'true':'false'}" aria-disabled="${active&&reachable?'false':'true'}">
+        return `<button class="cardspire-node ${x.type} ${future?'veiled':''} ${unavailable?'unreachable':''} ${visited?'visited':''} ${passed&&!visited?'abandoned':''}" data-node="${x.id}" ${active&&reachable?'':'disabled'} aria-disabled="${active&&reachable?'false':'true'}">
           <span class="node-portrait"><img src="${MAP_ASSET_ROOT}${type.asset}" alt="" loading="lazy"><i>${type.icon}</i></span>
           <b>${type.name}</b><small>${status}</small>
         </button>`;
       }).join('');
       return `<div class="cardspire-map-row ${row.length===1?'single':''} ${active?'current':''} ${passed?'passed':''} ${future?'future':''}" style="--route-columns:${row.length}">${traveler}${nodes}</div>`;
     }).join('');
-    const info=selected?(()=>{
-      const type=TYPES[selected.type]||TYPES.event;
-      return `<div class="route-node-info ${selected.type}">
-        <img src="${MAP_ASSET_ROOT}${type.asset}" alt="">
-        <div><small>DESTINO SELECCIONADO</small><h3>${type.name}</h3><p>${type.text}</p></div>
-        <dl><div><dt>PELIGRO</dt><dd>${type.danger}</dd></div><div><dt>POSIBLE RECOMPENSA</dt><dd>${type.reward}</dd></div></dl>
-        <button data-action="enter-node">ENTRAR EN ${type.name.toUpperCase()} <b>→</b></button>
-      </div>`;
-    })():`<div class="route-node-info empty"><span>✦</span><div><small>LA SENDA ESPERA</small><h3>Inspeccioná un destino</h3><p>Los destinos conectados están iluminados. Elegí uno para conocer su peligro y recompensa.</p></div></div>`;
     return `<section class="cardspire-map-view">
       <div class="cardspire-region"><i>${scene.mark}</i><span>REGIÓN ACTUAL</span><b>${escape(scene.name)}</b><small>${escape(scene.roster||'')}</small></div>
       <div class="cardspire-map-copy"><p>RUTA DE EXPEDICIÓN</p><h2>Elegí tu camino</h2><span>${escape(scene.theme||'Solo podés avanzar por las líneas conectadas a tu posición.')}</span><em>${escape(scene.warning||'')}</em></div>
@@ -1658,7 +1759,6 @@
         ${mapRoutesMarkup(displayRows)}
         <div class="cardspire-map">${rows}</div>
       </div>
-      ${info}
       <aside class="cardspire-legend">${Object.values(TYPES).map(x=>`<span><img src="${MAP_ASSET_ROOT}${x.asset}" alt=""> ${x.name}</span>`).join('')}</aside>
     </section>`;
   }
@@ -1729,11 +1829,84 @@
       <footer><button data-action="shop-reroll" ${hunt.reward<12||!offers.length?'disabled':''}>↻ RENOVAR OFERTAS · ◈ 12</button><button data-action="leave-shop" class="cardspire-primary">CONTINUAR POR LA SENDA →</button></footer>
     </section>`;
   }
+  function evolutionPathClass(value){
+    const path=typeof value==='string' ? value : value?.evolution?.path;
+    return String(path||'').toUpperCase()==='SINERGIA' ? 'synergy' : String(path||'').toUpperCase()==='PODER' ? 'power' : 'neutral';
+  }
+  function evolutionAtmosphere(theme='neutral'){
+    return `<div class="evolution-atmosphere theme-${escape(theme)}" aria-hidden="true"><span class="altar-halo"></span><span class="altar-ring ring-one"></span><span class="altar-ring ring-two"></span><i></i><i></i><i></i><i></i><i></i><i></i><b>ᚨ</b><b>ᛟ</b><b>ᛉ</b><b>ᛏ</b></div>`;
+  }
+  function evolutionCardFace(card,variant=''){
+    if(!card) return '';
+    const manaCost=cardManaCost(card);
+    const theme=evolutionPathClass(card);
+    return `<article class="evolution-card-face ${escape(card.kind||'skill')} ${card.evolution?'is-evolved':''} theme-${theme} ${escape(variant)}">
+      <span class="evolution-card-shine" aria-hidden="true"></span>
+      <div class="evolution-card-top"><span>${escape(card.tag||'HABILIDAD')}</span><b>${manaCost?`${manaCost}✦`:'0'}</b></div>
+      <div class="evolution-card-art">${card.art?`<img src="assets/images/cards/${escape(card.art)}" alt="">`:`<i>${card.icon||'✦'}</i>`}<span class="evolution-art-runes" aria-hidden="true">✦ ◇ ✦</span></div>
+      ${card.evolution?`<small class="evolution-awakened">✦ ${escape(card.evolution.path)} · EVOLUCIONADA</small>`:''}
+      <h3>${escape(card.name||'Carta')}</h3>
+      <p>${escape(card.desc||'')}</p>
+      ${card.evolution?`<span class="evolution-card-seal" aria-hidden="true">${theme==='power'?'◆':'✦'}</span>`:''}
+    </article>`;
+  }
+  function evolutionDiffMarkup(line){
+    const parts=String(line||'').split('→').map(part=>part.trim());
+    if(parts.length===2) return `<li class="stat-change"><span>${escape(parts[0])}</span><i>→</i><b>${escape(parts[1])}</b></li>`;
+    return `<li class="trait-gain"><i>+</i><b>${escape(parts[0])}</b></li>`;
+  }
+  function evolutionMarkup(){
+    const pending=hunt.pendingEvolution;
+    if(!pending) return `<section class="cardspire-evolution theme-neutral">${evolutionAtmosphere()}<h2>El Altar permanece en silencio</h2><button data-action="advance" class="cardspire-primary">SEGUIR POR LA SENDA →</button></section>`;
+    if(pending.stage==='complete'){
+      const evolved=evolutionCard(pending.completedCardId);
+      const theme=evolutionPathClass(evolved);
+      return `<section class="cardspire-evolution evolution-complete theme-${theme}" aria-live="polite">
+        ${evolutionAtmosphere(theme)}
+        <div class="evolution-burst" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><span></span></div>
+        <header><span class="evolution-sigil">${theme==='power'?'◆':'✦'}</span><p>${theme==='power'?'PODER DESATADO':'SINERGIA DESPERTADA'}</p><h2>${escape(evolved?.name||'Carta evolucionada')}</h2><small>La evolución quedó grabada en esta copia durante toda la expedición.</small></header>
+        <div class="evolution-complete-card">${evolutionCardFace(evolved,'ceremony-card')}</div>
+        <div class="evolution-complete-path"><span>${theme==='power'?'CAMINO DEL PODER':'CAMINO DE LA SINERGIA'}</span><b>${theme==='power'?'Fuerza inmediata y decisiva':'Una nueva conexión con tu estrategia'}</b></div>
+        <button data-action="advance" class="cardspire-primary">ENTRAR AL SIGUIENTE ACTO →</button>
+      </section>`;
+    }
+    const selected=evolutionCard(pending.selectedId);
+    if(!selected){
+      const candidates=pending.candidateIds.map(evolutionCard).filter(Boolean);
+      return `<section class="cardspire-evolution evolution-awakening theme-neutral">
+        ${evolutionAtmosphere()}
+        <header><span class="evolution-sigil">✦</span><p>ALTAR DE EVOLUCIÓN · ACTO ${hunt.act}</p><h2>Una carta puede despertar</h2><small>El Altar reveló tres voces de tu mazo. Elegí cuál cambiará para siempre.</small></header>
+        <div class="evolution-candidates">${candidates.map((card,index)=>`<button style="--reveal-order:${index}" data-evolution-card="${escape(card.id)}" aria-label="Elegir ${escape(card.name)}"><span class="candidate-aura" aria-hidden="true"></span>${evolutionCardFace(card,'candidate-card')}<span class="evolution-select"><small>DESPERTAR</small>ELEGIR ESTA CARTA <b>→</b></span></button>`).join('')}</div>
+        <p class="evolution-rule"><span>✦</span> Una sola elección por acto · la evolución pertenece a esta copia <span>✦</span></p>
+      </section>`;
+    }
+    const engine=evolutionEngine();
+    const branches=engine?.branchesFor(selected)||[];
+    return `<section class="cardspire-evolution evolution-branches theme-split">
+      ${evolutionAtmosphere('split')}
+      <header><span class="evolution-sigil split-sigil">◆<i></i>✦</span><p>EL DESTINO DE ${escape(selected.name).toUpperCase()}</p><h2>Dos caminos. Una decisión.</h2><small>Observá la carta final y compará exactamente qué cambia antes de confirmar.</small></header>
+      <div class="evolution-choice-layout">
+        <div class="evolution-original"><small>ESTADO ACTUAL</small>${evolutionCardFace(selected,'original-card')}<span class="evolution-origin-line">BASE</span></div>
+        <div class="evolution-branch-grid">${branches.map(branch=>{
+          const evolved=engine.evolve(selected,branch.id);
+          const theme=evolutionPathClass(branch.path);
+          return `<button class="evolution-branch path-${theme}" data-evolution-branch="${escape(branch.id)}" aria-label="Evolucionar ${escape(selected.name)} como ${escape(branch.name)}">
+            <span class="branch-energy" aria-hidden="true"></span>
+            <div class="branch-heading"><span class="evolution-path">${theme==='power'?'◆':'✦'} ${escape(branch.path)}</span><small>${theme==='power'?'IMPACTO INMEDIATO':'COMBINACIONES Y RECURSOS'}</small></div>
+            <div class="branch-card-preview">${evolutionCardFace(evolved,'branch-preview-card')}</div>
+            <div class="branch-details"><p>${escape(branch.description)}</p><ul>${(branch.preview||[]).map(evolutionDiffMarkup).join('')}</ul></div>
+            <b>CONFIRMAR ${escape(branch.name).toUpperCase()} <span>→</span></b>
+          </button>`;
+        }).join('')}</div>
+      </div>
+      <button data-evolution-back class="evolution-back">← VOLVER A LAS TRES CARTAS</button>
+    </section>`;
+  }
   function combatMarkupV2(img){
     const e=hunt.enemy;
     const heroClassId=heroClass();
     const scene=huntScene();
-    const cards=hunt.hand.map(c=>{ const manaCost=cardManaCost(c); return `<button class="cardspire-card ${c.kind} ${c.art?'illustrated':''} ${manaCost?'tactical-card':'free-card'} ${manaCost>hunt.mana?'locked':''}" data-card="${c.id}"><span class="card-cost">${manaCost?`${manaCost}✦`:'0'}</span>${cardSideStat(c)}<span class="card-tag">${escape(c.tag||'HABILIDAD')}</span>${c.art?`<span class="card-art"><img src="assets/images/cards/${escape(c.art)}" alt="" loading="lazy"></span>`:`<i>${c.icon}</i>`}<b>${escape(c.name)}</b><small>${escape(c.desc)}</small></button>`; }).join('');
+    const cards=hunt.hand.map(c=>{ const manaCost=cardManaCost(c); const evolutionTheme=evolutionPathClass(c); return `<button class="cardspire-card ${c.kind} ${c.art?'illustrated':''} ${c.evolution?`evolved evolved-${evolutionTheme}`:''} ${manaCost?'tactical-card':'free-card'} ${manaCost>hunt.mana?'locked':''}" data-card="${c.id}"><span class="card-cost">${manaCost?`${manaCost}✦`:'0'}</span>${cardSideStat(c)}<span class="card-tag">${escape(c.tag||'HABILIDAD')}</span>${c.evolution?`<span class="card-evolution-badge">${evolutionTheme==='power'?'◆':'✦'} ${escape(c.evolution.path)}</span>`:''}${c.art?`<span class="card-art"><img src="assets/images/cards/${escape(c.art)}" alt="" loading="lazy"></span>`:`<i>${c.icon}</i>`}<b>${escape(c.name)}</b><small>${escape(c.desc)}</small></button>`; }).join('');
     const hunterChoice=hunt.cardChoice?.length?`<div class="hunter-choice-backdrop"><section class="hunter-choice-panel"><span class="hunter-choice-eye">◉</span><small>OJO DE HALCÓN</small><h3>Elegí el futuro de tu mano</h3><p>Una carta irá a tu mano. Las otras dos pasan al descarte.<br>Tu próximo ataque será crítico.</p><div class="hunter-choice-cards">${hunt.cardChoice.map(c=>`<button class="hunter-choice-card" data-hunter-choice="${escape(c.id)}">${c.art?`<img src="assets/images/cards/${escape(c.art)}" alt="">`:`<i>${c.icon||'✦'}</i>`}<b>${escape(c.name)}</b><small>${escape(c.desc)}</small></button>`).join('')}</div></section></div>`:'';
     const enemyArt=e.image ? `<img src="assets/images/${escape(e.image)}" alt="${escape(e.name)}">` : e.icon;
     const last=hunt.lastAction?`<div class="cardspire-impact ${hunt.lastAction.kind} fx-${escape(hunt.lastAction.fx||'impact')}"><span class="skill-fx-layer"></span><i>${hunt.lastAction.icon}</i><b>${escape(hunt.lastAction.text)}</b></div>`:'';
@@ -1849,8 +2022,7 @@
       createRun(); show();
     });
     section.querySelector('[data-action="end"]')?.addEventListener('click',endTurn);
-    section.querySelectorAll('[data-node]').forEach(b=>b.addEventListener('click',()=>selectNode(b.dataset.node)));
-    section.querySelector('[data-action="enter-node"]')?.addEventListener('click',enterSelectedNode);
+    section.querySelectorAll('[data-node]').forEach(b=>b.addEventListener('click',()=>chooseReachableNode(b.dataset.node)));
     section.querySelectorAll('[data-event]').forEach(b=>b.addEventListener('click',()=>resolveEvent(b.dataset.event)));
     section.querySelectorAll('[data-sanctuary]').forEach(b=>b.addEventListener('click',()=>resolveSanctuary(b.dataset.sanctuary)));
     section.querySelector('[data-action="open-treasure"]')?.addEventListener('click',openTreasure);
@@ -1860,6 +2032,9 @@
     section.querySelectorAll('[data-buy-card]').forEach(b=>b.addEventListener('click',()=>buyShopCard(b.dataset.buyCard)));
     section.querySelector('[data-action="shop-reroll"]')?.addEventListener('click',rerollShop);
     section.querySelector('[data-action="leave-shop"]')?.addEventListener('click',advance);
+    section.querySelectorAll('[data-evolution-card]').forEach(b=>b.addEventListener('click',()=>selectEvolutionCard(b.dataset.evolutionCard)));
+    section.querySelectorAll('[data-evolution-branch]').forEach(b=>b.addEventListener('click',()=>applyEvolution(b.dataset.evolutionBranch)));
+    section.querySelector('[data-evolution-back]')?.addEventListener('click',clearEvolutionSelection);
   }
   const cardNav=document.querySelector(`.nav-btn[data-sec="${SECTION_ID}"]`);
   const section=document.getElementById(SECTION_ID);
@@ -1896,10 +2071,23 @@
       snapshotCardHunt();
       if(section.classList.contains('active')) render();
       return true;
-    }
+    },
+    previewEvolution:()=>{
+      const local=location.protocol==='file:'||['localhost','127.0.0.1'].includes(location.hostname);
+      if(!local) return false;
+      createRun();
+      if(!evolutionCandidates().length) return false;
+      hunt.floor=hunt.maxFloor-1;
+      hunt.enemy={type:'boss',name:'Guardián del Altar de Prueba',goldReward:0,experienceReward:0};
+      note('Vista de prueba del Altar: esta expedición local fue reiniciada.');
+      if(!beginEvolution()) return false;
+      show();
+      return true;
+    },
+    previewMageEvolution:()=>window.CardHunt?.previewEvolution?.()
   };
   cardNav.addEventListener('click',show);
-  document.querySelectorAll('.nav-btn[data-sec]').forEach(btn=>{ if(btn!==cardNav) btn.addEventListener('click',()=>{ snapshotCardHunt(); document.body.classList.remove('card-hunt-open'); }); });
+  document.querySelectorAll('.nav-btn[data-sec]').forEach(btn=>{ if(btn!==cardNav) btn.addEventListener('click',()=>{ snapshotCardHunt(); document.body.classList.remove('card-hunt-open','card-evolution-open'); }); });
   window.addEventListener('pagehide',snapshotCardHunt);
   document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') snapshotCardHunt(); });
 })();

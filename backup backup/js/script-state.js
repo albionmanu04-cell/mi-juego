@@ -84,6 +84,7 @@ function defaultState(name, classId='warrior') {
     characterClass: CLASSES[classId] ? classId : 'warrior',
     subclass: null,
     createdAt: Date.now(),
+    syncMeta: { version:0, mutationId:'', deviceId:'', modifiedAt:0 },
     level: 1,
     resets: 0,
     exp: 0,
@@ -120,6 +121,9 @@ function defaultState(name, classId='warrior') {
     achievementsClaimed: {},
     bestiary: {},
     cardCodex: {},
+    cardHuntSnapshot: null,
+    cardHuntSettlements: {},
+    legacyHuntMigration: null,
     tutorialSeen: false,
     companion: null,
     missions: {
@@ -147,7 +151,25 @@ function getStorage(){
 /* Reinicio global de temporada: cambiar este identificador invalida partidas locales anteriores
    sin cerrar las cuentas de Supabase ni conservar personajes de la temporada previa. */
 const STORAGE_NAMESPACE = 'forja-eterna:temporada-2:';
-function namespacedStorageKey(key){ return `${developerMode ? 'forja-eterna:desarrollo-local:' : STORAGE_NAMESPACE}${key}`; }
+const DEVICE_ID_KEY = 'forja-eterna:device-id';
+function safeStorageSegment(value){ return String(value||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,120); }
+function currentStoragePrefix(){
+  if(developerMode) return 'forja-eterna:desarrollo-local:';
+  const accountId=safeStorageSegment(accountSession?.user?.id);
+  return accountId ? `${STORAGE_NAMESPACE}cuenta:${accountId}:` : `${STORAGE_NAMESPACE}sin-cuenta:`;
+}
+function namespacedStorageKey(key){ return `${currentStoragePrefix()}${key}`; }
+function currentDeviceId(){
+  let id=loadLocal(DEVICE_ID_KEY);
+  if(!/^[a-zA-Z0-9_-]{8,120}$/.test(id||'')){
+    id=typeof crypto?.randomUUID==='function' ? crypto.randomUUID() : `device-${Date.now()}-${Math.random().toString(36).slice(2,12)}`;
+    saveLocal(DEVICE_ID_KEY,id);
+  }
+  return id;
+}
+function newMutationId(){
+  return `${currentDeviceId()}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,9)}`;
+}
 function purgeLegacyLocalProgress(){
   const marker='forja-eterna:temporada-2:legacy-purged';
   try{
@@ -191,9 +213,49 @@ async function removeStored(key){
     else localStorage.removeItem(namespacedStorageKey(key));
   }catch(e){ console.error('delete failed', e); }
 }
+async function readLegacySeasonStored(key){
+  const legacyKey=`${STORAGE_NAMESPACE}${key}`;
+  try{
+    const storage=getStorage();
+    return storage ? (await storage.get(legacyKey)).value : loadLocal(legacyKey);
+  }catch(_error){ return null; }
+}
+async function migrateLegacyStorageForRestoredAccount(accountId){
+  const safeId=safeStorageSegment(accountId);
+  if(!safeId) return false;
+  const marker=`forja-eterna:account-scope-migrated:${safeId}`;
+  if(loadLocal(marker)==='1' || await readStored('characters')) return false;
+  const rawRoster=await readLegacySeasonStored('characters');
+  if(!rawRoster) return false;
+  let roster;
+  try{ roster=JSON.parse(rawRoster); }catch(_error){ return false; }
+  if(!Array.isArray(roster)) return false;
+  const safeRoster=roster.filter(hero=>hero && /^[a-zA-Z0-9_-]{1,120}$/.test(String(hero.id||''))).slice(0,3);
+  for(const hero of safeRoster){
+    const saved=await readLegacySeasonStored(characterKey(hero.id));
+    if(saved) await writeStored(characterKey(hero.id),saved);
+    const run=await readLegacySeasonStored(runKey(hero.id));
+    if(run) await writeStored(runKey(hero.id),run);
+  }
+  await saveRoster(safeRoster);
+  saveLocal(marker,'1');
+  return true;
+}
 function characterKey(id){ return `character-save:${id}`; }
 function runKey(id){ return `run-save:${id}`; }
-function characterSummary(character){ return { id:character.id, name:character.name, level:character.level, resets:character.resets, characterClass:character.characterClass || 'warrior', updatedAt:Date.now() }; }
+function characterSummary(character){
+  const meta=character.syncMeta && typeof character.syncMeta==='object' ? character.syncMeta : {};
+  return {
+    id:character.id,
+    name:String(character.name||'Héroe').slice(0,32),
+    level:Math.max(1,Math.floor(Number(character.level)||1)),
+    resets:Math.max(0,Math.floor(Number(character.resets)||0)),
+    characterClass:CLASSES[character.characterClass] ? character.characterClass : 'warrior',
+    syncMutation:String(meta.mutationId||''),
+    syncVersion:Math.max(0,Math.floor(Number(meta.version)||0)),
+    updatedAt:Math.max(0,Math.floor(Number(meta.modifiedAt)||Date.now()))
+  };
+}
 async function loadRoster(){
   try{
     const raw = await readStored('characters');
@@ -218,15 +280,8 @@ async function loadState(id){
   }catch(e){ console.warn('character load failed', e); }
   return null;
 }
-function activeRunSnapshot(){
-  if(!runState || runState.phase==='ended') return null;
-  return {
-    version: 1,
-    savedAt: Date.now(),
-    run: runState,
-    battle: battle && battle.isRun ? battle : null
-  };
-}
+/* Compatibilidad de lectura para convertir, una sola vez, expediciones del
+   sistema anterior. Las nuevas Cacerías se guardan dentro del personaje. */
 async function loadRunSnapshot(id){
   try{
     const raw = await readStored(runKey(id));
@@ -237,55 +292,51 @@ async function loadRunSnapshot(id){
 async function clearRunSnapshot(id){
   if(id) await removeStored(runKey(id));
 }
-/**
- * Repara un `runState` cargado desde un snapshot guardado (nube o local)
- * para que tenga todos los campos que la versión actual del juego espera —
- * el equivalente de `normalizeState()` pero para runs en curso en vez de
- * para el personaje completo. Devuelve `false` (y no restaura nada) si el
- * snapshot no tiene forma de run válida.
- */
-function restoreRunSnapshot(snapshot){
-  if(!snapshot || !snapshot.run || typeof snapshot.run!=='object') return false;
-  const restored = snapshot.run;
-  restored.depth = Math.max(1, Math.floor(finiteNumber(restored.depth, 1)));
-  restored.phase = typeof restored.phase==='string' ? restored.phase : 'map';
-  restored.relics = Array.isArray(restored.relics) ? restored.relics : [];
-  restored.tempStats = restored.tempStats && typeof restored.tempStats==='object' ? restored.tempStats : {};
-  restored.routePlan = Array.isArray(restored.routePlan) ? restored.routePlan : [];
-  restored.routeHistory = Array.isArray(restored.routeHistory) ? restored.routeHistory : [];
-  restored.runGold = Math.max(0, finiteNumber(restored.runGold, 0));
-  restored.runGoldClaimed = !!restored.runGoldClaimed;
-  restored.hp = Math.max(1, finiteNumber(restored.hp, maxHP()));
-  restored.mana = Math.max(0, finiteNumber(restored.mana, maxMana()));
-  runState = restored;
-  ensureRunTelemetry(runState);
-  ensureRoutePlan();
-  purgeRemovedRunRelics();
-  syncRunResources();
-
-  const savedBattle = snapshot.battle;
-  if(savedBattle && savedBattle.isRun && savedBattle.monster && Number.isFinite(Number(savedBattle.playerHp))){
-    battle = savedBattle;
-    battle.busy = false;
-    battle.finishing = false;
-    battle.playerStatus = { ...newPlayerStatus(), ...(battle.playerStatus || {}) };
-    battle.playerHp = Math.max(0, finiteNumber(battle.playerHp, runState.hp));
-    battle.playerMana = Math.max(0, finiteNumber(battle.playerMana, runState.mana));
-    battle.playerMaxHp = Math.max(1, finiteNumber(battle.playerMaxHp, runState.maxHp));
-    battle.playerMaxMana = Math.max(1, finiteNumber(battle.playerMaxMana, runState.maxMana));
-    battle.healingUsed = !!battle.healingUsed;
-    battle.masteryClaims = battle.masteryClaims && typeof battle.masteryClaims==='object' ? battle.masteryClaims : {};
-    prepareMonster(battle.monster);
-    runState.phase = 'fight';
-  }else{
-    battle = null;
-    if(runState.phase==='fight'){
-      runState.phase = 'map';
-      runState.currentNode = null;
-      runState.pendingNode = null;
-    }
+function isHuntProgressLocked(){
+  if(window.CardHunt?.isProgressLocked) return !!window.CardHunt.isProgressLocked();
+  const snapshot=typeof state!=='undefined' ? state?.cardHuntSnapshot : null;
+  const run=snapshot?.run;
+  return !!run
+    && snapshot.ownerCharacterId===String(activeCharacterId||'')
+    && ['active','won'].includes(run.status)
+    && !['intro','lost','settled'].includes(run.screen);
+}
+async function migrateLegacyHuntSnapshot(id){
+  const snapshot=await loadRunSnapshot(id);
+  if(!snapshot) return null;
+  const legacyRun=snapshot.run;
+  if(!legacyRun || typeof legacyRun!=='object'){
+    await clearRunSnapshot(id);
+    return { migrated:false, invalid:true, reward:0 };
   }
-  return true;
+  const sourceSavedAt=Math.max(0,Math.floor(finiteNumber(snapshot.savedAt,0)));
+  const reward=legacyRun.runGoldClaimed ? 0 : Math.max(0,Math.min(1000000,Math.floor(finiteNumber(legacyRun.runGold,0))));
+  const depth=Math.max(0,Math.floor(finiteNumber(legacyRun.maxDepth,0)),Math.floor(finiteNumber(legacyRun.depth,0)));
+  const defeated=Math.max(0,Math.floor(finiteNumber(legacyRun.monstersDefeated,0)));
+  const previousMigration=state.legacyHuntMigration;
+  const alreadyMigrated=previousMigration?.migrated===true
+    && previousMigration.sourceSavedAt===sourceSavedAt
+    && previousMigration.depth===depth
+    && previousMigration.defeated===defeated
+    && previousMigration.reward===reward;
+  if(alreadyMigrated){
+    await clearRunSnapshot(id);
+    return { ...previousMigration, alreadyMigrated:true };
+  }
+  if(reward>0) gainGold(reward);
+  state.maxHuntDepth=Math.max(Math.floor(finiteNumber(state.maxHuntDepth,0)),depth);
+  state.legacyHuntMigration={
+    migrated:true,
+    migratedAt:Date.now(),
+    sourceSavedAt,
+    depth,
+    defeated,
+    reward
+  };
+  addLog(`↻ Cacería anterior consolidada: profundidad ${depth}${reward ? ` · +${reward} oro asegurado` : ''}.`, reward ? 'level' : 'reset');
+  await saveState();
+  await clearRunSnapshot(id);
+  return state.legacyHuntMigration;
 }
 let saveWriteQueue = Promise.resolve();
 let saveRevision = 0;
@@ -304,22 +355,31 @@ function scheduleRunCheckpoint(){
 }
 async function saveState(){
   if(!state || !activeCharacterId) return;
+  const previousSync=state.syncMeta && typeof state.syncMeta==='object' ? state.syncMeta : {};
+  state.syncMeta={
+    version:Math.max(0,Math.floor(Number(previousSync.version)||0))+1,
+    mutationId:newMutationId(),
+    deviceId:currentDeviceId(),
+    modifiedAt:Date.now()
+  };
   const revision = ++saveRevision;
   const characterId = activeCharacterId;
   const snapshot = JSON.stringify(state);
-  const runSnapshot = activeRunSnapshot();
   updateSaveIndicator('saving');
   saveWriteQueue = saveWriteQueue.catch(()=>{}).then(async()=>{
     try{
       const savedState = JSON.parse(snapshot);
       await writeStored(characterKey(characterId), snapshot);
-      if(runSnapshot) await writeStored(runKey(characterId), JSON.stringify(runSnapshot));
-      else await clearRunSnapshot(characterId);
       const roster = await loadRoster();
       const summary = characterSummary({ ...savedState, id:characterId });
       const index = roster.findIndex(character => character.id===characterId);
       if(index >= 0) roster[index] = summary; else roster.push(summary);
       await saveRoster(roster.slice(0,3));
+      const syncControl=await loadCloudSyncControl();
+      if(syncControl.tombstones[characterId]){
+        delete syncControl.tombstones[characterId];
+        await saveCloudSyncControl(syncControl);
+      }
       if(revision === saveRevision){
         updateSaveIndicator('saved');
         setTimeout(()=>{ if(revision === saveRevision) updateSaveIndicator('idle'); }, 1800);
@@ -351,6 +411,7 @@ function isLocalDeveloperEnvironment(){
 }
 let cloudSyncInterval = null;
 let cloudSyncInFlight = null;
+let cloudSyncReadyAccountId = null;
 let gamePortalBooted = false;
 let leaderboardEntries = [];
 let leaderboardSyncTimer = null;
@@ -403,6 +464,7 @@ async function restoreRegisteredAccount(){
   if(!isRegisteredSession(session)) return null;
   if(session.expires_at <= Math.floor(Date.now()/1000)+45) session=await refreshSupabaseSession(session);
   accountSession=isRegisteredSession(session)?session:null;
+  if(accountSession) await migrateLegacyStorageForRestoredAccount(accountSession.user.id);
   return accountSession;
 }
 async function ensureRegisteredAccount(){
@@ -434,49 +496,216 @@ function updateCloudIndicator(status){
   const el=document.getElementById('saveIndicator'); if(!el) return;
   if(status==='syncing'){ el.className='save-indicator saving'; el.textContent='Sincronizando nube…'; }
   else if(status==='synced'){ el.className='save-indicator saved'; el.textContent='Nube actualizada'; setTimeout(()=>updateSaveIndicator('idle'),1800); }
+  else if(status==='upgrade'){ el.className='save-indicator error'; el.textContent='Nube pendiente · actualizar seguridad'; }
   else if(status==='offline'){ el.className='save-indicator error'; el.textContent='Guardado local · nube pendiente'; }
+}
+const CLOUD_PAYLOAD_VERSION=3;
+const CLOUD_MAX_RESPONSE_BYTES=2*1024*1024;
+const CLOUD_SYNC_CONTROL_KEY='cloud-sync-control';
+function emptyCloudSyncControl(accountId=accountSession?.user?.id){
+  return {version:1,accountId:String(accountId||''),remoteRevision:0,baseMutations:{},tombstones:{},conflicts:[]};
+}
+function cleanMutationMap(value){
+  const clean={};
+  if(!value || typeof value!=='object' || Array.isArray(value)) return clean;
+  Object.entries(value).slice(0,100).forEach(([id,token])=>{
+    if(/^[a-zA-Z0-9_-]{1,120}$/.test(id) && typeof token==='string') clean[id]=token.slice(0,180);
+  });
+  return clean;
+}
+function cleanTombstones(value){
+  const clean={};
+  if(!value || typeof value!=='object' || Array.isArray(value)) return clean;
+  Object.entries(value).slice(0,100).forEach(([id,record])=>{
+    if(!/^[a-zA-Z0-9_-]{1,120}$/.test(id) || !record || typeof record!=='object') return;
+    const mutationId=String(record.mutationId||'').slice(0,180);
+    if(!mutationId) return;
+    clean[id]={mutationId,modifiedAt:Math.max(0,Math.floor(Number(record.modifiedAt)||0)),deviceId:String(record.deviceId||'').slice(0,120)};
+  });
+  return clean;
+}
+function cleanConflicts(value){
+  if(!Array.isArray(value)) return [];
+  return value.filter(record=>record && typeof record==='object' && record.snapshot && typeof record.snapshot==='object')
+    .slice(-3).map(record=>({
+      id:String(record.id||'').slice(0,120),mutationId:String(record.mutationId||'').slice(0,180),
+      capturedAt:Math.max(0,Math.floor(Number(record.capturedAt)||0)),sourceDevice:String(record.sourceDevice||'').slice(0,120),
+      reason:String(record.reason||'concurrent-update').slice(0,80),snapshot:record.snapshot
+    }));
+}
+async function loadCloudSyncControl(){
+  const accountId=String(accountSession?.user?.id||'');
+  try{
+    const raw=await readStored(CLOUD_SYNC_CONTROL_KEY), parsed=raw ? JSON.parse(raw) : null;
+    if(!parsed || parsed.accountId!==accountId) return emptyCloudSyncControl(accountId);
+    return {version:1,accountId,remoteRevision:Math.max(0,Math.floor(Number(parsed.remoteRevision)||0)),baseMutations:cleanMutationMap(parsed.baseMutations),tombstones:cleanTombstones(parsed.tombstones),conflicts:cleanConflicts(parsed.conflicts)};
+  }catch(_error){ return emptyCloudSyncControl(accountId); }
+}
+async function saveCloudSyncControl(control){
+  const safe={...emptyCloudSyncControl(),...control,accountId:String(accountSession?.user?.id||''),remoteRevision:Math.max(0,Math.floor(Number(control?.remoteRevision)||0)),baseMutations:cleanMutationMap(control?.baseMutations),tombstones:cleanTombstones(control?.tombstones),conflicts:cleanConflicts(control?.conflicts)};
+  await writeStored(CLOUD_SYNC_CONTROL_KEY,JSON.stringify(safe));
+  return safe;
+}
+async function markCloudTombstone(characterId){
+  const id=String(characterId||'');
+  if(!/^[a-zA-Z0-9_-]{1,120}$/.test(id)) return false;
+  await saveWriteQueue.catch(()=>{});
+  const control=await loadCloudSyncControl();
+  control.tombstones[id]={mutationId:newMutationId(),modifiedAt:Date.now(),deviceId:currentDeviceId()};
+  await saveCloudSyncControl(control);
+  return true;
+}
+function cloneCloudValue(value){ return JSON.parse(JSON.stringify(value)); }
+function safeCloudHero(hero,saved,fallbackTime=0){
+  const id=String(hero?.id||'');
+  if(!/^[a-zA-Z0-9_-]{1,120}$/.test(id) || !saved || typeof saved!=='object' || Array.isArray(saved)) return null;
+  const meta=saved.syncMeta && typeof saved.syncMeta==='object' ? saved.syncMeta : {};
+  const modifiedAt=Math.max(0,Math.floor(Number(meta.modifiedAt)||Number(hero.updatedAt)||fallbackTime||0));
+  const mutationId=String(meta.mutationId||hero.syncMutation||`legacy-${id}-${modifiedAt}`).slice(0,180);
+  const character=cloneCloudValue(saved);
+  character.name=String(character.name||hero.name||'Héroe').slice(0,32);
+  character.characterClass=CLASSES[character.characterClass] ? character.characterClass : 'warrior';
+  character.syncMeta={version:Math.max(0,Math.floor(Number(meta.version)||Number(hero.syncVersion)||0)),mutationId,deviceId:String(meta.deviceId||'legacy').slice(0,120),modifiedAt};
+  const summary=characterSummary({...character,id});
+  return {summary,character};
+}
+function sanitizeCloudPayload(raw,ownerId){
+  if(!raw || typeof raw!=='object' || Array.isArray(raw)) return null;
+  const version=Math.floor(Number(raw.version)||0);
+  if(![2,CLOUD_PAYLOAD_VERSION].includes(version) || raw.season!=='temporada-2' || !Array.isArray(raw.roster)) throw new Error('Formato de guardado remoto inválido.');
+  if(version===CLOUD_PAYLOAD_VERSION && raw.ownerId!==ownerId) throw new Error('El guardado remoto pertenece a otra cuenta.');
+  const sourceCharacters=raw.characters && typeof raw.characters==='object' && !Array.isArray(raw.characters) ? raw.characters : {};
+  const roster=[], characters={}, seen=new Set();
+  for(const candidate of raw.roster.slice(0,12)){
+    const id=String(candidate?.id||'');
+    if(seen.has(id)) continue;
+    const safe=safeCloudHero(candidate,sourceCharacters[id],Number(raw.savedAt)||0);
+    if(!safe) continue;
+    seen.add(id); roster.push(safe.summary); characters[id]=safe.character;
+  }
+  roster.sort((a,b)=>b.updatedAt-a.updatedAt);
+  const limitedRoster=roster.slice(0,3), limitedCharacters=Object.fromEntries(limitedRoster.map(hero=>[hero.id,characters[hero.id]]));
+  return {version:CLOUD_PAYLOAD_VERSION,season:'temporada-2',ownerId,roster:limitedRoster,characters:limitedCharacters,tombstones:version===CLOUD_PAYLOAD_VERSION?cleanTombstones(raw.tombstones):{},conflicts:version===CLOUD_PAYLOAD_VERSION?cleanConflicts(raw.conflicts):[],savedAt:Math.max(0,Math.floor(Number(raw.savedAt)||0)),deviceId:String(raw.deviceId||'legacy').slice(0,120),legacyRuns:version===2&&raw.runs&&typeof raw.runs==='object'?raw.runs:{}};
 }
 async function buildCloudPayload(){
   await saveWriteQueue.catch(()=>{});
-  const roster=await loadRoster();
-  const characters={}; const runs={};
-  for(const hero of roster){
-    const saved=await loadState(hero.id); if(saved) characters[hero.id]=saved;
-    const run=await loadRunSnapshot(hero.id); if(run) runs[hero.id]=run;
+  const roster=await loadRoster(), characters={}, safeRoster=[];
+  for(const hero of roster.slice(0,3)){
+    const safe=safeCloudHero(hero,await loadState(hero.id),Date.now());
+    if(!safe) continue;
+    safeRoster.push(safe.summary); characters[hero.id]=safe.character;
   }
-  return {version:2,season:'temporada-2',roster,characters,runs,savedAt:Date.now()};
+  const control=await loadCloudSyncControl();
+  return {version:CLOUD_PAYLOAD_VERSION,season:'temporada-2',ownerId:String(accountSession?.user?.id||''),roster:safeRoster,characters,tombstones:control.tombstones,conflicts:control.conflicts,savedAt:Date.now(),deviceId:currentDeviceId()};
+}
+function payloadRecords(payload){
+  const records=new Map();
+  if(!payload) return records;
+  for(const hero of payload.roster||[]){
+    const saved=payload.characters?.[hero.id];
+    if(saved) records.set(hero.id,{kind:'character',token:String(hero.syncMutation||''),modifiedAt:Number(hero.updatedAt)||0,hero,saved});
+  }
+  Object.entries(payload.tombstones||{}).forEach(([id,tombstone])=>{
+    const current=records.get(id);
+    if(!current || Number(tombstone.modifiedAt)>=current.modifiedAt) records.set(id,{kind:'tombstone',token:String(tombstone.mutationId||''),modifiedAt:Number(tombstone.modifiedAt)||0,tombstone});
+  });
+  return records;
+}
+function payloadMutationMap(payload){ const map={}; payloadRecords(payload).forEach((record,id)=>{if(record.token)map[id]=record.token;}); return map; }
+function rememberCloudConflict(conflicts,id,loser,reason){
+  if(!loser || loser.kind!=='character' || conflicts.some(record=>record.id===id&&record.mutationId===loser.token)) return;
+  conflicts.push({id,mutationId:loser.token,capturedAt:Date.now(),sourceDevice:String(loser.saved?.syncMeta?.deviceId||''),reason,snapshot:cloneCloudValue(loser.saved)});
+}
+function mergeCloudPayloads(local,remote,baseMutations={}){
+  const localRecords=payloadRecords(local), remoteRecords=payloadRecords(remote), ids=new Set([...localRecords.keys(),...remoteRecords.keys()]);
+  const chosen=[], conflicts=cleanConflicts([...(remote?.conflicts||[]),...(local?.conflicts||[])]);
+  ids.forEach(id=>{
+    const left=localRecords.get(id), right=remoteRecords.get(id); let winner;
+    if(!left) winner=right;
+    else if(!right) winner=left;
+    else if(left.token===right.token) winner=left.modifiedAt>=right.modifiedAt?left:right;
+    else {
+      const base=String(baseMutations[id]||''), leftChanged=left.token!==base, rightChanged=right.token!==base;
+      if(leftChanged&&!rightChanged) winner=left;
+      else if(rightChanged&&!leftChanged) winner=right;
+      else {
+        winner=id===activeCharacterId&&state ? left : (left.modifiedAt>=right.modifiedAt?left:right);
+        rememberCloudConflict(conflicts,id,winner===left?right:left,'concurrent-update');
+      }
+    }
+    if(winner) chosen.push([id,winner]);
+  });
+  const active=chosen.filter(([,record])=>record.kind==='character').sort((a,b)=>b[1].modifiedAt-a[1].modifiedAt);
+  active.slice(3).forEach(([id,record])=>rememberCloudConflict(conflicts,id,record,'roster-capacity'));
+  const roster=[], characters={};
+  active.slice(0,3).forEach(([id,record])=>{roster.push(cloneCloudValue(record.hero));characters[id]=cloneCloudValue(record.saved);});
+  const activeIds=new Set(roster.map(hero=>hero.id)), tombstones={};
+  chosen.forEach(([id,record])=>{if(record.kind==='tombstone'&&!activeIds.has(id))tombstones[id]=cloneCloudValue(record.tombstone);});
+  return {version:CLOUD_PAYLOAD_VERSION,season:'temporada-2',ownerId:String(accountSession?.user?.id||''),roster,characters,tombstones:cleanTombstones(tombstones),conflicts:cleanConflicts(conflicts),savedAt:Date.now(),deviceId:currentDeviceId(),legacyRuns:{...(remote?.legacyRuns||{}),...(local?.legacyRuns||{})}};
+}
+async function applyCloudPayload(payload){
+  if(!payload) return;
+  const previous=await loadRoster(), nextIds=new Set(payload.roster.map(hero=>hero.id));
+  for(const hero of previous){if(!nextIds.has(hero.id)){await removeStored(characterKey(hero.id));await clearRunSnapshot(hero.id);}}
+  for(const hero of payload.roster){
+    const saved=payload.characters[hero.id]; if(saved) await writeStored(characterKey(hero.id),JSON.stringify(saved));
+    const legacyRun=payload.legacyRuns?.[hero.id]; if(legacyRun) await writeStored(runKey(hero.id),JSON.stringify(legacyRun));
+  }
+  await saveRoster(payload.roster.slice(0,3));
+}
+function assertSameCloudAccount(userId){if(!accountSession||accountSession.user?.id!==userId)throw new Error('La cuenta cambió durante la sincronización.');}
+async function readCloudRecord(){
+  if(!await ensureRegisteredAccount()) throw new Error('Cuenta no disponible.');
+  const userId=accountSession.user.id, token=accountSession.access_token;
+  const response=await fetch(`${SUPABASE_URL}/rest/v1/player_saves?select=payload,revision,updated_at&player_id=eq.${encodeURIComponent(userId)}&limit=1`,{headers:supabaseHeaders(token),cache:'no-store'});
+  assertSameCloudAccount(userId);
+  if(!response.ok) throw new Error(`Nube ${response.status}`);
+  const text=await response.text();
+  if(text.length>CLOUD_MAX_RESPONSE_BYTES) throw new Error('El guardado remoto supera el límite seguro.');
+  const rows=JSON.parse(text||'[]'), row=rows?.[0];
+  return {revision:Math.max(0,Math.floor(Number(row?.revision)||0)),payload:row?.payload?sanitizeCloudPayload(row.payload,userId):null};
 }
 async function pullCloudProgress(){
-  if(!await ensureRegisteredAccount()) return false;
-  const response=await fetch(`${SUPABASE_URL}/rest/v1/player_saves?select=payload,updated_at&player_id=eq.${accountSession.user.id}&limit=1`,{headers:supabaseHeaders(accountSession.access_token),cache:'no-store'});
-  if(!response.ok) throw new Error(`Nube ${response.status}`);
-  const rows=await response.json(); const remote=rows?.[0]?.payload;
-  if(!remote || remote.version!==2 || remote.season!=='temporada-2' || !Array.isArray(remote.roster)) return false;
-  const localRoster=await loadRoster(); const localMap=new Map(localRoster.map(hero=>[hero.id,hero]));
-  const merged=[...localRoster];
-  for(const remoteHero of remote.roster){
-    const local=localMap.get(remoteHero.id);
-    if(!local){ merged.push(remoteHero); }
-    else if(finiteNumber(remoteHero.updatedAt)>finiteNumber(local.updatedAt)) merged[merged.findIndex(hero=>hero.id===remoteHero.id)]=remoteHero;
-    if((!local || finiteNumber(remoteHero.updatedAt)>finiteNumber(local.updatedAt)) && remote.characters?.[remoteHero.id]) await writeStored(characterKey(remoteHero.id),JSON.stringify(remote.characters[remoteHero.id]));
-    if(remote.runs?.[remoteHero.id]) await writeStored(runKey(remoteHero.id),JSON.stringify(remote.runs[remoteHero.id]));
-  }
-  merged.sort((a,b)=>finiteNumber(b.updatedAt)-finiteNumber(a.updatedAt));
-  await saveRoster(merged.slice(0,3));
+  if(!navigator.onLine||!await ensureRegisteredAccount()) return false;
+  const userId=accountSession.user.id, record=await readCloudRecord(), local=await buildCloudPayload(), control=await loadCloudSyncControl();
+  const merged=mergeCloudPayloads(local,record.payload,control.baseMutations);
+  await applyCloudPayload(merged);
+  control.remoteRevision=record.revision;
+  control.baseMutations=payloadMutationMap(record.payload);
+  control.tombstones=merged.tombstones;
+  control.conflicts=merged.conflicts;
+  await saveCloudSyncControl(control);
+  cloudSyncReadyAccountId=userId;
   return true;
 }
 async function pushCloudProgress(silent=false){
-  if(!await ensureRegisteredAccount() || !navigator.onLine) { if(!silent) updateCloudIndicator('offline'); return false; }
+  if(!await ensureRegisteredAccount()||!navigator.onLine){if(!silent)updateCloudIndicator('offline');return false;}
   if(cloudSyncInFlight) return cloudSyncInFlight;
   cloudSyncInFlight=(async()=>{
+    const userId=accountSession.user.id;
     if(!silent) updateCloudIndicator('syncing');
-    const payload=await buildCloudPayload();
-    const response=await fetch(`${SUPABASE_URL}/rest/v1/player_saves?on_conflict=player_id`,{method:'POST',headers:{...supabaseHeaders(accountSession.access_token),Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({player_id:accountSession.user.id,payload,updated_at:new Date().toISOString()})});
-    if(!response.ok) throw new Error(`Nube ${response.status}`);
-    if(!silent) updateCloudIndicator('synced');
-    return true;
+    if(cloudSyncReadyAccountId!==userId&&!(await pullCloudProgress())) throw new Error('No se pudo verificar la copia remota.');
+    for(let attempt=0;attempt<3;attempt++){
+      const record=await readCloudRecord(), local=await buildCloudPayload(), control=await loadCloudSyncControl();
+      const merged=mergeCloudPayloads(local,record.payload,control.baseMutations), serialized=JSON.stringify(merged);
+      if(serialized.length>CLOUD_MAX_RESPONSE_BYTES) throw new Error('El guardado local supera el límite seguro de nube.');
+      const response=await fetch(`${SUPABASE_URL}/rest/v1/rpc/sync_player_save`,{method:'POST',headers:supabaseHeaders(accountSession.access_token),body:JSON.stringify({expected_revision:record.revision,next_payload:merged,device_id:currentDeviceId()})});
+      assertSameCloudAccount(userId);
+      const text=await response.text();
+      if(text.length>CLOUD_MAX_RESPONSE_BYTES) throw new Error('La respuesta de nube supera el límite seguro.');
+      if(!response.ok){const error=new Error(`Nube segura no disponible (${response.status})`);error.requiresCloudUpgrade=response.status===404||response.status===400;throw error;}
+      const result=JSON.parse(text||'{}');
+      if(!result.applied) continue;
+      await applyCloudPayload(merged);
+      control.remoteRevision=Math.max(0,Math.floor(Number(result.revision)||record.revision+1));
+      control.baseMutations=payloadMutationMap(merged);control.tombstones=merged.tombstones;control.conflicts=merged.conflicts;
+      await saveCloudSyncControl(control);cloudSyncReadyAccountId=userId;
+      if(!silent) updateCloudIndicator('synced');
+      return true;
+    }
+    throw new Error('Otro dispositivo modificó la partida repetidamente. Se reintentará.');
   })();
-  try{return await cloudSyncInFlight;}catch(error){console.warn('Cloud sync failed',error);if(!silent)updateCloudIndicator('offline');return false;}finally{cloudSyncInFlight=null;}
+  try{return await cloudSyncInFlight;}catch(error){console.warn('Cloud sync failed',error);if(!silent)updateCloudIndicator(error.requiresCloudUpgrade?'upgrade':'offline');return false;}finally{cloudSyncInFlight=null;}
 }
 function startCloudBackup(){
   clearInterval(cloudSyncInterval);
@@ -490,12 +719,24 @@ function startCloudBackup(){
   window.addEventListener('pagehide',()=>pushCloudProgress(true));
 }
 async function enterAuthenticatedWorld(){
-  document.getElementById('accountGate').hidden=true; document.body.classList.remove('account-locked');
   updateAccountChip();
-  try{ await pullCloudProgress(); }catch(error){ console.warn('Cloud restore unavailable',error); }
+  const stylesReady=window.FeatureLoader?.loadGameStyles?.();
+  const gameplayReady=window.FeatureLoader?.loadGameplayScripts?.();
+  let cloudVerified=false;
+  try{ cloudVerified=await pullCloudProgress(); }
+  catch(error){ console.warn('Cloud restore unavailable',error); updateCloudIndicator('offline'); }
+  try{ await Promise.all([stylesReady,gameplayReady]); }
+  catch(error){
+    console.error('Game resources unavailable',error);
+    const status=document.getElementById('accountStatus');
+    if(status){status.className='account-status error';status.textContent='No se pudieron cargar los recursos del juego. Revisá tu conexión e intentá nuevamente.';}
+    return false;
+  }
+  document.getElementById('accountGate').hidden=true; document.body.classList.remove('account-locked');
   await launchGamePortal();
   startCloudBackup();
-  pushCloudProgress(true);
+  if(cloudVerified) pushCloudProgress(true);
+  return true;
 }
 function updateDeveloperPanel(){
   const readout=document.getElementById('developerHeroReadout');
@@ -518,9 +759,9 @@ async function applyDeveloperAction(action,value){
     state.statPoints=(state.statPoints||0)+amount;
     showFeedback('PUNTOS DE PRUEBA', `+${amount} puntos disponibles`, 'reward');
   }else if(action==='restore'){
-    if(runState){ runState.hp=maxHP(); runState.mana=maxMana(); }
-    if(battle){ battle.playerHp=battle.playerMaxHp||maxHP(); battle.playerMana=battle.playerMaxMana||maxMana(); }
-    showFeedback('RECURSOS RESTAURADOS', 'Vida y maná al máximo', 'heal');
+    await window.FeatureLoader?.loadCardHunt?.();
+    const restored=window.CardHunt?.restoreResources?.();
+    showFeedback(restored?'RECURSOS RESTAURADOS':'SIN CACERÍA ACTIVA', restored?'Vida y maná al máximo':'Comenzá una expedición para restaurar sus recursos.', restored?'heal':'reward');
   }
   await saveState(); render(); updateDeveloperPanel();
 }
@@ -528,6 +769,12 @@ async function enterDeveloperWorld(){
   if(!isLocalDeveloperEnvironment()) return;
   developerMode=true;
   accountSession=null;
+  try{
+    await Promise.all([
+      window.FeatureLoader?.loadGameStyles?.(),
+      window.FeatureLoader?.loadGameplayScripts?.()
+    ]);
+  }catch(error){console.error('Game resources unavailable',error);return;}
   document.getElementById('accountGate').hidden=true;
   document.body.classList.remove('account-locked');
   document.body.classList.add('developer-local');
@@ -720,7 +967,8 @@ function renderLeaderboard(entries){
   box.innerHTML = `<div class="lb-dashboard"><div><small>CLASIFICACIÓN GLOBAL</small><b>Ordenado por poder</b></div><span>⚡ ${Number(leader.power||0).toLocaleString('es-AR')} <em>líder actual</em></span></div><div class="lb-intro">Tocá un aventurero para inspeccionar su ficha pública.</div>` + leaderboardEntries.map((e,i)=>{
     const hero = leaderboardClassInfo(e.class_key);
     const topClass=i<3 ? ` podium-${i+1}` : '';
-    return `<button class="lb-row${topClass} ${e.name===state.name?'me':''}" type="button" onclick="openLeaderboardProfile(${i})" aria-label="Ver perfil de ${escapeHtml(e.name)}"><span class="rank">${i<3 ? ['♛','♜','♞'][i] : e.rank}</span><span class="lb-crest">${leaderboardCrest(hero)}</span><span class="lb-player"><strong>${escapeHtml(e.name)}</strong><small><b>${hero.label}</b> · Nv. ${Number(e.level)||1} · ${Number(e.resets)||0} reset${Number(e.resets)===1?'':'s'}</small></span><span class="lb-power"><b>⚡ ${Number(e.power||0).toLocaleString('es-AR')}</b><span class="lb-view">FICHA ›</span></span></button>`;
+    return `<button class="lb-row${topClass} ${e.name===state.name?'me':''}" type="button" data-leaderboard-index="${i}" aria-label="Ver perfil de ${escapeHtml(e.name)}"><span class="rank">${i<3 ? ['♛','♜','♞'][i] : e.rank}</span><span class="lb-crest">${leaderboardCrest(hero)}</span><span class="lb-player"><strong>${escapeHtml(e.name)}</strong><small><b>${hero.label}</b> · Nv. ${Number(e.level)||1} · ${Number(e.resets)||0} reset${Number(e.resets)===1?'':'s'}</small></span><span class="lb-power"><b>⚡ ${Number(e.power||0).toLocaleString('es-AR')}</b><span class="lb-view">FICHA ›</span></span></button>`;
   }).join('');
+  box.querySelectorAll('[data-leaderboard-index]').forEach(button=>button.addEventListener('click',()=>openLeaderboardProfile(Number(button.dataset.leaderboardIndex))));
 }
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }

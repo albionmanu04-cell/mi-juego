@@ -25,10 +25,68 @@ const ALLOCATION_STATS = [
 // navegador) — si se recarga la página a mitad de una asignación sin
 // guardar, el próximo "Guardar" simplemente no muestra el indicador.
 let statAllocSnapshot = null;
-function canRespecPoints(){ return availableStatResets()>0 && !battle && !(runState && runState.phase!=='ended'); }
+function canRespecPoints(){ return availableStatResets()>0 && !isHuntProgressLocked(); }
 function allocationTotal(){ return Object.values(state.allocatedPoints || {}).reduce((sum, value)=>sum+(Number(value)||0),0); }
 function pendingTotal(){ return Object.values(state.pendingPoints || {}).reduce((sum, value)=>sum+(Number(value)||0),0); }
 function emptyPointMap(){ return { ataque:0, vida:0, mana:0, agilidad:0, rapidez:0, robustez:0, percepcion:0, critRate:0, critDmg:0 }; }
+let subclassChoiceOpen = false;
+function subclassBonusText(bonuses={}){
+  const labels={hp:'Vida',mana:'Maná',atk:'Ataque',def:'Defensa',crit:'Crítico',critDmg:'Daño crítico',dodge:'Evasión',speed:'Rapidez',skillMult:'Poder de habilidad',manaDiscount:'Ahorro de maná',companionRate:'Frecuencia del compañero',companionPower:'Daño del compañero'};
+  return Object.entries(bonuses).map(([key,value])=>{
+    const percentage=['crit','critDmg','dodge','speed'].includes(key) ? value : ['skillMult','manaDiscount','companionRate','companionPower'].includes(key) ? Math.round(value*100) : null;
+    return `+${percentage===null?value:percentage}${percentage===null?'':'%'} ${labels[key]||key}`;
+  }).join(' · ');
+}
+function openSubclassChoice(forRebirth=false){
+  if(subclassChoiceOpen || state.subclass) return;
+  const choices=SUBCLASSES[state.characterClass] || {};
+  if(!Object.keys(choices).length) return;
+  subclassChoiceOpen=true;
+  const overlay=document.createElement('div');
+  overlay.className='subclass-overlay';
+  overlay.id='subclassOverlay';
+  overlay.innerHTML=`<section class="subclass-modal" role="dialog" aria-modal="true"><div class="subclass-kicker">✦ PRIMER RENACIMIENTO</div><h2>ELEGÍ TU SENDA</h2><p>Esta especialización será permanente para <b>${escapeHtml(state.name)}</b>.</p><div class="subclass-grid">${Object.entries(choices).map(([id,sub])=>`<button class="subclass-card" data-subclass="${id}">${sub.image?`<img src="${sub.image}" alt="${sub.label}" decoding="async">`:`<span>${sub.icon}</span>`}<b>${sub.icon} ${sub.label}</b><small>${sub.description}</small><em>${subclassBonusText(sub.bonuses)}</em><strong>ELEGIR SENDA</strong></button>`).join('')}</div></section>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>overlay.classList.add('show'));
+  overlay.querySelectorAll('[data-subclass]').forEach(button=>button.addEventListener('click',()=>{
+    const id=button.dataset.subclass, sub=choices[id];
+    if(!sub || !confirm(`¿Elegir ${sub.label}? Esta senda quedará guardada con el personaje.`)) return;
+    state.subclass=id;
+    subclassChoiceOpen=false;
+    overlay.remove();
+    Sound.victory();
+    showFeedback(`${sub.icon} ${sub.label.toUpperCase()}`, subclassBonusText(sub.bonuses), 'level');
+    addLog(`✦ Senda desbloqueada: ${sub.label} — ${subclassBonusText(sub.bonuses)}.`, 'level');
+    if(forRebirth) performRebirth(); else { render(); saveState(); }
+  }));
+}
+function performRebirth(){
+  Sound.victory();
+  state.resets++;
+  state.level=1;
+  state.exp=0;
+  state.stats={...defaultState(state.name,state.characterClass).stats};
+  state.robustness=0;
+  state.perception=0;
+  state.critRateStat=0;
+  state.critDmgStat=0;
+  state.allocatedPoints=emptyPointMap();
+  state.pendingPoints=emptyPointMap();
+  state.statPoints=rebirthStartingPoints();
+  if(state.missions?.week) state.missions.week.resets=(state.missions.week.resets||0)+1;
+  if(state.missions?.month) state.missions.month.resets=(state.missions.month.resets||0)+1;
+  addLog(`✦ RENACIMIENTO #${state.resets} — Marca Eterna obtenida · +${resetStatBonus()} progreso base · ${state.statPoints} puntos iniciales`,'reset');
+  showFeedback(`✦ MARCA ETERNA ${state.resets}`,`Nivel 1 · ${state.statPoints} puntos iniciales · equipo conservado`,'level');
+  rollMissionReset();
+  render();
+  saveState();
+}
+function doReset(){
+  if(state.level<LEVEL_CAP || isHuntProgressLocked()) return;
+  if(state.resets===0 && !state.subclass){ openSubclassChoice(true); return; }
+  if(!confirm(`¿Renacer como nivel 1?\n\nConservarás equipo, inventario, oro, materiales, logros, bestiario y tu subclase. Recibirás la Marca Eterna #${state.resets+1}.`)) return;
+  performRebirth();
+}
 function applyStatDelta(key, points){
   const conf = ALLOCATION_STATS.find(stat=>stat.key===key);
   if(!conf || !points) return;
@@ -82,7 +140,7 @@ function celebrateStatSave(){
 }
 function editPendingAllocation(key, direction){
   const conf = ALLOCATION_STATS.find(stat=>stat.key===key);
-  if(!conf || battle) return;
+  if(!conf || isHuntProgressLocked()) return;
   if(direction>0){
     if(state.statPoints<=0) return;
     if(pendingTotal()===0) statAllocSnapshot = heroPowerSnapshot();
@@ -187,7 +245,7 @@ const STAT_EQ_SUFFIX = { critRate:'%', critDmg:'%', rapidez:'%' };
 function statAllocList(){
   const box = document.getElementById('statAllocList');
   if(!box) return;
-  const canSpend = state.statPoints>0 && !battle;
+  const canSpend = state.statPoints>0 && !isHuntProgressLocked();
   const hasPending = pendingTotal()>0;
   const respecReady = canRespecPoints() && allocationTotal()>0 && !hasPending;
   let lastGroup = '';

@@ -7,3 +7,8 @@ assets/images/paperdoll/
 # Paquetes generados localmente.
 publicacion/
 *.zip
+
+# Archivos generados por herramientas de desarrollo.
+node_modules/
+coverage/
+*.log

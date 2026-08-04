@@ -428,7 +428,7 @@ function settlementUpgradeBlock(key, b){
   const affordable = settlementCanAfford(cost);
   const activeUpgrade = settlementActiveUpgradeKey();
   const builderBusy = activeUpgrade && activeUpgrade!==key;
-  return `<button class="settlement-upgrade-btn" ${affordable&&!builderBusy?'':'disabled'} onclick="startSettlementUpgrade('${key}')">
+  return `<button class="settlement-upgrade-btn" data-settlement-upgrade="${key}" ${affordable&&!builderBusy?'':'disabled'}>
     ${builderBusy?'🔒 Constructor ocupado':`⬆ Mejorar a Nv. ${b.level+1} · ${settlementFormatCost(cost)} · ${settlementFormatDuration(minutes*60000)}`}
   </button>`;
 }
@@ -497,7 +497,7 @@ function settlementResourceCard(key, b, reveal){
     </div>
     <p class="settlement-card-flavor">${cfg.flavor}</p>
     ${resourceRows}
-    <button class="settlement-collect-btn" ${canCollect?'':'disabled'} onclick="collectSettlementBuilding('${key}')">${canCollect?'✋ Recolectar':'Nada para recolectar'}</button>
+    <button class="settlement-collect-btn" data-settlement-collect="${key}" ${canCollect?'':'disabled'}>${canCollect?'✋ Recolectar':'Nada para recolectar'}</button>
     ${settlementUpgradeBlock(key, b)}
   </div>`;
 }
@@ -529,7 +529,7 @@ function settlementOverview(){
     return `<span style="--resource-color:${meta.color}"><i>${meta.icon}</i><b>+${amount}/h</b><small>${meta.label}</small></span>`;
   }).join('');
   const focusButtons = Object.entries(SETTLEMENT_FOCUSES).map(([id,focus])=>`
-    <button class="${activeFocus===id?'active':''}" onclick="setSettlementFocus('${id}')" title="${focus.description}">
+    <button class="${activeFocus===id?'active':''}" data-settlement-focus="${id}" title="${focus.description}">
       <i>${focus.icon}</i><b>${focus.label}</b><small>${focus.description}</small>
     </button>`).join('');
   const milestones = SETTLEMENT_MILESTONES.map(milestone=>`
@@ -583,6 +583,10 @@ function renderSettlement(fromTick){
     return cfg.kind==='resource' ? settlementResourceCard(key,b,reveal) : settlementSpecialCard(key,b,reveal);
   }).join('')+`</div>`;
 
+  box.querySelectorAll('[data-settlement-upgrade]').forEach(button=>button.addEventListener('click',()=>startSettlementUpgrade(button.dataset.settlementUpgrade)));
+  box.querySelectorAll('[data-settlement-collect]').forEach(button=>button.addEventListener('click',()=>collectSettlementBuilding(button.dataset.settlementCollect)));
+  box.querySelectorAll('[data-settlement-focus]').forEach(button=>button.addEventListener('click',()=>setSettlementFocus(button.dataset.settlementFocus)));
+
   if(settlementCelebrateQueue.length){
     settlementCelebrateQueue.forEach(key=>{
       const card = box.querySelector(`[data-building="${key}"]`);
@@ -597,3 +601,5 @@ function renderSettlement(fromTick){
 
   settlementEnsureTick();
 }
+
+document.getElementById('settlementCollectAllBtn')?.addEventListener('click',collectAllSettlement);

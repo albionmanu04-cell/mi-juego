@@ -7,3 +7,8 @@ assets/images/paperdoll/
 *.sql
 *.txt
 publicacion/
+.github/
+tests/
+scripts/
+package.json
+VERSION

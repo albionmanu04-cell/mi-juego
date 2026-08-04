@@ -238,6 +238,13 @@ function normalizeState(){
   const fresh = defaultState(state.name || 'Guerrero', state.characterClass || 'warrior');
   state = { ...fresh, ...state };
   if(!CLASSES[state.characterClass]) state.characterClass = 'warrior';
+  const rawSyncMeta=state.syncMeta && typeof state.syncMeta==='object' ? state.syncMeta : {};
+  state.syncMeta={
+    version:Math.max(0,Math.floor(Number(rawSyncMeta.version)||0)),
+    mutationId:String(rawSyncMeta.mutationId||'').slice(0,180),
+    deviceId:String(rawSyncMeta.deviceId||'').slice(0,120),
+    modifiedAt:Math.max(0,Math.floor(Number(rawSyncMeta.modifiedAt)||0))
+  };
   state.stats = { ...fresh.stats, ...(state.stats || {}) };
   state.allocatedPoints = { ...fresh.allocatedPoints, ...(state.allocatedPoints || {}) };
   state.pendingPoints = { ...fresh.pendingPoints, ...(state.pendingPoints || {}) };
@@ -325,6 +332,25 @@ function normalizeState(){
     const entries=Array.isArray(state.cardCodex[classId]) ? state.cardCodex[classId] : [];
     state.cardCodex[classId]=[...new Set(entries.filter(key=>typeof key==='string' && key.trim()))];
   });
+  state.cardHuntSnapshot = state.cardHuntSnapshot && typeof state.cardHuntSnapshot==='object' ? state.cardHuntSnapshot : null;
+  state.cardHuntSettlements = state.cardHuntSettlements && typeof state.cardHuntSettlements==='object' && !Array.isArray(state.cardHuntSettlements)
+    ? state.cardHuntSettlements
+    : {};
+  const recentCardHuntSettlements=Object.entries(state.cardHuntSettlements)
+    .filter(([runId,record])=>runId && record && typeof record==='object')
+    .sort((a,b)=>(Number(b[1].settledAt)||0)-(Number(a[1].settledAt)||0))
+    .slice(0,30);
+  state.cardHuntSettlements=Object.fromEntries(recentCardHuntSettlements);
+  state.legacyHuntMigration=state.legacyHuntMigration && typeof state.legacyHuntMigration==='object'
+    ? {
+        migrated:state.legacyHuntMigration.migrated===true,
+        migratedAt:Math.max(0,Math.floor(Number(state.legacyHuntMigration.migratedAt)||0)),
+        sourceSavedAt:Math.max(0,Math.floor(Number(state.legacyHuntMigration.sourceSavedAt)||0)),
+        depth:Math.max(0,Math.floor(Number(state.legacyHuntMigration.depth)||0)),
+        defeated:Math.max(0,Math.floor(Number(state.legacyHuntMigration.defeated)||0)),
+        reward:Math.max(0,Math.floor(Number(state.legacyHuntMigration.reward)||0))
+      }
+    : null;
   state.tutorialSeen = !!state.tutorialSeen;
   state.companion = state.companion || null;
   state.missions = { ...fresh.missions, ...(state.missions || {}) };

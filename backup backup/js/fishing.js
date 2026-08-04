@@ -203,7 +203,7 @@ const FISH_BAR_DIFFICULTY = {
   legendary: { barSize:20, critterSpeed:46, retargetMin:340, retargetMax:720 },
 };
 
-function fishingLocked(){ return !!(battle || (runState && runState.phase!=='ended')); }
+function fishingLocked(){ return isHuntProgressLocked(); }
 function rodMaxLevel(){ return 5; }
 function rodUpgradeCost(){
   const lvl = (state.fishing && state.fishing.rodLevel) || 1;

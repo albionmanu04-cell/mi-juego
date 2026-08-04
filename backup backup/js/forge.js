@@ -128,7 +128,7 @@ function forgeItemStats(item){
   if(item.bonusSpeed) entries.push(`+${item.bonusSpeed}% Rapidez`);
   return entries.join(' · ') || 'Pieza excepcional';
 }
-function isForgeLocked(){ return !!(battle || (runState && runState.phase!=='ended')); }
+function isForgeLocked(){ return isHuntProgressLocked(); }
 function beginRunicForge(id){
   if(isForgeLocked()){ showFeedback('HERRERÍA CERRADA','Terminá la cacería antes de forjar.','danger'); return; }
   const item = forgeBlueprints().find(entry=>entry.id===id);

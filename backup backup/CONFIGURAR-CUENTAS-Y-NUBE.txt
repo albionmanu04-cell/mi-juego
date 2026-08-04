@@ -8,7 +8,29 @@ FORJA ETERNA · ACTIVAR CUENTAS Y GUARDADO ONLINE
    Si lo dejás activo, cada jugador deberá confirmar el correo antes de ingresar.
 5. Abrí SQL Editor > New query.
 6. Copiá todo el contenido de "supabase-cloud-save.sql" y presioná Run.
-7. Subí esta versión del juego a GitHub/Vercel.
+7. Copiá todo el contenido de "supabase-comercio-jugadores.sql" y presioná Run.
+8. Subí esta versión del juego a GitHub/Vercel.
+
+COMERCIO SEGURO V2
+------------------
+- La Lonja permanece cerrada si el servidor no responde con el protocolo V2.
+- El SQL anterior queda sin permisos y sus publicaciones se conservan sólo
+  como historial; no se importan automáticamente al mercado nuevo.
+- Cada cuenta recibe una billetera online inicial de 30 Sellos.
+- Comprar, acreditar al vendedor y transferir la pieza ocurre en una sola
+  transacción. Las ventas ya no se cobran manualmente.
+- El navegador no puede escribir directamente billeteras, piezas,
+  publicaciones ni el libro contable.
+- Los objetos remotos se reducen a campos conocidos y todas las imágenes
+  deben ser rutas locales dentro de assets/images/.
+
+LÍMITE DEL MODELO ACTUAL
+------------------------
+El combate y el botín siguen ejecutándose en el navegador. Por eso el servidor
+puede garantizar que una publicación no se duplique, que una compra tenga saldo
+y que los datos compartidos no ejecuten HTML, pero no puede demostrar que una
+pieza nueva fue obtenida legítimamente jugando. Para protección anti-cheat total,
+la generación de botín también deberá trasladarse a una función del servidor.
 
 SEGURIDAD
 ---------

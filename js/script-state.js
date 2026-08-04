@@ -762,6 +762,11 @@ async function applyDeveloperAction(action,value){
     await window.FeatureLoader?.loadCardHunt?.();
     const restored=window.CardHunt?.restoreResources?.();
     showFeedback(restored?'RECURSOS RESTAURADOS':'SIN CACERÍA ACTIVA', restored?'Vida y maná al máximo':'Comenzá una expedición para restaurar sus recursos.', restored?'heal':'reward');
+  }else if(action==='altar'){
+    await window.FeatureLoader?.loadCardHunt?.();
+    const opened=window.CardHunt?.previewEvolution?.();
+    showFeedback(opened?'ALTAR DE PRUEBA ABIERTO':'SIN EVOLUCIONES DISPONIBLES',opened?'Elegí una carta y revisá sus dos caminos.':'La clase elegida todavía no tiene cartas evolucionables.',opened?'reward':'danger');
+    if(opened){ updateDeveloperPanel(); return; }
   }
   await saveState(); render(); updateDeveloperPanel();
 }

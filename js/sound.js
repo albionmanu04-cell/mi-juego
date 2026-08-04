@@ -563,6 +563,29 @@ const Sound = {
     this.sfxTone(1046.5,.18,'sine',.026,1318.5,.18);
   },
 
+  altarReveal() {
+    this.init();
+    this.sfxTone(82.41,.8,'sine',.045,123.47,0);
+    this.sfxTone(164.81,.55,'triangle',.032,246.94,.08);
+    [523.25,659.25,783.99].forEach((freq,index)=>this.sfxTone(freq,.32,'sine',.035,freq*1.12,.18+index*.09));
+    this.noise(.38,.022,2100,'bandpass',.08);
+  },
+
+  cardEvolution(path='SINERGIA') {
+    this.init();
+    const power=String(path).toUpperCase()==='PODER';
+    if(power){
+      this.noise(.32,.075,420,'lowpass',0);
+      this.sfxTone(73.42,.48,'sawtooth',.085,110,0);
+      [293.66,369.99,440,587.33].forEach((freq,index)=>this.sfxTone(freq,.34,'triangle',.065,freq*1.08,.11+index*.075));
+      this.sfxTone(1174.66,.48,'sine',.04,1567.98,.42);
+    }else{
+      this.noise(.42,.032,2800,'highpass',0);
+      [392,523.25,659.25,783.99,1046.5].forEach((freq,index)=>this.sfxTone(freq,.38,'sine',.052,freq*1.22,index*.075));
+      this.sfxTone(1567.98,.55,'sine',.035,2093,.38);
+    }
+  },
+
   preview() {
     this.init();
     this.click();

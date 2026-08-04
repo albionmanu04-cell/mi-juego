@@ -7,6 +7,10 @@ body.card-hunt-open #secCardHunt.cardspire-section{display:block!important;posit
 .cardspire-hud{height:74px;padding:0 clamp(15px,4vw,68px);border-bottom:1px solid rgba(222,172,69,.28);display:flex;align-items:center;justify-content:space-between;gap:20px;background:rgba(9,7,7,.78);backdrop-filter:blur(12px);position:relative;z-index:2}
 .cardspire-back,.cardspire-end{border:1px solid rgba(230,184,77,.55);background:linear-gradient(135deg,#21150b,#0d0b0c);color:#f4d378;min-height:38px;border-radius:7px;padding:0 15px;font:700 11px Cinzel,serif;letter-spacing:.06em;cursor:pointer}
 .cardspire-hud-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.cardspire-retire{min-height:38px;padding:0 13px;border:1px solid rgba(100,196,133,.58);border-radius:7px;background:linear-gradient(135deg,rgba(28,73,45,.9),rgba(10,25,18,.96));color:#9de0b4;font:700 10px Cinzel,serif;letter-spacing:.06em;cursor:pointer;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.cardspire-retire:hover{border-color:#7bd49a;box-shadow:0 0 18px rgba(75,190,113,.2);transform:translateY(-1px)}
+.cardspire-retire:focus-visible{outline:2px solid #f0b54d;outline-offset:3px}
+.cardspire-retire-row{width:100%;display:flex;justify-content:flex-start;align-items:center;margin:0 0 10px}
 .cardspire-reset{min-height:38px;padding:0 13px;border:1px solid rgba(207,91,59,.62);border-radius:7px;background:linear-gradient(135deg,rgba(83,27,20,.92),rgba(25,11,10,.96));color:#f3a27e;font:700 10px Cinzel,serif;letter-spacing:.06em;cursor:pointer;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
 .cardspire-reset:hover{border-color:#f07b51;box-shadow:0 0 18px rgba(221,73,38,.22);transform:translateY(-1px)}
 .cardspire-reset:focus-visible{outline:2px solid #f0b54d;outline-offset:3px}
@@ -16,6 +20,8 @@ body.card-hunt-open #secCardHunt.cardspire-section{display:block!important;posit
 .cardspire-seal,.result-icon,.event-mark{width:76px;height:76px;border:1px solid #dcae4e;border-radius:50%;display:grid;place-items:center;margin:0 auto 18px;font:36px Cinzel,serif;color:#f7cf69;box-shadow:0 0 28px rgba(245,180,51,.22)}
 .cardspire-kicker,.cardspire-intro p,.cardspire-event>p,.cardspire-result>p{font:700 10px JetBrains Mono,monospace;letter-spacing:.16em;color:#d4a94c}.cardspire-intro h2,.cardspire-result h2,.cardspire-event h2{margin:10px 0 14px;font:clamp(30px,5vw,58px)/1.05 Cinzel,serif;color:#f5d07a}.cardspire-intro>p:not(.cardspire-kicker),.cardspire-event>span,.cardspire-result>span{display:block;max-width:510px;margin:0 auto 28px;color:#c7baa0;font-size:18px}
 .cardspire-primary{border:0;border-bottom:3px solid #9c6418;border-radius:8px;padding:16px 24px;background:linear-gradient(#f1c65b,#b8751d);color:#1d1209;font:800 12px Cinzel,serif;letter-spacing:.12em;cursor:pointer;box-shadow:0 9px 30px rgba(221,149,41,.25)}.cardspire-primary b{margin-left:12px;font-size:18px}.cardspire-features{margin-top:36px;display:flex;justify-content:center;gap:20px;flex-wrap:wrap;color:#bba273;font:10px JetBrains Mono,monospace}
+.cardspire-payout{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:-8px auto 28px}.cardspire-payout b{padding:10px 14px;border:1px solid rgba(232,196,119,.38);border-radius:999px;background:rgba(232,196,119,.08);color:#f2cf78;font:800 11px JetBrains Mono,monospace;letter-spacing:.06em}
+.cardspire-result-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.cardspire-secondary{border:1px solid rgba(210,190,150,.38);border-radius:8px;padding:15px 22px;background:rgba(16,15,14,.75);color:#cbbd9f;font:800 11px Cinzel,serif;letter-spacing:.08em;cursor:pointer}.cardspire-secondary:hover{border-color:#e0c982;color:#f1dda4}
 .cardspire-map-view{width:100%;background:linear-gradient(140deg,rgba(38,27,18,.9),rgba(11,16,18,.88)),url('../../assets/images/fondo bosque.webp') center/cover;border:1px solid rgba(225,179,61,.48);border-radius:18px;padding:clamp(22px,4vw,48px);box-shadow:0 22px 70px rgba(0,0,0,.45)}.cardspire-map-copy{text-align:center}.cardspire-map-copy p{margin:0;font:700 10px JetBrains Mono,monospace;letter-spacing:.16em;color:#d4a94c}.cardspire-map-copy h2{margin:7px 0;font:clamp(28px,4vw,45px) Cinzel,serif}.cardspire-map-copy span{color:#beb197}.cardspire-map{max-width:860px;margin:30px auto 14px;display:grid;gap:16px;position:relative}.cardspire-map:before{content:"";position:absolute;top:35px;bottom:35px;left:50%;border-left:1px dashed rgba(229,182,72,.45)}.cardspire-map-row{display:flex;justify-content:space-around;gap:18px;position:relative}.cardspire-map-row.current{filter:drop-shadow(0 0 12px rgba(239,188,62,.3))}.cardspire-map-row.passed{opacity:.4}.cardspire-node{width:132px;min-height:118px;display:grid;place-items:center;align-content:center;gap:5px;border:1px solid rgba(230,200,127,.35);border-radius:15px;color:#dccba9;background:rgba(10,12,13,.82);cursor:pointer;transition:.2s;touch-action:manipulation}.cardspire-node:not(:disabled):hover,.cardspire-node:not(:disabled):focus{transform:translateY(-5px);border-color:#f3c255;background:#291c12}.cardspire-node:disabled{cursor:not-allowed}.cardspire-node i{font:28px Spectral,serif;font-style:normal}.cardspire-node b{font:700 12px Cinzel,serif}.cardspire-node small{font:700 9px JetBrains Mono,monospace;color:#d7ac51}.cardspire-node.elite{border-color:#a860d1}.cardspire-node.boss{border-color:#e55c43}.cardspire-node.rest{border-color:#72c589}.cardspire-node.treasure{border-color:#e4b852}.cardspire-legend{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:22px;font:10px JetBrains Mono,monospace;color:#bca477}.cardspire-legend span{padding:6px 9px;border:1px solid rgba(219,185,108,.2);border-radius:999px}
 .cardspire-choice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:28px}.cardspire-choice-grid button{min-height:155px;border:1px solid rgba(235,187,74,.45);border-radius:12px;color:#f3d688;background:linear-gradient(145deg,#2a1d12,#131517);font-family:Cinzel,serif;cursor:pointer}.cardspire-choice-grid i,.cardspire-choice-grid b,.cardspire-choice-grid small{display:block}.cardspire-choice-grid i{font-style:normal;font-size:32px;margin-bottom:10px}.cardspire-choice-grid b{font-size:15px}.cardspire-choice-grid small{margin-top:7px;color:#b8aa91;font:11px Spectral,serif}
 .cardspire-sanctuary{position:relative;overflow:hidden;background:radial-gradient(circle at 50% 10%,rgba(237,199,102,.17),transparent 34%),linear-gradient(145deg,rgba(42,28,17,.97),rgba(10,14,18,.97))}
@@ -1163,6 +1169,18 @@ body.card-hunt-open #secCardHunt.cardspire-section{display:block!important;posit
   font:900 9px/9px JetBrains Mono,monospace;
   color:#fff;
 }
+#secCardHunt .arcane-readiness{
+  color:#d8c7ff!important;
+  border-color:rgba(145,105,232,.68)!important;
+  background:linear-gradient(135deg,rgba(70,42,130,.52),rgba(20,16,39,.74))!important;
+  box-shadow:inset 0 0 12px rgba(164,119,255,.16),0 0 9px rgba(117,78,211,.1);
+}
+#secCardHunt .hero-states .arcane-state{
+  color:#ddccff!important;
+  border-color:rgba(151,111,239,.72)!important;
+  background:rgba(66,37,126,.35)!important;
+  box-shadow:inset 0 0 10px rgba(174,134,255,.15),0 0 8px rgba(117,78,211,.14);
+}
 #secCardHunt .faith-readiness{
   color:#ffe69a!important;
   border-color:rgba(230,197,93,.62)!important;
@@ -1496,16 +1514,17 @@ body.card-hunt-open #secCardHunt.cardspire-section{display:block!important;posit
 @media(max-width:700px){
   #secCardHunt .cardspire-hud{
     height:auto;
-    min-height:94px;
+    min-height:126px;
     grid-template-columns:1fr 1fr;
     gap:8px 10px;
     padding:9px 10px;
   }
-  #secCardHunt .cardspire-hud-actions{grid-column:1;grid-row:1}
+  #secCardHunt .cardspire-hud-actions{grid-column:1/-1;grid-row:1;justify-self:center}
   #secCardHunt .cardspire-resources{
-    grid-column:2;
-    grid-row:1;
+    grid-column:1/-1;
+    grid-row:2;
     gap:4px;
+    justify-self:center;
   }
   #secCardHunt .cardspire-resources span{
     min-width:0;
@@ -1513,14 +1532,15 @@ body.card-hunt-open #secCardHunt.cardspire-section{display:block!important;posit
   }
   #secCardHunt .cardspire-title{
     grid-column:1/-1;
-    grid-row:2;
+    grid-row:3;
     width:100%;
     min-width:0;
   }
   #secCardHunt .cardspire-main{
-    min-height:calc(100dvh - 94px);
+    min-height:calc(100dvh - 126px);
     padding:12px 9px 22px;
   }
+  #secCardHunt .cardspire-retire-row{margin:0 4px 2px}
   #secCardHunt .cardspire-combat{gap:10px}
   #secCardHunt .cardspire-battle-top{
     min-height:54px;

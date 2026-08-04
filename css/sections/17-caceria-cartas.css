@@ -649,6 +649,661 @@ body.card-hunt-open #secCardHunt.cardspire-section{display:block!important;posit
     font-size:7px;
   }
 }
+
+/* ================= ALTAR DE EVOLUCION · PASADA CINEMATOGRAFICA ================= */
+body.card-evolution-open .developer-panel{
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+  transform:translateX(24px) scale(.96);
+}
+body.card-evolution-open #secCardHunt .cardspire-reset{opacity:.28}
+#secCardHunt .cardspire-evolution{
+  isolation:isolate;
+  width:min(1160px,calc(100% - 34px));
+  min-height:650px;
+  padding:38px clamp(18px,3.5vw,48px) 42px;
+  border-color:rgba(225,178,77,.52);
+  background:
+    linear-gradient(rgba(5,6,12,.3),rgba(5,6,12,.88)),
+    radial-gradient(ellipse at 50% 0,rgba(101,52,163,.42),transparent 42%),
+    radial-gradient(ellipse at 50% 105%,rgba(218,151,43,.2),transparent 50%),
+    #080810;
+  box-shadow:0 34px 110px rgba(0,0,0,.72),inset 0 0 100px rgba(97,54,155,.12),inset 0 1px rgba(255,229,167,.15);
+}
+#secCardHunt .cardspire-evolution.theme-power{--evo-main:#f1b94f;--evo-soft:#ffdf8c;--evo-glow:rgba(239,155,44,.42)}
+#secCardHunt .cardspire-evolution.theme-synergy{--evo-main:#ad73f0;--evo-soft:#e0c1ff;--evo-glow:rgba(139,75,225,.46)}
+#secCardHunt .cardspire-evolution.theme-neutral,
+#secCardHunt .cardspire-evolution.theme-split{--evo-main:#d8a94a;--evo-soft:#ffe19a;--evo-glow:rgba(125,70,200,.4)}
+#secCardHunt .cardspire-evolution::before{
+  z-index:-1;
+  inset:12px;
+  border-color:rgba(244,199,94,.17);
+  box-shadow:inset 0 0 35px rgba(230,181,70,.04);
+}
+#secCardHunt .cardspire-evolution::after{
+  content:"";
+  position:absolute;
+  z-index:-3;
+  inset:0;
+  pointer-events:none;
+  opacity:.28;
+  background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  background-size:42px 42px;
+  mask-image:radial-gradient(circle at 50% 42%,#000,transparent 72%);
+}
+#secCardHunt .evolution-atmosphere{position:absolute;z-index:-2;inset:0;overflow:hidden;pointer-events:none}
+#secCardHunt .evolution-atmosphere .altar-halo{
+  position:absolute;
+  top:-245px;
+  left:50%;
+  width:690px;
+  height:690px;
+  border-radius:50%;
+  background:radial-gradient(circle,transparent 28%,rgba(154,93,231,.08) 29%,transparent 31%,rgba(230,181,70,.075) 44%,transparent 45%);
+  transform:translateX(-50%);
+  filter:drop-shadow(0 0 28px var(--evo-glow));
+  animation:altarHalo 20s linear infinite;
+}
+#secCardHunt .evolution-atmosphere .altar-ring{
+  position:absolute;
+  left:50%;
+  bottom:-300px;
+  width:760px;
+  height:470px;
+  border:1px solid color-mix(in srgb,var(--evo-main) 36%,transparent);
+  border-radius:50%;
+  transform:translateX(-50%) rotateX(64deg);
+  box-shadow:0 0 34px var(--evo-glow),inset 0 0 30px var(--evo-glow);
+}
+#secCardHunt .evolution-atmosphere .ring-two{bottom:-258px;width:590px;height:360px;border-style:dashed;animation:altarRing 18s linear infinite reverse}
+#secCardHunt .evolution-atmosphere>i{
+  position:absolute;
+  bottom:4%;
+  left:calc(13% * var(--particle,1));
+  width:3px;
+  height:3px;
+  border-radius:50%;
+  background:var(--evo-soft);
+  box-shadow:0 0 9px var(--evo-main);
+  animation:altarMote 5.5s linear infinite;
+}
+#secCardHunt .evolution-atmosphere>i:nth-of-type(1){--particle:1;animation-delay:-1s}
+#secCardHunt .evolution-atmosphere>i:nth-of-type(2){--particle:2;animation-delay:-4s}
+#secCardHunt .evolution-atmosphere>i:nth-of-type(3){--particle:3;animation-delay:-2.5s}
+#secCardHunt .evolution-atmosphere>i:nth-of-type(4){--particle:4;animation-delay:-.4s}
+#secCardHunt .evolution-atmosphere>i:nth-of-type(5){--particle:5;animation-delay:-3.2s}
+#secCardHunt .evolution-atmosphere>i:nth-of-type(6){--particle:6;animation-delay:-1.8s}
+#secCardHunt .evolution-atmosphere>b{
+  position:absolute;
+  color:color-mix(in srgb,var(--evo-main) 28%,transparent);
+  font:400 34px/1 Cinzel,serif;
+  text-shadow:0 0 12px var(--evo-glow);
+  animation:runeBreathe 4s ease-in-out infinite;
+}
+#secCardHunt .evolution-atmosphere>b:nth-of-type(1){left:5%;top:18%}
+#secCardHunt .evolution-atmosphere>b:nth-of-type(2){right:6%;top:24%;animation-delay:-1s}
+#secCardHunt .evolution-atmosphere>b:nth-of-type(3){left:8%;bottom:12%;animation-delay:-2s}
+#secCardHunt .evolution-atmosphere>b:nth-of-type(4){right:8%;bottom:10%;animation-delay:-3s}
+#secCardHunt .cardspire-evolution>header{margin-bottom:30px}
+#secCardHunt .evolution-sigil{
+  position:relative;
+  width:64px;
+  height:64px;
+  color:var(--evo-soft);
+  border-color:color-mix(in srgb,var(--evo-main) 75%,white 10%);
+  background:radial-gradient(circle,var(--evo-glow),rgba(13,9,24,.96) 68%);
+  box-shadow:0 0 34px var(--evo-glow),0 0 0 7px rgba(12,9,18,.74),0 0 0 8px color-mix(in srgb,var(--evo-main) 20%,transparent);
+}
+#secCardHunt .split-sigil{display:flex;width:78px;gap:10px;justify-content:center}
+#secCardHunt .split-sigil i{width:1px;height:25px;background:linear-gradient(transparent,#ecd183,transparent);transform:rotate(18deg)}
+#secCardHunt .cardspire-evolution header>h2{font-size:clamp(31px,4vw,51px);letter-spacing:.015em}
+#secCardHunt .cardspire-evolution header>small{max-width:640px;margin:auto;color:#c8c0ce}
+
+#secCardHunt .evolution-card-face{
+  overflow:hidden;
+  border:1px solid rgba(222,181,86,.24);
+  border-radius:13px;
+  box-shadow:inset 0 0 24px rgba(0,0,0,.24);
+}
+#secCardHunt .evolution-card-face::before{
+  content:"";
+  position:absolute;
+  z-index:3;
+  inset:5px;
+  pointer-events:none;
+  border:1px solid rgba(255,230,163,.1);
+  border-radius:9px;
+}
+#secCardHunt .evolution-card-shine{
+  position:absolute;
+  z-index:5;
+  inset:-80% 40% -80% -80%;
+  pointer-events:none;
+  opacity:0;
+  background:linear-gradient(105deg,transparent 42%,rgba(255,255,255,.18) 50%,transparent 58%);
+  transform:translateX(-60%) rotate(9deg);
+}
+#secCardHunt button:hover .evolution-card-shine{opacity:1;animation:cardShine 1.15s ease both}
+#secCardHunt .evolution-card-art{position:relative}
+#secCardHunt .evolution-card-art img{transition:transform .65s cubic-bezier(.2,.8,.2,1),filter .3s ease}
+#secCardHunt button:hover .evolution-card-art img{transform:scale(1.055);filter:saturate(1.14) contrast(1.04)}
+#secCardHunt .evolution-art-runes{
+  position:absolute;
+  right:8px;
+  bottom:7px;
+  padding:3px 5px;
+  color:rgba(255,235,183,.68);
+  border-radius:4px;
+  background:rgba(8,7,14,.62);
+  font:700 6px/1 "JetBrains Mono",monospace;
+  letter-spacing:.2em;
+}
+#secCardHunt .evolution-card-face.is-evolved.theme-power{
+  border-color:rgba(245,185,72,.72);
+  background:radial-gradient(circle at 50% 0,rgba(230,137,35,.22),transparent 35%),linear-gradient(165deg,rgba(72,37,21,.98),rgba(15,11,15,.99));
+  box-shadow:inset 0 0 30px rgba(237,158,43,.09),0 0 22px rgba(219,134,36,.16);
+}
+#secCardHunt .evolution-card-face.is-evolved.theme-synergy{
+  border-color:rgba(172,111,239,.75);
+  background:radial-gradient(circle at 50% 0,rgba(126,70,214,.3),transparent 38%),linear-gradient(165deg,rgba(44,28,72,.98),rgba(10,12,22,.99));
+  box-shadow:inset 0 0 30px rgba(139,78,219,.12),0 0 22px rgba(128,72,213,.2);
+}
+#secCardHunt .evolution-card-face.is-evolved.theme-power .evolution-card-art{border-color:rgba(244,182,67,.5);box-shadow:inset 0 0 28px rgba(224,126,24,.22)}
+#secCardHunt .evolution-card-face.is-evolved.theme-synergy .evolution-card-art{border-color:rgba(177,119,242,.5);box-shadow:inset 0 0 28px rgba(115,58,201,.26)}
+#secCardHunt .evolution-card-seal{
+  position:absolute;
+  right:12px;
+  bottom:10px;
+  display:grid;
+  width:24px;
+  height:24px;
+  place-items:center;
+  color:var(--evo-soft,#ffe29a);
+  border:1px solid currentColor;
+  border-radius:50%;
+  opacity:.72;
+  font-size:9px;
+}
+
+#secCardHunt .evolution-candidates{gap:24px;max-width:940px;perspective:1100px}
+#secCardHunt .evolution-candidates>button{
+  position:relative;
+  overflow:visible;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  opacity:0;
+  animation:candidateReveal .7s cubic-bezier(.17,.84,.28,1.18) forwards;
+  animation-delay:calc(var(--reveal-order) * 130ms + 90ms);
+}
+#secCardHunt .evolution-candidates>button:hover,
+#secCardHunt .evolution-candidates>button:focus-visible{transform:translateY(-10px) rotateX(2deg);box-shadow:none}
+#secCardHunt .candidate-aura{
+  position:absolute;
+  inset:12% -9% -7%;
+  z-index:-1;
+  opacity:0;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(151,85,226,.32),transparent 68%);
+  filter:blur(8px);
+  transition:opacity .25s ease;
+}
+#secCardHunt .evolution-candidates>button:hover .candidate-aura{opacity:1}
+#secCardHunt .candidate-card{min-height:365px;box-shadow:0 20px 42px rgba(0,0,0,.44),0 0 0 1px rgba(219,172,69,.16)}
+#secCardHunt .evolution-select{
+  position:relative;
+  margin:-5px 12px 0;
+  padding:11px 12px 12px;
+  border:1px solid #e1ad48;
+  border-radius:0 0 8px 8px;
+  background:linear-gradient(180deg,#f2c75f,#b66e1c);
+  box-shadow:0 8px 18px rgba(0,0,0,.32);
+}
+#secCardHunt .evolution-select small{display:block;margin-bottom:4px;color:rgba(49,25,4,.65);font-size:6px;letter-spacing:.22em}
+#secCardHunt .evolution-select b{margin-left:8px;font-size:12px}
+#secCardHunt .evolution-rule{display:flex;gap:10px;align-items:center;justify-content:center;color:#968ba0}
+#secCardHunt .evolution-rule span{color:#d4a849}
+
+#secCardHunt .evolution-choice-layout{grid-template-columns:190px minmax(0,1fr);gap:19px;max-width:1060px}
+#secCardHunt .evolution-original{position:relative;opacity:.72;transform:scale(.94);transform-origin:center top}
+#secCardHunt .evolution-original .evolution-card-face{min-height:338px;filter:saturate(.72)}
+#secCardHunt .evolution-original .evolution-card-art{height:145px}
+#secCardHunt .evolution-origin-line{
+  display:block;
+  width:60%;
+  margin:12px auto 0;
+  color:#756d7c;
+  text-align:center;
+  border-top:1px solid rgba(190,180,198,.17);
+  font:700 6px/2.8 "JetBrains Mono",monospace;
+  letter-spacing:.18em;
+}
+#secCardHunt .evolution-branch-grid{gap:18px;padding-top:0}
+#secCardHunt .evolution-branch{
+  min-height:510px;
+  padding:16px;
+  overflow:hidden;
+  border-radius:18px;
+  background:linear-gradient(160deg,rgba(58,32,21,.92),rgba(11,10,16,.99));
+}
+#secCardHunt .evolution-branch.path-synergy{border-color:rgba(157,106,237,.55);background:linear-gradient(160deg,rgba(37,25,62,.96),rgba(9,11,20,.99))}
+#secCardHunt .branch-energy{
+  position:absolute;
+  inset:-30% -35% auto;
+  height:62%;
+  pointer-events:none;
+  border-radius:50%;
+  opacity:.52;
+  background:radial-gradient(circle,rgba(232,155,48,.33),transparent 66%);
+  transition:transform .5s ease,opacity .3s ease;
+}
+#secCardHunt .path-synergy .branch-energy{background:radial-gradient(circle,rgba(126,67,218,.5),transparent 67%)}
+#secCardHunt .evolution-branch:hover .branch-energy{opacity:.85;transform:scale(1.18)}
+#secCardHunt .branch-heading{position:relative;z-index:2;display:flex;min-height:27px;align-items:center;justify-content:space-between;gap:8px}
+#secCardHunt .branch-heading small{color:#8f7b65;text-align:right;font:700 6px/1.35 "JetBrains Mono",monospace;letter-spacing:.08em}
+#secCardHunt .path-synergy .branch-heading small{color:#8d75aa}
+#secCardHunt .branch-card-preview{position:relative;z-index:1;width:176px;margin:10px auto 12px}
+#secCardHunt .branch-preview-card{min-height:280px;padding:9px 11px 13px;text-align:left;box-shadow:0 14px 30px rgba(0,0,0,.42)}
+#secCardHunt .branch-preview-card .evolution-card-art{height:114px;margin:4px 0 9px}
+#secCardHunt .branch-preview-card .evolution-card-top{min-height:22px;font-size:6px}
+#secCardHunt .branch-preview-card .evolution-card-top b{width:23px;height:23px;font-size:6px}
+#secCardHunt .branch-preview-card h3{margin-bottom:5px;font-size:14px}
+#secCardHunt .branch-preview-card p{font-size:8px;line-height:1.45}
+#secCardHunt .branch-preview-card .evolution-awakened{font-size:5px}
+#secCardHunt .branch-details{position:relative;z-index:1}
+#secCardHunt .branch-details>p{min-height:37px;margin:0 2px 10px;color:#bdb4c2;font:500 9px/1.45 Inter,sans-serif}
+#secCardHunt .evolution-branch ul{gap:6px;margin:0 0 15px}
+#secCardHunt .evolution-branch li{display:flex;min-height:31px;padding:7px 9px;align-items:center}
+#secCardHunt .evolution-branch li.stat-change{justify-content:space-between;gap:7px}
+#secCardHunt .evolution-branch li.stat-change span{color:#82796d;text-decoration:line-through;text-decoration-color:rgba(197,104,83,.55)}
+#secCardHunt .evolution-branch li.stat-change i{color:#b58435;font-style:normal}
+#secCardHunt .evolution-branch li.stat-change b{color:#ffe29a}
+#secCardHunt .path-synergy li.stat-change i{color:#9e6ed7}
+#secCardHunt .path-synergy li.stat-change b{color:#dfc3ff}
+#secCardHunt .evolution-branch li.trait-gain{gap:8px}
+#secCardHunt .evolution-branch li.trait-gain i{display:grid;width:17px;height:17px;flex:0 0 17px;place-items:center;color:#231503;border-radius:50%;background:#dfaa43;font-style:normal}
+#secCardHunt .path-synergy li.trait-gain i{color:white;background:#7547a9}
+#secCardHunt .evolution-branch>b{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:12px 5px 2px;border-top:1px solid rgba(225,182,78,.15)}
+#secCardHunt .evolution-branch>b span{font-size:14px;transition:transform .2s ease}
+#secCardHunt .evolution-branch:hover>b span{transform:translateX(4px)}
+
+#secCardHunt .evolution-complete{min-height:710px;padding-top:30px;padding-bottom:38px}
+#secCardHunt .evolution-complete>header{margin-bottom:18px}
+#secCardHunt .evolution-complete-card{width:265px;margin-bottom:17px}
+#secCardHunt .evolution-complete-card .evolution-card-face{min-height:390px;box-shadow:0 0 46px var(--evo-glow),0 25px 55px rgba(0,0,0,.5)}
+#secCardHunt .ceremony-card .evolution-card-art{height:188px}
+#secCardHunt .evolution-complete-path{position:relative;z-index:2;margin:0 auto 20px;text-align:center}
+#secCardHunt .evolution-complete-path span{display:block;color:var(--evo-main);font:900 7px/1.4 "JetBrains Mono",monospace;letter-spacing:.2em}
+#secCardHunt .evolution-complete-path b{display:block;margin-top:4px;color:#ada4b4;font:500 10px/1.4 Inter,sans-serif}
+#secCardHunt .evolution-burst{position:absolute;z-index:-1;top:205px;left:50%;width:420px;height:420px;pointer-events:none;transform:translateX(-50%)}
+#secCardHunt .evolution-burst span{position:absolute;inset:20%;border:1px solid var(--evo-main);border-radius:50%;box-shadow:0 0 45px var(--evo-glow);animation:burstRing 2.4s ease-out infinite}
+#secCardHunt .evolution-burst i{position:absolute;left:50%;top:50%;width:2px;height:250px;background:linear-gradient(var(--evo-main),transparent 62%);transform-origin:50% 0;opacity:.25}
+#secCardHunt .evolution-burst i:nth-child(1){transform:rotate(0deg)}
+#secCardHunt .evolution-burst i:nth-child(2){transform:rotate(60deg)}
+#secCardHunt .evolution-burst i:nth-child(3){transform:rotate(120deg)}
+#secCardHunt .evolution-burst i:nth-child(4){transform:rotate(180deg)}
+#secCardHunt .evolution-burst i:nth-child(5){transform:rotate(240deg)}
+#secCardHunt .evolution-burst i:nth-child(6){transform:rotate(300deg)}
+
+#secCardHunt .cardspire-card.evolved-power{border-color:#e7af43!important;box-shadow:0 9px 24px rgba(0,0,0,.5),0 0 18px rgba(221,139,38,.34),inset 0 0 14px rgba(239,174,55,.12)!important}
+#secCardHunt .cardspire-card.evolved-synergy{border-color:#a66adf!important;box-shadow:0 9px 24px rgba(0,0,0,.5),0 0 20px rgba(125,69,211,.45),inset 0 0 16px rgba(145,87,222,.13)!important}
+#secCardHunt .evolved-power .card-evolution-badge{color:#ffe0a0;border-color:rgba(230,168,61,.56);background:rgba(92,51,19,.78)}
+#secCardHunt .evolved-synergy .card-evolution-badge{color:#ead6ff;border-color:rgba(173,118,236,.54);background:rgba(62,32,93,.78)}
+
+@keyframes altarHalo{to{transform:translateX(-50%) rotate(360deg)}}
+@keyframes altarRing{to{transform:translateX(-50%) rotateX(64deg) rotateZ(360deg)}}
+@keyframes altarMote{0%{opacity:0;transform:translateY(0) scale(.5)}20%{opacity:.85}100%{opacity:0;transform:translateY(-570px) translateX(35px) scale(1.5)}}
+@keyframes runeBreathe{50%{opacity:.28;filter:brightness(1.8);transform:translateY(-5px)}}
+@keyframes candidateReveal{from{opacity:0;transform:translateY(32px) rotateX(-10deg) scale(.94)}to{opacity:1;transform:none}}
+@keyframes cardShine{to{transform:translateX(270%) rotate(9deg)}}
+@keyframes burstRing{0%{opacity:.7;transform:scale(.65)}75%,100%{opacity:0;transform:scale(1.45)}}
+
+@media(max-width:920px){
+  #secCardHunt .evolution-choice-layout{grid-template-columns:1fr}
+  #secCardHunt .evolution-original{display:none}
+  #secCardHunt .evolution-branch-grid{max-width:720px;margin:auto}
+  #secCardHunt .evolution-branch{min-height:500px}
+}
+@media(min-width:921px) and (max-height:820px){
+  #secCardHunt .cardspire-evolution{margin-top:14px;padding-top:25px;padding-bottom:29px}
+  #secCardHunt .cardspire-evolution>header{margin-bottom:20px}
+  #secCardHunt .cardspire-evolution header>h2{font-size:39px}
+  #secCardHunt .evolution-sigil{width:49px;height:49px;margin-bottom:10px;font-size:19px}
+  #secCardHunt .candidate-card{min-height:325px}
+  #secCardHunt .candidate-card .evolution-card-art{height:148px}
+  #secCardHunt .evolution-branch{min-height:445px;padding:13px}
+  #secCardHunt .branch-card-preview{width:155px;margin-top:7px;margin-bottom:8px}
+  #secCardHunt .branch-preview-card{min-height:235px}
+  #secCardHunt .branch-preview-card .evolution-card-art{height:88px}
+  #secCardHunt .branch-preview-card p{font-size:7px}
+  #secCardHunt .branch-details>p{min-height:29px;font-size:8px}
+  #secCardHunt .evolution-branch li{min-height:27px;padding:5px 8px;font-size:8px}
+  #secCardHunt .evolution-original .evolution-card-face{min-height:305px}
+  #secCardHunt .evolution-original .evolution-card-art{height:125px}
+  #secCardHunt .evolution-complete{min-height:620px}
+  #secCardHunt .evolution-complete-card{width:225px}
+  #secCardHunt .evolution-complete-card .evolution-card-face{min-height:335px}
+  #secCardHunt .ceremony-card .evolution-card-art{height:150px}
+}
+@media(max-width:800px){
+  #secCardHunt .evolution-candidates{max-width:330px}
+  #secCardHunt .candidate-card{min-height:370px}
+  #secCardHunt .evolution-atmosphere>b{display:none}
+}
+@media(max-width:620px){
+  #secCardHunt .cardspire-evolution{width:calc(100% - 12px);min-height:600px;margin:8px auto 26px;padding:27px 11px 30px}
+  #secCardHunt .cardspire-evolution>header{margin-bottom:22px;padding:0 5px}
+  #secCardHunt .cardspire-evolution header>h2{font-size:28px}
+  #secCardHunt .cardspire-evolution header>small{font-size:10px}
+  #secCardHunt .evolution-sigil{width:51px;height:51px;font-size:19px}
+  #secCardHunt .evolution-branch-grid{grid-template-columns:1fr;max-width:345px}
+  #secCardHunt .evolution-branch{min-height:490px;padding:14px}
+  #secCardHunt .branch-card-preview{width:185px}
+  #secCardHunt .evolution-rule{padding:0 10px;font-size:7px}
+  #secCardHunt .evolution-complete{min-height:660px}
+  #secCardHunt .evolution-complete-card{width:238px}
+  #secCardHunt .evolution-complete-card .evolution-card-face{min-height:365px}
+}
+@media(prefers-reduced-motion:reduce){
+  #secCardHunt .evolution-atmosphere *,
+  #secCardHunt .evolution-burst *,
+  #secCardHunt .evolution-candidates>button,
+  #secCardHunt .evolution-card-shine{animation:none!important}
+  #secCardHunt .evolution-candidates>button{opacity:1}
+}
+
+/* ================= ALTAR DE EVOLUCION ================= */
+#secCardHunt .cardspire-evolution{
+  position:relative;
+  width:min(1080px,calc(100% - 28px));
+  min-height:590px;
+  margin:28px auto 48px;
+  padding:34px clamp(18px,4vw,52px) 38px;
+  overflow:hidden;
+  color:#f7e9c5;
+  border:1px solid rgba(220,169,65,.46);
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 50% 4%,rgba(125,78,211,.28),transparent 30%),
+    radial-gradient(circle at 50% 105%,rgba(238,177,48,.16),transparent 42%),
+    linear-gradient(145deg,rgba(25,15,29,.98),rgba(8,9,16,.98));
+  box-shadow:0 30px 90px rgba(0,0,0,.58),inset 0 0 70px rgba(102,58,158,.09);
+}
+#secCardHunt .cardspire-evolution::before{
+  content:"";
+  position:absolute;
+  inset:13px;
+  pointer-events:none;
+  border:1px solid rgba(244,199,94,.12);
+  border-radius:15px;
+}
+#secCardHunt .cardspire-evolution>header{
+  position:relative;
+  z-index:1;
+  max-width:720px;
+  margin:0 auto 28px;
+  text-align:center;
+}
+#secCardHunt .evolution-sigil{
+  display:grid;
+  width:58px;
+  height:58px;
+  margin:0 auto 14px;
+  place-items:center;
+  color:#ffe18a;
+  border:1px solid rgba(251,202,89,.65);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(127,69,211,.52),rgba(22,12,34,.9) 68%);
+  box-shadow:0 0 30px rgba(155,83,255,.42),0 0 55px rgba(244,181,55,.13);
+  font-size:25px;
+  animation:evolutionPulse 2.5s ease-in-out infinite;
+}
+#secCardHunt .cardspire-evolution header>p{
+  margin:0 0 7px;
+  color:#d7ac50;
+  font:800 9px/1.4 "JetBrains Mono",monospace;
+  letter-spacing:.24em;
+}
+#secCardHunt .cardspire-evolution header>h2{
+  margin:0 0 8px;
+  color:#ffe29a;
+  font:500 clamp(29px,4vw,48px)/1.04 Cinzel,serif;
+  text-shadow:0 4px 24px rgba(231,162,48,.18);
+}
+#secCardHunt .cardspire-evolution header>small{
+  display:block;
+  color:#bcb3c8;
+  font:500 12px/1.6 Inter,sans-serif;
+}
+#secCardHunt .evolution-candidates{
+  position:relative;
+  z-index:1;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:20px;
+  max-width:900px;
+  margin:0 auto;
+}
+#secCardHunt .evolution-candidates>button{
+  min-width:0;
+  padding:0;
+  overflow:hidden;
+  color:inherit;
+  text-align:inherit;
+  cursor:pointer;
+  border:1px solid rgba(198,158,67,.34);
+  border-radius:15px;
+  background:rgba(12,11,20,.78);
+  box-shadow:0 15px 35px rgba(0,0,0,.34);
+  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+#secCardHunt .evolution-candidates>button:hover,
+#secCardHunt .evolution-candidates>button:focus-visible{
+  transform:translateY(-8px);
+  border-color:#f0c45d;
+  outline:none;
+  box-shadow:0 21px 45px rgba(0,0,0,.48),0 0 25px rgba(157,92,237,.24);
+}
+#secCardHunt .evolution-card-face{
+  position:relative;
+  display:flex;
+  min-height:350px;
+  padding:12px 14px 18px;
+  flex-direction:column;
+  background:linear-gradient(165deg,rgba(43,27,51,.95),rgba(11,12,19,.98));
+}
+#secCardHunt .evolution-card-face.attack,
+#secCardHunt .evolution-card-face.spell,
+#secCardHunt .evolution-card-face.bash{background:linear-gradient(165deg,rgba(72,29,39,.95),rgba(13,12,20,.98))}
+#secCardHunt .evolution-card-face.block{background:linear-gradient(165deg,rgba(25,49,77,.96),rgba(10,12,20,.98))}
+#secCardHunt .evolution-card-top{
+  display:flex;
+  min-height:28px;
+  align-items:center;
+  justify-content:space-between;
+  color:#d8b96d;
+  font:800 8px/1 "JetBrains Mono",monospace;
+  letter-spacing:.13em;
+}
+#secCardHunt .evolution-card-top b{
+  display:grid;
+  width:27px;
+  height:27px;
+  place-items:center;
+  color:#16101c;
+  border-radius:50%;
+  background:#f0c45d;
+  font-size:8px;
+}
+#secCardHunt .evolution-card-art{
+  display:grid;
+  height:178px;
+  margin:5px 0 14px;
+  overflow:hidden;
+  place-items:center;
+  border:1px solid rgba(237,202,119,.26);
+  border-radius:8px;
+  background:radial-gradient(circle,rgba(106,61,166,.45),rgba(7,9,16,.9));
+}
+#secCardHunt .evolution-card-art img{width:100%;height:100%;object-fit:cover}
+#secCardHunt .evolution-card-art i{color:#e6c266;font:400 48px/1 Cinzel,serif}
+#secCardHunt .evolution-card-face h3{
+  margin:0 0 8px;
+  color:#ffe7ab;
+  font:600 18px/1.2 Cinzel,serif;
+}
+#secCardHunt .evolution-card-face p{
+  margin:0;
+  color:#c5beca;
+  font:500 11px/1.55 Inter,sans-serif;
+}
+#secCardHunt .evolution-select{
+  display:block;
+  padding:13px;
+  color:#291907;
+  text-align:center;
+  background:linear-gradient(#ffd978,#c98a23);
+  font:900 8px/1 "JetBrains Mono",monospace;
+  letter-spacing:.13em;
+}
+#secCardHunt .evolution-rule{
+  position:relative;
+  z-index:1;
+  margin:22px auto 0;
+  color:#81788b;
+  text-align:center;
+  font:600 9px/1.5 "JetBrains Mono",monospace;
+}
+#secCardHunt .evolution-choice-layout{
+  position:relative;
+  z-index:1;
+  display:grid;
+  grid-template-columns:225px 1fr;
+  gap:24px;
+  max-width:940px;
+  margin:0 auto;
+  align-items:stretch;
+}
+#secCardHunt .evolution-original>small{
+  display:block;
+  margin:0 0 8px;
+  color:#8f8698;
+  text-align:center;
+  font:800 8px/1 "JetBrains Mono",monospace;
+  letter-spacing:.14em;
+}
+#secCardHunt .evolution-original .evolution-card-face{
+  min-height:380px;
+  border:1px solid rgba(205,167,80,.28);
+  border-radius:14px;
+}
+#secCardHunt .evolution-branch-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding-top:23px}
+#secCardHunt .evolution-branch{
+  position:relative;
+  display:flex;
+  min-width:0;
+  min-height:380px;
+  padding:25px 22px 20px;
+  flex-direction:column;
+  color:#f5ead2;
+  text-align:left;
+  cursor:pointer;
+  border:1px solid rgba(225,169,60,.43);
+  border-radius:15px;
+  background:radial-gradient(circle at 50% 0,rgba(213,142,35,.2),transparent 39%),linear-gradient(160deg,rgba(57,31,23,.92),rgba(13,12,18,.98));
+  box-shadow:inset 0 1px rgba(255,231,171,.09),0 18px 40px rgba(0,0,0,.28);
+  transition:transform .2s ease,border-color .2s ease,filter .2s ease;
+}
+#secCardHunt .evolution-branch.path-sinergia{
+  border-color:rgba(157,106,237,.52);
+  background:radial-gradient(circle at 50% 0,rgba(121,66,211,.32),transparent 42%),linear-gradient(160deg,rgba(37,25,62,.96),rgba(10,12,20,.98));
+}
+#secCardHunt .evolution-branch:hover,
+#secCardHunt .evolution-branch:focus-visible{transform:translateY(-7px);filter:brightness(1.12);outline:none;border-color:#ffe08a}
+#secCardHunt .evolution-path{
+  align-self:flex-start;
+  padding:6px 9px;
+  color:#29170c;
+  border-radius:999px;
+  background:#e8b64b;
+  font:900 8px/1 "JetBrains Mono",monospace;
+  letter-spacing:.14em;
+}
+#secCardHunt .path-sinergia .evolution-path{color:#f4eaff;background:#7041aa}
+#secCardHunt .evolution-branch h3{margin:20px 0 10px;color:#ffe29a;font:600 22px/1.14 Cinzel,serif}
+#secCardHunt .path-sinergia h3{color:#d8bcff}
+#secCardHunt .evolution-branch p{min-height:58px;margin:0;color:#bbb3c2;font:500 11px/1.55 Inter,sans-serif}
+#secCardHunt .evolution-branch ul{display:grid;gap:8px;margin:20px 0;padding:0;list-style:none}
+#secCardHunt .evolution-branch li{
+  padding:9px 10px;
+  color:#e9d8ab;
+  border:1px solid rgba(225,182,78,.15);
+  border-radius:7px;
+  background:rgba(255,255,255,.035);
+  font:700 9px/1.35 "JetBrains Mono",monospace;
+}
+#secCardHunt .path-sinergia li{color:#d6c1f1;border-color:rgba(151,98,221,.2)}
+#secCardHunt .evolution-branch>b{margin-top:auto;color:#e7bd58;font:900 8px/1.4 "JetBrains Mono",monospace;letter-spacing:.08em}
+#secCardHunt .path-sinergia>b{color:#bc91ef}
+#secCardHunt .evolution-back{
+  position:relative;
+  z-index:1;
+  display:block;
+  margin:22px auto 0;
+  padding:10px 14px;
+  color:#a69dac;
+  cursor:pointer;
+  border:0;
+  background:transparent;
+  font:800 8px/1 "JetBrains Mono",monospace;
+  letter-spacing:.11em;
+}
+#secCardHunt .evolution-back:hover{color:#ffe19a}
+#secCardHunt .evolution-complete{display:flex;min-height:625px;align-items:center;flex-direction:column;justify-content:center}
+#secCardHunt .evolution-complete-card{position:relative;width:250px;margin:0 auto 24px;animation:evolutionReveal .65s cubic-bezier(.2,.8,.2,1) both}
+#secCardHunt .evolution-complete-card::before{
+  content:"";
+  position:absolute;
+  inset:-35px;
+  z-index:-1;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(238,190,76,.34),rgba(118,62,194,.17) 40%,transparent 70%);
+}
+#secCardHunt .evolution-complete-card .evolution-card-face{min-height:370px;border:1px solid #e9bd59;border-radius:15px;box-shadow:0 0 38px rgba(172,97,241,.38)}
+#secCardHunt .evolution-awakened{display:block;margin:0 0 7px;color:#c79bf3;font:900 7px/1.3 "JetBrains Mono",monospace;letter-spacing:.09em}
+#secCardHunt .cardspire-card.evolved{
+  border-color:#ddb557!important;
+  box-shadow:0 9px 24px rgba(0,0,0,.5),0 0 18px rgba(134,76,211,.38),inset 0 0 14px rgba(239,190,73,.08)!important;
+}
+#secCardHunt .card-evolution-badge{
+  display:block;
+  margin:0 8px 5px;
+  padding:3px 5px;
+  color:#ebd2ff;
+  border:1px solid rgba(173,118,236,.42);
+  border-radius:5px;
+  background:rgba(62,32,93,.72);
+  font:800 6px/1 "JetBrains Mono",monospace;
+  letter-spacing:.08em;
+}
+@keyframes evolutionPulse{50%{transform:scale(1.08);box-shadow:0 0 42px rgba(155,83,255,.62),0 0 65px rgba(244,181,55,.22)}}
+@keyframes evolutionReveal{from{opacity:0;transform:translateY(24px) scale(.86) rotate(-2deg)}to{opacity:1;transform:none}}
+@media(max-width:800px){
+  #secCardHunt .evolution-candidates{grid-template-columns:1fr;max-width:310px}
+  #secCardHunt .evolution-choice-layout{grid-template-columns:1fr}
+  #secCardHunt .evolution-original{display:none}
+  #secCardHunt .evolution-branch-grid{padding-top:0}
+}
+@media(max-width:560px){
+  #secCardHunt .cardspire-evolution{width:calc(100% - 14px);margin:10px auto 28px;padding:25px 12px 28px;border-radius:15px}
+  #secCardHunt .evolution-branch-grid{grid-template-columns:1fr}
+  #secCardHunt .evolution-branch{min-height:330px}
+  #secCardHunt .cardspire-evolution header>h2{font-size:28px}
+}
+@media(prefers-reduced-motion:reduce){
+  #secCardHunt .evolution-sigil,#secCardHunt .evolution-complete-card{animation:none}
+}
 @media(prefers-reduced-motion:reduce){
   #secCardHunt .cardspire-map-routes path,
   #secCardHunt .route-traveler,
@@ -1695,10 +2350,10 @@ body.card-hunt-open #secCardHunt.cardspire-section{display:block!important;posit
   z-index:-1;
   pointer-events:none;
   background:
-    radial-gradient(circle at 50% 42%,transparent 0 23%,rgba(7,5,5,.65) 79%),
-    linear-gradient(180deg,rgba(8,6,6,.68),rgba(10,6,5,.92)),
+    radial-gradient(circle at 50% 38%,transparent 0 30%,rgba(7,5,5,.45) 85%),
+    linear-gradient(180deg,rgba(8,6,6,.32),rgba(10,6,5,.58)),
     var(--cardspire-scene) center/cover no-repeat;
-  opacity:.42;
+  opacity:.85;
   transition:background-image .55s ease,opacity .55s ease;
   animation:cardspire-scene-arrive .75s ease both;
 }
@@ -1840,7 +2495,7 @@ body.card-hunt-open #secCardHunt.cardspire-section{display:block!important;posit
 }
 @keyframes cardspire-scene-arrive{
   from{opacity:0;transform:scale(1.025)}
-  to{opacity:.42;transform:scale(1)}
+  to{opacity:.85;transform:scale(1)}
 }
 @media(max-width:700px){
   #secCardHunt .cardspire-map-view{

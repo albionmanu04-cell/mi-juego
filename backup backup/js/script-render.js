@@ -36,10 +36,8 @@ function updateGoldDisplay(newGold){
 /**
  * Refresco general de la UI: se llama después de casi cualquier acción que
  * cambie `state` (comprar, subir de nivel, equipar, etc.) para que la pantalla
- * refleje el estado actual. No maneja una sola vista: delega a las funciones
- * render<Nombre> de cada pestaña (renderProfile, renderArena, renderForge,
- * renderFishing, renderRunMode...) además de actualizar los indicadores
- * globales (oro, nivel, barra de vida).
+ * refleje el estado actual. Delega las vistas permanentes (perfil, forja,
+ * pesca, etc.); la Cacería de cartas mantiene su propio renderizado.
  */
 function render(){
   applyVisualSettings();
@@ -68,7 +66,7 @@ function render(){
   document.getElementById('pointsBanner').textContent = state.statPoints>0 ? `${state.statPoints} puntos para asignar` : 'Sin puntos para asignar';
   statAllocList();
 
-  const runLocked = battle || (runState && runState.phase!=='ended');
+  const runLocked = isHuntProgressLocked();
   const resetBtn = document.getElementById('resetBtn');
   if(state.level >= LEVEL_CAP && !runLocked){
     resetBtn.disabled = false;
@@ -78,8 +76,6 @@ function render(){
     resetBtn.textContent = state.level>=LEVEL_CAP ? 'Terminá la cacería para renacer' : `Renacimiento disponible al nivel ${LEVEL_CAP}`;
   }
 
-  // Cacería queda completamente retirada mientras se construye su nuevo
-  // diseño de cartas. No se inicia ni renderiza ninguna expedición vieja.
-  huntMode = 'disabled';
+  // La Cacería de cartas administra su propia vista y su propio guardado.
   renderActiveSubTabs();
 }
