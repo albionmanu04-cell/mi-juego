@@ -446,9 +446,19 @@
     focusEvolutionTop();
     return true;
   }
-  function replaceEvolvedCard(cardId,evolved){
+  function replaceEvolvedCard(cardId,evolved,baseKey){
     ['deck','draw','hand','discard','cardChoice'].forEach(key=>{
-      if(Array.isArray(hunt[key])) hunt[key]=hunt[key].map(card=>card?.id===cardId?{...evolved,evolution:{...evolved.evolution}}:card);
+      if(!Array.isArray(hunt[key])) return;
+      hunt[key]=hunt[key].map(card=>{
+        if(!card) return card;
+        // Reemplaza tanto la copia elegida como cualquier otra copia básica
+        // sin evolucionar de la misma carta, para que no convivan la
+        // versión básica y la mejorada dentro del mismo mazo.
+        const isChosenCopy=card.id===cardId;
+        const isSiblingBasicCopy=!card.evolution&&baseKey&&card.key===baseKey;
+        if(!isChosenCopy&&!isSiblingBasicCopy) return card;
+        return {...evolved,id:card.id,evolution:{...evolved.evolution}};
+      });
     });
   }
   function selectEvolutionCard(cardId){
@@ -471,7 +481,7 @@
     const card=evolutionCard(pending.selectedId);
     const evolved=evolutionEngine()?.evolve(card,branchId);
     if(!card||!evolved) return;
-    replaceEvolvedCard(card.id,evolved);
+    replaceEvolvedCard(card.id,evolved,card.key);
     hunt.evolutionsClaimed[String(hunt.act)]={
       cardId:card.id,
       baseKey:card.key,

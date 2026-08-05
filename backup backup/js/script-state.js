@@ -167,6 +167,26 @@ function currentDeviceId(){
   }
   return id;
 }
+/* Identificador por PESTAÑA (sessionStorage, no localStorage) para el
+   candado de sesión única: dos pestañas del mismo navegador comparten
+   localStorage (mismo currentDeviceId), pero cada una tiene su propio
+   sessionStorage, así que esto también las distingue entre sí. Sobrevive
+   a un F5 de esa misma pestaña, pero no se comparte con otras pestañas
+   ni se copia sola al duplicar una pestaña existente. */
+function currentSessionTabId(){
+  const key='forja-eterna:tab-session-id';
+  try{
+    let id=sessionStorage.getItem(key);
+    if(!/^[a-zA-Z0-9_-]{8,120}$/.test(id||'')){
+      id=typeof crypto?.randomUUID==='function' ? crypto.randomUUID() : `tab-${Date.now()}-${Math.random().toString(36).slice(2,12)}`;
+      sessionStorage.setItem(key,id);
+    }
+    return id;
+  }catch(_error){
+    if(!window.__forjaTabFallbackId) window.__forjaTabFallbackId=`tab-${Date.now()}-${Math.random().toString(36).slice(2,12)}`;
+    return window.__forjaTabFallbackId;
+  }
+}
 function newMutationId(){
   return `${currentDeviceId()}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,9)}`;
 }
@@ -403,8 +423,11 @@ const SUPABASE_URL = 'https://oyavyaoklewafurcyinj.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_FEFV1g_M2x1L56fLAEBA7g_DGlq4s0J';
 const SUPABASE_SESSION_KEY = 'forja-eterna:supabase-session';
 const CLOUD_SYNC_INTERVAL = 12 * 60 * 1000;
+const SESSION_HEARTBEAT_INTERVAL = 25 * 1000;
 let accountSession = null;
 let developerMode = false;
+let sessionHeartbeatInterval = null;
+let sessionTakenOver = false;
 function isLocalDeveloperEnvironment(){
   const host=location.hostname;
   return location.protocol==='file:' || host==='localhost' || host==='127.0.0.1' || host==='[::1]';
@@ -679,6 +702,7 @@ async function pullCloudProgress(){
   return true;
 }
 async function pushCloudProgress(silent=false){
+  if(sessionTakenOver) return false;
   if(!await ensureRegisteredAccount()||!navigator.onLine){if(!silent)updateCloudIndicator('offline');return false;}
   if(cloudSyncInFlight) return cloudSyncInFlight;
   cloudSyncInFlight=(async()=>{
@@ -718,7 +742,82 @@ function startCloudBackup(){
   // guardado local ya ocurrió; esta llamada intenta enviar el último estado.
   window.addEventListener('pagehide',()=>pushCloudProgress(true));
 }
+
+/* ================= SESIÓN ÚNICA POR CUENTA =================
+   Evita que la misma cuenta juegue en dos navegadores/dispositivos a la
+   vez. Requiere supabase-sesion-unica.sql; si esas funciones no existen
+   todavía en el proyecto de Supabase (404), el juego sigue funcionando
+   igual que antes (fallback silencioso) para no romper cuentas ya en uso. */
+async function callSessionRpc(name,body){
+  const response=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`,{method:'POST',headers:supabaseHeaders(accountSession.access_token),body:JSON.stringify(body)});
+  if(response.status===404) return {unavailable:true};
+  if(!response.ok) throw new Error(`Sesión ${response.status}`);
+  return JSON.parse(await response.text()||'{}');
+}
+async function claimPlayerSession(force){
+  return callSessionRpc('claim_player_session',{device_id:currentSessionTabId(),force:!!force});
+}
+async function releasePlayerSession(){
+  if(!accountSession) return;
+  try{ await callSessionRpc('release_player_session',{device_id:currentSessionTabId()}); }catch(_error){ /* best effort */ }
+}
+function showSessionTakenOverOverlay(){
+  if(document.getElementById('sessionTakenOverOverlay')) return;
+  clearInterval(sessionHeartbeatInterval); clearInterval(cloudSyncInterval);
+  const overlay=document.createElement('div');
+  overlay.id='sessionTakenOverOverlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(9,7,5,.92);backdrop-filter:blur(3px);';
+  overlay.innerHTML=`
+    <div style="max-width:420px;text-align:center;padding:28px 26px;border:1px solid var(--gold,#c89b3c);border-radius:10px;background:linear-gradient(180deg,#1c1610,#120f0c);box-shadow:0 20px 50px rgba(0,0,0,.6);">
+      <div style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:2px;color:var(--gold-bright,#e8c477);text-transform:uppercase;margin-bottom:10px;">Sesión abierta en otro lugar</div>
+      <p style="color:var(--parchment,#e9dfc9);font-size:14px;line-height:1.5;margin-bottom:20px;">Esta cuenta se abrió en otro navegador o dispositivo, así que esta pestaña dejó de guardar progreso para no pisar el tuyo.</p>
+      <button id="sessionTakenOverReload" style="padding:12px 22px;border:0;border-radius:6px;background:linear-gradient(#f1c65b,#b8751d);color:#1d1209;font:800 12px 'Cinzel',serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">Recargar</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('sessionTakenOverReload').addEventListener('click',()=>location.reload());
+}
+function startSessionHeartbeat(){
+  clearInterval(sessionHeartbeatInterval);
+  if(developerMode || !accountSession) return;
+  sessionHeartbeatInterval=setInterval(async()=>{
+    if(sessionTakenOver || !accountSession || !navigator.onLine) return;
+    try{
+      const result=await callSessionRpc('heartbeat_player_session',{device_id:currentSessionTabId()});
+      if(result.unavailable) return; // SQL de sesión única no instalado: no bloquear el juego.
+      if(result.active===false){ sessionTakenOver=true; showSessionTakenOverOverlay(); }
+    }catch(_error){ /* fallo de red puntual: se reintenta en el próximo latido */ }
+  },SESSION_HEARTBEAT_INTERVAL);
+}
+/* Se llama una sola vez, justo después de autenticarse y antes de entrar
+   al juego. Devuelve false si el jugador prefiere cancelar en vez de
+   cerrar la sesión activa en el otro dispositivo. */
+async function ensureSingleSession(){
+  if(developerMode || !accountSession) return true;
+  try{
+    let result=await claimPlayerSession(false);
+    if(result.unavailable) return true; // SQL no instalado todavía: no bloquear.
+    if(!result.claimed){
+      const minutesAgo=Math.max(0,Math.round((Date.now()-new Date(result.last_seen).getTime())/60000));
+      const when=minutesAgo<=0?'hace instantes':`hace ${minutesAgo} min`;
+      const proceed=confirm(`Esta cuenta ya está jugando en otro dispositivo (actividad ${when}).\n\n¿Cerrar esa sesión y continuar en este navegador?`);
+      if(!proceed) return false;
+      result=await claimPlayerSession(true);
+      if(result.unavailable||result.claimed) return true;
+      alert('No se pudo tomar el control de la sesión. Probá de nuevo en unos segundos.');
+      return false;
+    }
+    return true;
+  }catch(_error){ return true; } // fallo de red: no bloquear el acceso por esto.
+}
+
 async function enterAuthenticatedWorld(){
+  sessionTakenOver=false;
+  if(!await ensureSingleSession()){
+    accountSession=null; persistSupabaseSession(null);
+    const status=document.getElementById('accountStatus');
+    if(status){status.className='account-status';status.textContent='Iniciá sesión cuando la otra pestaña se haya cerrado.';}
+    return false;
+  }
   updateAccountChip();
   const stylesReady=window.FeatureLoader?.loadGameStyles?.();
   const gameplayReady=window.FeatureLoader?.loadGameplayScripts?.();
@@ -735,6 +834,7 @@ async function enterAuthenticatedWorld(){
   document.getElementById('accountGate').hidden=true; document.body.classList.remove('account-locked');
   await launchGamePortal();
   startCloudBackup();
+  startSessionHeartbeat();
   if(cloudVerified) pushCloudProgress(true);
   return true;
 }
@@ -840,7 +940,7 @@ async function initializeAccountGate(){
     catch(error){status.className='account-status error';status.textContent=String(error.message||'No se pudo ingresar.').replace('Invalid login credentials','Correo o contraseña incorrectos.').replace('User already registered','Ese correo ya está registrado.');}
     finally{submit.disabled=false;}
   });
-  document.getElementById('accountLogoutBtn').addEventListener('click',async()=>{ if(!confirm('¿Cerrar sesión? Tu progreso local no se borrará.'))return;await pushCloudProgress(true);try{await fetch(`${SUPABASE_URL}/auth/v1/logout`,{method:'POST',headers:supabaseHeaders(accountSession?.access_token)});}catch(_error){}accountSession=null;persistSupabaseSession(null);location.reload(); });
+  document.getElementById('accountLogoutBtn').addEventListener('click',async()=>{ if(!confirm('¿Cerrar sesión? Tu progreso local no se borrará.'))return;await pushCloudProgress(true);await releasePlayerSession();try{await fetch(`${SUPABASE_URL}/auth/v1/logout`,{method:'POST',headers:supabaseHeaders(accountSession?.access_token)});}catch(_error){}accountSession=null;persistSupabaseSession(null);location.reload(); });
   const restored=await restoreRegisteredAccount(); if(restored){await enterAuthenticatedWorld();return true;} return false;
 }
 
