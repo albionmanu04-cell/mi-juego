@@ -167,6 +167,26 @@ function currentDeviceId(){
   }
   return id;
 }
+/* Identificador por PESTAÑA (sessionStorage, no localStorage) para el
+   candado de sesión única: dos pestañas del mismo navegador comparten
+   localStorage (mismo currentDeviceId), pero cada una tiene su propio
+   sessionStorage, así que esto también las distingue entre sí. Sobrevive
+   a un F5 de esa misma pestaña, pero no se comparte con otras pestañas
+   ni se copia sola al duplicar una pestaña existente. */
+function currentSessionTabId(){
+  const key='forja-eterna:tab-session-id';
+  try{
+    let id=sessionStorage.getItem(key);
+    if(!/^[a-zA-Z0-9_-]{8,120}$/.test(id||'')){
+      id=typeof crypto?.randomUUID==='function' ? crypto.randomUUID() : `tab-${Date.now()}-${Math.random().toString(36).slice(2,12)}`;
+      sessionStorage.setItem(key,id);
+    }
+    return id;
+  }catch(_error){
+    if(!window.__forjaTabFallbackId) window.__forjaTabFallbackId=`tab-${Date.now()}-${Math.random().toString(36).slice(2,12)}`;
+    return window.__forjaTabFallbackId;
+  }
+}
 function newMutationId(){
   return `${currentDeviceId()}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,9)}`;
 }
@@ -735,11 +755,11 @@ async function callSessionRpc(name,body){
   return JSON.parse(await response.text()||'{}');
 }
 async function claimPlayerSession(force){
-  return callSessionRpc('claim_player_session',{device_id:currentDeviceId(),force:!!force});
+  return callSessionRpc('claim_player_session',{device_id:currentSessionTabId(),force:!!force});
 }
 async function releasePlayerSession(){
   if(!accountSession) return;
-  try{ await callSessionRpc('release_player_session',{device_id:currentDeviceId()}); }catch(_error){ /* best effort */ }
+  try{ await callSessionRpc('release_player_session',{device_id:currentSessionTabId()}); }catch(_error){ /* best effort */ }
 }
 function showSessionTakenOverOverlay(){
   if(document.getElementById('sessionTakenOverOverlay')) return;
@@ -762,7 +782,7 @@ function startSessionHeartbeat(){
   sessionHeartbeatInterval=setInterval(async()=>{
     if(sessionTakenOver || !accountSession || !navigator.onLine) return;
     try{
-      const result=await callSessionRpc('heartbeat_player_session',{device_id:currentDeviceId()});
+      const result=await callSessionRpc('heartbeat_player_session',{device_id:currentSessionTabId()});
       if(result.unavailable) return; // SQL de sesión única no instalado: no bloquear el juego.
       if(result.active===false){ sessionTakenOver=true; showSessionTakenOverOverlay(); }
     }catch(_error){ /* fallo de red puntual: se reintenta en el próximo latido */ }
