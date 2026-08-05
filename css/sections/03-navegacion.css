@@ -119,6 +119,16 @@
   body.immersive-game #secHunt .arena{ min-height:350px; }
   body.immersive-game .save-indicator{ top:9px; right:14px; }
 
+  /* Mismo criterio de "pantalla baja" que en base.css: nav más compacto
+     para notebooks viejas en landscape, sin tocar el menú mobile (que ya
+     se resuelve por ancho en la media query de abajo). */
+  @media(max-height:800px) and (min-width:700px){
+    .main-nav{ margin-bottom:14px; }
+    .nav-menu-panel{ padding:5px; }
+    .nav-btn{ padding:6px 9px 5px; font-size:8px; }
+    .nav-btn .btn-icon{ font-size:14px; }
+  }
+
   /* ---- MOBILE: menú desplegable con la misma cara que los hub-tile del resto del juego ---- */
   @media(max-width:820px){
     .nav-menu-toggle{ display:inline-flex; width:100%; }

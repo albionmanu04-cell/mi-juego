@@ -9,7 +9,22 @@ FORJA ETERNA · ACTIVAR CUENTAS Y GUARDADO ONLINE
 5. Abrí SQL Editor > New query.
 6. Copiá todo el contenido de "supabase-cloud-save.sql" y presioná Run.
 7. Copiá todo el contenido de "supabase-comercio-jugadores.sql" y presioná Run.
-8. Subí esta versión del juego a GitHub/Vercel.
+8. Copiá todo el contenido de "supabase-sesion-unica.sql" y presioná Run.
+9. Subí esta versión del juego a GitHub/Vercel.
+
+SESIÓN ÚNICA POR CUENTA
+------------------------
+- Cada cuenta sólo puede tener el juego abierto en un navegador/dispositivo
+  a la vez. Al iniciar sesión donde ya hay otra sesión activa, el juego
+  pregunta si querés cerrar esa otra sesión y continuar acá.
+- Si la otra pestaña quedó abierta sin uso (se cerró el navegador, se fue
+  la señal, etc.), se considera abandonada a los 45 segundos sin actividad
+  y cualquier dispositivo puede reclamarla sin preguntar.
+- Si una sesión pierde el control mientras juega (porque otro dispositivo
+  la tomó), deja de guardar en la nube y muestra un aviso para recargar,
+  así ninguna de las dos partidas pisa el progreso de la otra.
+- Si "supabase-sesion-unica.sql" todavía no se ejecutó en tu proyecto, el
+  juego no bloquea nada (sigue como estaba antes) hasta que lo instales.
 
 COMERCIO SEGURO V2
 ------------------

@@ -1,8 +1,10 @@
 # Forja Eterna
 
-Versión actual: **2.0.2**
+Versión actual: **2.4.2**
 
 Juego RPG web estático. No necesita compilación ni dependencias de ejecución: se abre desde un servidor HTTP y guarda el progreso localmente, con respaldo opcional en Supabase.
+
+La Cacería incluye un Altar de Evolución después de cada guardián. Mago, Guerrero y Cazador cuentan con diez ramas cada uno —Poder y Sinergia para sus cinco cartas base— que se conservan en el guardado de la expedición.
 
 ## Ejecutar
 
