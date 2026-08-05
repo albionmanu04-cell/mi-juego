@@ -755,11 +755,11 @@ async function callSessionRpc(name,body){
   return JSON.parse(await response.text()||'{}');
 }
 async function claimPlayerSession(force){
-  return callSessionRpc('claim_player_session',{device_id:currentSessionTabId(),force:!!force});
+  return callSessionRpc('claim_player_session',{device_id:currentDeviceId(),force:!!force});
 }
 async function releasePlayerSession(){
   if(!accountSession) return;
-  try{ await callSessionRpc('release_player_session',{device_id:currentSessionTabId()}); }catch(_error){ /* best effort */ }
+  try{ await callSessionRpc('release_player_session',{device_id:currentDeviceId()}); }catch(_error){ /* best effort */ }
 }
 function showSessionTakenOverOverlay(){
   if(document.getElementById('sessionTakenOverOverlay')) return;
@@ -782,7 +782,7 @@ function startSessionHeartbeat(){
   sessionHeartbeatInterval=setInterval(async()=>{
     if(sessionTakenOver || !accountSession || !navigator.onLine) return;
     try{
-      const result=await callSessionRpc('heartbeat_player_session',{device_id:currentSessionTabId()});
+      const result=await callSessionRpc('heartbeat_player_session',{device_id:currentDeviceId()});
       if(result.unavailable) return; // SQL de sesión única no instalado: no bloquear el juego.
       if(result.active===false){ sessionTakenOver=true; showSessionTakenOverOverlay(); }
     }catch(_error){ /* fallo de red puntual: se reintenta en el próximo latido */ }

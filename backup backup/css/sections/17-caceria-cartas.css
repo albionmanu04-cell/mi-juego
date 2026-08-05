@@ -3663,3 +3663,17 @@ body.card-evolution-open #secCardHunt .cardspire-reset{opacity:.28}
     white-space:nowrap;
   }
 }
+
+/* ============ FIX: tarjetas del Altar dentro de las ramas PODER/SINERGIA ============
+   Las reglas genéricas ".evolution-branch h3/p" y ".evolution-path" (más arriba en
+   este archivo) estaban pisando el diseño pensado para la mini-carta anidada
+   (branch-preview-card) y para el párrafo de branch-details, dejando el box
+   recortado (overflow:hidden + texto/],tipografía de más). Estas reglas, con más
+   especificidad, corrigen solo eso sin tocar el layout general (grid, candidatos,
+   etc.) que ya andaba bien. */
+#secCardHunt .evolution-branch-grid .evolution-branch{min-height:510px;padding:16px}
+#secCardHunt .evolution-branch .branch-preview-card h3{margin:0 0 5px;font-size:14px;line-height:1.2}
+#secCardHunt .evolution-branch .branch-preview-card p{margin:0;font-size:8px;line-height:1.45;min-height:0}
+#secCardHunt .evolution-branch .branch-details>p{min-height:37px;margin:0 2px 10px;font-size:9px;line-height:1.45}
+#secCardHunt .evolution-branch .branch-heading .evolution-path{padding:0;border-radius:0;background:none;font:900 8px/1 "JetBrains Mono",monospace;letter-spacing:.12em;color:#f1c665}
+#secCardHunt .evolution-branch.path-synergy .branch-heading .evolution-path{color:#c9a3f7}
