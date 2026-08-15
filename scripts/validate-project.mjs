@@ -15,6 +15,7 @@ const changelog=read('CHANGELOG.md');
 const readme=read('README.md');
 const loader=read('js/feature-loader.js');
 const cloudSql=read('supabase-cloud-save.sql');
+const rankedPublicSql=read('supabase-ranked-publico.sql');
 
 assert(semver.test(version),`VERSION no contiene una versión semántica válida: ${version}`);
 assert(packageJson.version===version,'package.json y VERSION no coinciden.');
@@ -58,5 +59,11 @@ assert(cloudSql.includes('sync_player_save'),'Falta la función atómica de guar
 assert(/revoke insert, update, delete on public\.player_saves from authenticated/i.test(cloudSql),'Las escrituras directas de nube no están revocadas.');
 assert(cloudSql.includes("jsonb_typeof(next_payload->'roster') is distinct from 'array'"),'Falta validar que el roster remoto sea una lista.');
 assert(cloudSql.includes("jsonb_array_length(next_payload->'roster') > 3"),'Falta limitar el roster remoto a tres personajes.');
+assert(rankedPublicSql.includes('start_ranked_run'),'Falta emitir recibos para partidas Ranked públicas.');
+assert(rankedPublicSql.includes('submit_ranked_run'),'Falta validar resultados Ranked en Supabase.');
+assert(rankedPublicSql.includes('get_ranked_leaderboard'),'Falta la lectura saneada del ranking público.');
+assert(/revoke all on public\.ranked_public_profiles from anon, authenticated/i.test(rankedPublicSql),'Los perfiles Ranked permiten acceso directo.');
+assert(/revoke all on public\.ranked_public_runs from anon, authenticated/i.test(rankedPublicSql),'Los recibos Ranked permiten acceso directo.');
+assert(/security definer\s+set search_path = ''/i.test(rankedPublicSql),'Las funciones Ranked seguras necesitan search_path vacío.');
 
 console.log(`Proyecto válido · v${version} · ${initialRefs.size} recursos iniciales · ${(initialBytes/1024).toFixed(1)} KB.`);

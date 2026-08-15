@@ -54,9 +54,9 @@ function showDailyToast(day, reward){
 /* ================= STATE ================= */
 function starterEquipmentForClass(classId='warrior'){
   const starters = {
-    warrior:{ id:'rusty_sword', type:'weapon', name:'Espada Oxidada', bonusAtk:4, bonusCrit:2, image:'assets/images/warrior_weapon_icon.webp' },
-    archer:{ id:'worn_training_bow', type:'weapon', name:'Arco de Entrenamiento', bonusAtk:4, bonusCrit:2, image:'assets/images/archer_bow_icon.webp' },
-    mage:{ id:'worn_apprentice_staff', type:'weapon', name:'Báculo de Aprendiz', bonusAtk:3, bonusMana:6, image:'assets/images/mage_weapon_icon.webp' },
+    warrior:{ id:'rusty_sword', type:'weapon', name:'Espada de Guardia', bonusAtk:3, bonusDef:4, bonusHp:6, image:'assets/images/warrior_weapon_icon.webp' },
+    archer:{ id:'worn_training_bow', type:'weapon', name:'Arco de Entrenamiento', bonusAtk:3, bonusCrit:7, bonusSpeed:4, image:'assets/images/archer_bow_icon.webp' },
+    mage:{ id:'worn_apprentice_staff', type:'weapon', name:'Báculo de Aprendiz', bonusAtk:2, bonusMana:14, bonusCritDmg:12, image:'assets/images/mage_weapon_icon.webp' },
     priest:{ id:'worn_novice_scepter', type:'weapon', name:'Cetro de Novicio', bonusAtk:3, bonusMana:5, bonusHp:3, image:'assets/images/priest_weapon_icon.webp' },
     assassin:{ id:'worn_training_daggers', type:'weapon', name:'Dagas de Entrenamiento', bonusAtk:4, bonusCrit:2, image:'assets/images/assassin_weapon_icon.webp' },
     tamer:{ id:'worn_binding_whip', type:'weapon', name:'Látigo Gastado', bonusAtk:3, bonusHp:4, bonusCrit:1, image:'assets/images/tamer_weapon_icon.webp' }
@@ -123,6 +123,11 @@ function defaultState(name, classId='warrior') {
     cardCodex: {},
     cardHuntSnapshot: null,
     cardHuntSettlements: {},
+    cardHuntEndlessUnlocked: false,
+    cardHuntEndlessLoadout: null,
+    cardHuntBestEndlessDepth: 0,
+    cardHuntBestEndlessAscension: 0,
+    rankedExtraction: null,
     legacyHuntMigration: null,
     tutorialSeen: false,
     companion: null,
@@ -140,7 +145,7 @@ function defaultState(name, classId='warrior') {
     lastRunSummary: null,
     bestRunSummary: null,
     settlement: null,
-    settings: { musicVolume:100, sfxVolume:100, musicEnabled:false, sfxEnabled:true, graphics:'high', reducedMotion:false },
+    settings: { musicVolume:100, sfxVolume:100, musicEnabled:false, sfxEnabled:true, graphics:'high', reducedMotion:false, performanceMode:'auto' },
     log: []
   };
 }

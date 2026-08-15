@@ -32,6 +32,27 @@ const REMOVED_RUN_RELIC_IDS = new Set(['blood_quill']);
 // El límite obliga a elegir rutas y evita que las reliquias repetidas rompan el late game.
 const MAX_RUN_RELICS = 7;
 const FINAL_RUN_DEPTH = 40;
+
+/* Reglas compartidas por la Cacería de cartas. La campaña termina en el
+   acto 9; desde el acto 10 cada región pasa a ser una Ascensión infinita. */
+const CARD_HUNT_CAMPAIGN_ACTS = 9;
+const CARD_HUNT_FLOORS_PER_ACT = 5;
+function cardHuntEndlessAscension(act=1){
+  return Math.max(0, Math.floor(finiteNumber(act,1))-CARD_HUNT_CAMPAIGN_ACTS);
+}
+function cardHuntEndlessDifficulty(act=1, enemyType='fight'){
+  const ascension=cardHuntEndlessAscension(act);
+  if(!ascension) return {ascension:0,hp:1,damage:1,reward:1,chargeBonus:0};
+  const tierHp=enemyType==='boss'?1.04:enemyType==='elite'?1.02:1;
+  const tierDamage=enemyType==='boss'?1.025:enemyType==='elite'?1.01:1;
+  return {
+    ascension,
+    hp:Math.pow(1.12,ascension)*tierHp,
+    damage:Math.pow(1.085,ascension)*tierDamage,
+    reward:1+Math.min(2.5,ascension*.12),
+    chargeBonus:Math.min(.42,.08+ascension*.025)
+  };
+}
 /* ================= TELEMETRÍA Y RESUMEN DE RUN ================= */
 function emptyRunTelemetry(){
   return {

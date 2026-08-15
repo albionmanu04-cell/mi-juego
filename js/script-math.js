@@ -267,6 +267,14 @@ function normalizeState(){
         : item
     );
   }
+  // Actualiza únicamente el arma inicial de la clase para que los personajes
+  // existentes reciban su nueva identidad sin reemplazar mejoras ni botín.
+  const currentStarter = starterEquipmentForClass(state.characterClass);
+  const refreshStarter = item=>item && (item.starterItem===true || item.id===currentStarter.id)
+    ? {...item,...currentStarter,enhanceLevel:Math.max(0,Number(item.enhanceLevel)||0)}
+    : item;
+  state.ownedEquipment = state.ownedEquipment.map(refreshStarter);
+  if(state.equipment.weapon) state.equipment.weapon = refreshStarter(state.equipment.weapon);
   // Migra piezas forjadas de versiones anteriores al nuevo set Ancestral.
   const migrateForgeSet = item => {
     if(!item) return item;
@@ -314,6 +322,15 @@ function normalizeState(){
   state.fishing.streak = Math.max(0, finiteNumber(state.fishing.streak));
   state.fishing.bestStreak = Math.max(0, finiteNumber(state.fishing.bestStreak));
   state.campaignWins = Math.max(0, Number(state.campaignWins)||0);
+  state.cardHuntEndlessUnlocked = state.cardHuntEndlessUnlocked===true || state.campaignWins>0;
+  state.cardHuntEndlessLoadout = state.cardHuntEndlessLoadout && typeof state.cardHuntEndlessLoadout==='object' && !Array.isArray(state.cardHuntEndlessLoadout)
+    ? state.cardHuntEndlessLoadout
+    : null;
+  state.cardHuntBestEndlessDepth = Math.max(0, Math.floor(Number(state.cardHuntBestEndlessDepth)||0));
+  state.cardHuntBestEndlessAscension = Math.max(0, Math.floor(Number(state.cardHuntBestEndlessAscension)||0));
+  state.rankedExtraction = state.rankedExtraction && typeof state.rankedExtraction==='object' && !Array.isArray(state.rankedExtraction)
+    ? state.rankedExtraction
+    : null;
   state.weeklyChallenge = { ...fresh.weeklyChallenge, ...(state.weeklyChallenge || {}) };
   state.lastRunSummary = state.lastRunSummary && typeof state.lastRunSummary==='object' ? state.lastRunSummary : null;
   state.bestRunSummary = state.bestRunSummary && typeof state.bestRunSummary==='object' ? state.bestRunSummary : null;
@@ -324,6 +341,7 @@ function normalizeState(){
   state.settings.sfxEnabled = state.settings.sfxEnabled !== false;
   state.settings.graphics = ['high','medium','low'].includes(state.settings.graphics) ? state.settings.graphics : 'high';
   state.settings.reducedMotion = !!state.settings.reducedMotion;
+  state.settings.performanceMode = ['auto','on','off'].includes(state.settings.performanceMode) ? state.settings.performanceMode : 'auto';
   state.log = Array.isArray(state.log) ? state.log : [];
   state.achievementsClaimed = state.achievementsClaimed || {};
   state.bestiary = state.bestiary || {};

@@ -10,7 +10,24 @@ FORJA ETERNA · ACTIVAR CUENTAS Y GUARDADO ONLINE
 6. Copiá todo el contenido de "supabase-cloud-save.sql" y presioná Run.
 7. Copiá todo el contenido de "supabase-comercio-jugadores.sql" y presioná Run.
 8. Copiá todo el contenido de "supabase-sesion-unica.sql" y presioná Run.
-9. Subí esta versión del juego a GitHub/Vercel.
+9. Copiá todo el contenido de "supabase-ranked-publico.sql" y presioná Run.
+10. Subí esta versión del juego a GitHub/Vercel.
+
+RANKING PÚBLICO DE CACERÍA
+--------------------------
+- IMPORTANTE PARA TEMPORADA 1: aunque ya hayas instalado una versión anterior,
+  volvé a ejecutar "supabase-ranked-publico.sql". El script archivará la tabla
+  de pretemporada y abrirá una clasificación oficial limpia.
+- Solamente las cuentas registradas participan del ranking público. El modo
+  desarrollador y las partidas sin conexión conservan una clasificación local.
+- Supabase entrega un recibo al comenzar cada incursión. Ese recibo se puede
+  presentar una sola vez y vence después de cuatro horas.
+- El servidor vuelve a calcular los PR: el navegador no puede enviar el puntaje
+  final ni escribir directamente en las tablas del ranking.
+- Se rechazan duraciones, sectores, abatidos y valores de botín imposibles, y se
+  limita la cantidad de incursiones que una cuenta puede iniciar en poco tiempo.
+- La clasificación pública sólo muestra nombre, clase, división, PR y estadísticas
+  generales. Nunca publica el correo ni el identificador privado de la cuenta.
 
 SESIÓN ÚNICA POR CUENTA
 ------------------------

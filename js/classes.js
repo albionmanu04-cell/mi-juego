@@ -431,7 +431,7 @@ const CLASS_ARMORY_SEEDS = [
     ['warrior_gauntlets','gloves','Guanteletes de Guerra','rare','&#x1F94A;', {bonusAtk:8,bonusDef:3}],
     ['warrior_sabatons','boots','Grebas de Marcha','epic','&#x1F462;', {bonusDef:9,bonusSpeed:3}],
     ['warrior_bastion','shield','Escudo del Bastion','legendary','&#x1F6E1;', {bonusDef:24,bonusCrit:3}],
-    ['warrior_oathblade','weapon','Espada del Juramento','mythic','&#x2694;', {bonusAtk:28,bonusCrit:8,bonusCritDmg:18}],
+    ['warrior_oathblade','weapon','Espada del Juramento','mythic','&#x2694;', {bonusAtk:24,bonusDef:11,bonusHp:14,bonusCrit:5}],
     ['warrior_crown','ring','Sello del Rey Caido','unique','&#x1F451;', {bonusDef:12,bonusCrit:15,bonusCritDmg:40}]
   ]),
   ...classArmory('archer', [
@@ -439,8 +439,8 @@ const CLASS_ARMORY_SEEDS = [
     ['archer_vest','chest','Chaleco de Hojas','uncommon','&#x1F3AF;', {bonusDef:8,bonusSpeed:3}],
     ['archer_gloves','gloves','Guantes de Tirador','rare','&#x1F3F9;', {bonusAtk:7,bonusCrit:6}],
     ['archer_boots','boots','Botas del Viento','epic','&#x1F4A8;', {bonusDef:4,bonusSpeed:9}],
-    ['archer_quiver','shield','Carcaj de Plata','legendary','&#x1F3F9;', {bonusAtk:13,bonusCrit:10}],
-    ['archer_moonbow','weapon','Arco de Hoja Lunar','mythic','&#x1F3F9;', {bonusAtk:25,bonusCrit:16,bonusCritDmg:16}],
+    ['archer_quiver','shield','Carcaj de Plata','legendary','&#x1F3F9;', {bonusAtk:10,bonusCrit:13,bonusSpeed:5}],
+    ['archer_moonbow','weapon','Arco de Hoja Lunar','mythic','&#x1F3F9;', {bonusAtk:22,bonusCrit:21,bonusCritDmg:25,bonusSpeed:6}],
     ['archer_starband','ring','Aro de la Estrella','unique','&#x2728;', {bonusCrit:22,bonusCritDmg:48,bonusSpeed:7}]
   ]),
   ...classArmory('mage', [
@@ -448,8 +448,8 @@ const CLASS_ARMORY_SEEDS = [
     ['mage_robe','chest','Tunica de Bruma','uncommon','&#x1F52E;', {bonusMana:18,bonusDef:6}],
     ['mage_gloves','gloves','Guantes de Chispa','rare','&#x2728;', {bonusAtk:8,bonusMana:10}],
     ['mage_slippers','boots','Sandalias Astrales','epic','&#x1F303;', {bonusMana:16,bonusSpeed:6}],
-    ['mage_codex','shield','Libro de Runas','legendary','&#x1F4D6;', {bonusDef:9,bonusCrit:9,bonusMana:22}],
-    ['mage_staff','weapon','Baculo Astral','mythic','&#x1FA84;', {bonusAtk:26,bonusCritDmg:35,bonusMana:24}],
+    ['mage_codex','shield','Libro de Runas','legendary','&#x1F4D6;', {bonusDef:6,bonusCrit:8,bonusCritDmg:18,bonusMana:30}],
+    ['mage_staff','weapon','Baculo Astral','mythic','&#x1FA84;', {bonusAtk:22,bonusCrit:8,bonusCritDmg:46,bonusMana:42}],
     ['mage_orbit','ring','Orbita del Eclipse','unique','&#x1F311;', {bonusCrit:16,bonusCritDmg:55,bonusMana:34}]
   ]),
   ...classArmory('priest', [
@@ -650,15 +650,12 @@ function playerTitle(){
   return '✧ Aventurero de Forja Eterna';
 }
 
-// Todas las clases parten de las MISMAS estadísticas base (ver maxHP, maxMana, atkDamage,
-// critChance, critMultiplier, dodgeChance, extraTurnChance y damageReduction más abajo).
-// Los campos de esta tabla son SOLO el bono extra que cada clase suma sobre esa base
-// compartida: hp→Vida, mana→Maná, atk→Ataque, def→Robustez, crit→Prob. crítica,
-// dodge→Agilidad, speed→Rapidez.
+// Cada clase parte de la misma fórmula, pero recibe bonos iniciales moderados
+// que refuerzan su rol desde la primera pelea sin volver inútil el equipo.
 const CLASSES = {
-  warrior:  { label:'Guerrero', icon:'⚔', description:'Misma base universal · especialista en bloquear y contraatacar.', hp:0, mana:0, atk:0, def:0, crit:0, dodge:0, speed:0, skillMult:1, manaCost:.30 },
-  archer:   { label:'Arquero', icon:'🏹', description:'Misma base universal · marca objetivos y encadena disparos.', hp:0, mana:0, atk:0, def:0, crit:0, dodge:0, speed:0, skillMult:1, manaCost:.28 },
-  mage:     { label:'Mago', icon:'✦', description:'Misma base universal · sus habilidades tienen mayor potencia arcana.', hp:0, mana:0, atk:0, def:0, crit:0, dodge:0, speed:0, skillMult:1.45, manaCost:.26 },
+  warrior:  { label:'Guerrero', icon:'⚔', description:'Más vida y robustez · bloquea impactos y responde con contraataques.', hp:15, mana:0, atk:0, def:2, crit:0, dodge:0, speed:0, skillMult:1, manaCost:.30 },
+  archer:   { label:'Arquero', icon:'🏹', description:'Más precisión y rapidez · encadena flechas y provoca sangrado.', hp:0, mana:0, atk:0, def:0, crit:5, dodge:0, speed:3, skillMult:1, manaCost:.28 },
+  mage:     { label:'Mago', icon:'✦', description:'Mayor reserva de maná · acumula cargas para desatar una Nova Astral.', hp:0, mana:18, atk:0, def:0, crit:0, dodge:0, speed:0, skillMult:1.15, manaCost:.26 },
   priest:   { label:'Sacerdote', icon:'✚', description:'Misma base universal · recupera vida y concede protección.', hp:0, mana:0, atk:0, def:0, crit:0, dodge:0, speed:0, skillMult:1.1, manaCost:.22 },
   assassin: { label:'Asesino', icon:'🗡', description:'Misma base universal · ejecuta enemigos debilitados.', hp:0, mana:0, atk:0, def:0, crit:0, dodge:0, speed:0, skillMult:1.15, manaCost:.30 },
   tamer:    { label:'Domador', icon:'🪢', description:'Misma base universal · puede capturar un compañero para la expedición.', hp:0, mana:0, atk:0, def:0, crit:0, dodge:0, speed:0, skillMult:1.08, manaCost:.27 }

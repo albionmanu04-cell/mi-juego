@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="application-version" content="2.4.2">
+<meta name="application-version" content="2.20.15">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:; media-src 'self'; connect-src 'self' https://oyavyaoklewafurcyinj.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <title>Forja Eterna</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='.85em' font-size='56'%3E%E2%9A%92%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cinzel+Decorative:wght@700;900&family=Spectral:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&family=Anton&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/base.css?v=2.4.3">
+<link rel="stylesheet" href="css/base.css?v=2.20.15">
 <!-- Sólo el acceso y el portal bloquean el primer render. El resto se carga al ingresar. -->
 <link rel="stylesheet" href="css/sections/01-portal-inicio.css">
 <link rel="stylesheet" href="css/sections/12-portal-inicio-detallado.css">
-<link rel="stylesheet" href="css/sections/14-acceso-nube.css?v=2.4.3">
+<link rel="stylesheet" href="css/sections/14-acceso-nube.css?v=2.20.15">
 </head>
 <body>
 <section class="account-gate" id="accountGate" aria-label="Acceso a Forja Eterna">
@@ -35,7 +35,7 @@
       <button class="account-submit" id="accountSubmit" type="submit"><span>ENTRAR AL SANTUARIO</span><b>→</b></button>
     </form>
     <div class="account-security"><span>◆</span><p><b>GUARDADO HÍBRIDO</b>Tu partida se guarda al instante en este dispositivo y se respalda online tras tus avances importantes.</p></div>
-    <span class="account-build-version" data-game-version>FORJA ETERNA · v2.4.2</span>
+    <span class="account-build-version" data-game-version>FORJA ETERNA · v2.20.15</span>
     <button class="developer-entry" id="developerEntry" type="button" hidden><span>⚒</span><b>ENTRAR COMO DESARROLLADOR</b><small>Partida local aislada · sin cuenta ni sincronización</small></button>
   </div>
 </section>
@@ -115,6 +115,7 @@
       <button class="nav-btn" data-sec="secProfile" style="--acc:#a8a196"><span class="btn-icon">👤</span><span class="nav-btn-text"><span class="btn-label">Perfil</span><span class="btn-hint">Progreso y logros</span></span></button>
       <button class="nav-btn active" data-sec="secHero" style="--acc:#3f7fa8"><span class="btn-icon">🛡️</span><span class="nav-btn-text"><span class="btn-label">Héroe</span><span class="btn-hint">Stats, equipo y mochila</span></span></button>
       <button class="nav-btn group-start" data-sec="secCardHunt" style="--acc:#e8622c"><span class="btn-icon">🃏</span><span class="nav-btn-text"><span class="btn-label">Cacería</span><span class="btn-hint">Mazo, rutas y botín</span></span></button>
+      <button class="nav-btn" data-sec="secRankedHunt" style="--acc:#79a98f"><span class="btn-icon">⌗</span><span class="nav-btn-text"><span class="btn-label">Cacería Ranked</span><span class="btn-hint">Temporada 1 · La Frontera Quebrada</span></span></button>
       <button class="nav-btn" data-sec="secForge" style="--acc:#e8c477"><span class="btn-icon">⚒️</span><span class="nav-btn-text"><span class="btn-label">Herrería</span><span class="btn-hint">Forjá tu equipo</span></span></button>
       <button class="nav-btn" data-sec="secFishing" style="--acc:#6aa977"><span class="btn-icon">🎣</span><span class="nav-btn-text"><span class="btn-label">Pesca</span><span class="btn-hint">Minijuego y recompensas</span></span></button>
       <button class="nav-btn" data-sec="secSettlement" style="--acc:#c2965a"><span class="btn-icon">🏘️</span><span class="nav-btn-text"><span class="btn-label">Asentamiento</span><span class="btn-hint">Tu progreso incremental</span></span></button>
@@ -186,6 +187,11 @@
     <!-- CACERÍA: único sistema activo de expediciones, rutas y cartas. -->
     <section class="game-section cardspire-section" id="secCardHunt">
       <div id="cardSpireApp"></div>
+    </section>
+
+    <!-- CACERÍA RANKED: prototipo separado de extracción e inventario en riesgo. -->
+    <section class="game-section" id="secRankedHunt">
+      <div id="rankedHuntApp"></div>
     </section>
 
     <div class="game-section" id="secForge">
@@ -264,11 +270,11 @@
   </svg>
 </div>
 
-<script src="js/feature-loader.js?v=2.4.3"></script>
-<script src="js/sound.js?v=2.4.3"></script>
-<script src="js/classes.js?v=2.4.3"></script>
-<script src="js/script-state.js?v=2.4.3"></script>
-<script src="js/script-math.js?v=2.4.3"></script>
-<script src="js/script-boot.js?v=2.4.3"></script>
+<script src="js/feature-loader.js?v=2.20.15"></script>
+<script src="js/sound.js?v=2.20.15"></script>
+<script src="js/classes.js?v=2.20.15"></script>
+<script src="js/script-state.js?v=2.20.15"></script>
+<script src="js/script-math.js?v=2.20.15"></script>
+<script src="js/script-boot.js?v=2.20.15"></script>
 </body>
 </html>

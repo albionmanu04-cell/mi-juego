@@ -41,3 +41,76 @@
   @media (prefers-reduced-motion: reduce){
     *, *::before, *::after{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
   }
+
+  /* Perfil para PCs antiguas. Mantiene información, controles, arte de héroes
+     y enemigos, pero evita las capas que más repintados y memoria consumen. */
+  body.performance-mode *,
+  body.performance-mode *::before,
+  body.performance-mode *::after{
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+    animation-iteration-count:1 !important;
+  }
+  body.performance-mode .hub-particles,
+  body.performance-mode .particles,
+  body.performance-mode .ambient-glow,
+  body.performance-mode .account-atmosphere,
+  body.performance-mode .combat-vfx,
+  body.performance-mode .class-attack-vfx,
+  body.performance-mode .assassin-fx,
+  body.performance-mode .spark,
+  body.performance-mode .node-choice-spark{
+    display:none !important;
+  }
+  body.performance-mode .arena::before,
+  body.performance-mode .arena::after,
+  body.performance-mode .hub-shell::before,
+  body.performance-mode .hub-shell::after{
+    content:none !important;
+  }
+  body.performance-mode .panel,
+  body.performance-mode .card,
+  body.performance-mode button,
+  body.performance-mode .ranked-recipe-card,
+  body.performance-mode .ranked-player-card,
+  body.performance-mode .ranked-battlefield{
+    box-shadow:none !important;
+  }
+  body.performance-mode .seal-ring-tick,
+  body.performance-mode .seal-wrap::before,
+  body.performance-mode .gold-coin-icon,
+  body.performance-mode .gate-class-art,
+  body.performance-mode .profile-portrait img,
+  body.performance-mode .stat-card.invested::before,
+  body.performance-mode .stat-pips i.pending{
+    will-change:auto;
+  }
+  body.performance-mode .bestiary-card,
+  body.performance-mode .trade-card,
+  body.performance-mode .forge-card,
+  body.performance-mode .salvage-item,
+  body.performance-mode .profile-achievement,
+  body.performance-mode .ranked-recipe-card,
+  body.performance-mode .ranked-season-mission,
+  body.performance-mode .ranked-season-reward{
+    content-visibility:auto;
+    contain:layout paint style;
+    contain-intrinsic-size:auto 180px;
+  }
+  body.performance-mode .feedback-toast,
+  body.performance-mode .dmg-float,
+  body.performance-mode .damage-total-banner,
+  body.performance-mode .ranked-float-number,
+  body.performance-mode .combat-warning{
+    animation-duration:.16s !important;
+    transition-duration:.12s !important;
+  }
+  body.performance-mode .dmg-float,
+  body.performance-mode .damage-total-banner,
+  body.performance-mode .ranked-float-number{
+    filter:none !important;
+    text-shadow:0 2px 3px #000 !important;
+    box-shadow:none !important;
+  }
+  .performance-label{margin-top:18px;padding-top:15px;border-top:1px solid rgba(210,178,95,.18)}
+  .performance-grid small{display:block;margin-top:4px;color:var(--parchment-dim);font:8px 'JetBrains Mono'}

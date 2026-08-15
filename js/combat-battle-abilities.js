@@ -8,13 +8,24 @@
    ================================================================= */
 
 /* ================= HABILIDADES Y MOMENTUM ================= */
-function abilityDefinitions(){
-  return [
-    { key:'heal', label:'Curación', icon:'✚', level:5, cost:.24, cooldown:3, hint:'Recupera 30% de vida' },
-    { key:'shield', label:'Escudo', icon:'🛡', level:8, cost:.18, cooldown:3, hint:'Reduce 2 ataques enemigos' },
-    { key:'bleed', label:'Sangrado', icon:'🩸', level:12, cost:.22, cooldown:3, hint:'Daño por 3 turnos' }
-  ];
-}
+const CLASS_LEVEL_ABILITIES = {
+  warrior:[
+    {key:'warrior-shield-bash',label:'Golpe de Escudo',icon:'◈',level:5,cost:.14,cooldown:2,effect:'shieldBash',hint:'Golpea, aturde y obtiene 1 escudo.'},
+    {key:'warrior-iron-fury',label:'Furia de Hierro',icon:'🔥',level:15,cost:.18,cooldown:4,effect:'ironFury',hint:'Obtiene 3 golpes de Furia y 2 escudos.'},
+    {key:'warrior-colossus',label:'Veredicto del Coloso',icon:'⚒',level:25,cost:.26,cooldown:5,effect:'colossus',hint:'Golpe demoledor que ejecuta enemigos debilitados.'}
+  ],
+  archer:[
+    {key:'archer-piercing-arrow',label:'Flecha Perforante',icon:'➶',level:5,cost:.14,cooldown:2,effect:'piercingArrow',hint:'Disparo que atraviesa coraza y defensa.'},
+    {key:'archer-blood-trap',label:'Trampa de Sangre',icon:'⌁',level:15,cost:.18,cooldown:4,effect:'bloodTrap',hint:'Inmoviliza y causa Sangrado durante 4 turnos.'},
+    {key:'archer-arrow-storm',label:'Tormenta de Flechas',icon:'☄',level:25,cost:.25,cooldown:5,effect:'arrowStorm',hint:'Cinco impactos rápidos sobre el objetivo.'}
+  ],
+  mage:[
+    {key:'mage-runic-bolt',label:'Proyectil Rúnico',icon:'✦',level:5,cost:.13,cooldown:2,effect:'runicBolt',hint:'Daño arcano, recupera maná y genera 1 carga.'},
+    {key:'mage-frost-prison',label:'Prisión de Escarcha',icon:'❄',level:15,cost:.19,cooldown:4,effect:'frostPrison',hint:'Inflige daño, aturde y concede 1 escudo.'},
+    {key:'mage-cataclysm',label:'Cataclismo Astral',icon:'✺',level:25,cost:.27,cooldown:5,effect:'cataclysm',hint:'Consume las cargas para una explosión devastadora.'}
+  ]
+};
+function abilityDefinitions(){ return CLASS_LEVEL_ABILITIES[state.characterClass]||[]; }
 
 function newPlayerStatus(){
   return { stance:'balanced', shieldTurns:0, poisonTurns:0, counterReady:0, markedTurns:0, arcaneCharges:0, companionBoostTurns:0, furyTurns:0, dodgeBoostTurns:0, executionMarkTurns:0, classCooldown:0, momentum:0, lastCombatAction:'', cooldowns:{heal:0,shield:0,bleed:0} };
@@ -297,8 +308,17 @@ function spendSkillCost(baseCost){
 
 function renderAbilityButtons(box){
   if(!battle || !box) return;
-  // Curación, escudo y sangrado se retiraron del kit universal: cada clase combate con sus tres acciones principales.
-  box.insertAdjacentHTML('beforeend', '<div class="combat-status" id="combatStatus"></div>');
+  const cards=abilityDefinitions().map(ability=>{
+    const unlocked=state.level>=ability.level;
+    const cooldown=battle.playerStatus.cooldowns[ability.key]||0;
+    const rawCost=Math.round(battle.playerMaxMana*ability.cost);
+    const cost=visibleSkillCost(rawCost);
+    const ready=unlocked&&!battle.busy&&cooldown===0&&battle.playerMana>=cost;
+    const stateText=!unlocked?`SE DESBLOQUEA EN NIVEL ${ability.level}`:cooldown?`RECARGA ${cooldown}`:battle.playerMana<cost?`FALTAN ${cost-battle.playerMana} MANÁ`:`${cost===0?'GRATIS ✧':cost+' MANÁ'}`;
+    return `<button class="class-level-ability class-${state.characterClass} ${ready?'ready':''} ${unlocked?'is-unlocked':'is-locked'}" data-level-ability="${ability.key}" ${ready?'':'disabled'} title="${ability.hint}"><span>${ability.icon}</span><div><small>NIVEL ${ability.level} · ${stateText}</small><strong>${ability.label}</strong><em>${ability.hint}</em></div></button>`;
+  }).join('');
+  box.insertAdjacentHTML('beforeend', `<section class="class-level-progression"><div class="class-level-progression-head"><span>✦ DOMINIO DE CLASE</span><b>Nivel ${state.level} · habilidades permanentes</b></div><div class="class-level-ability-row">${cards}</div></section><div class="combat-status" id="combatStatus"></div>`);
+  box.querySelectorAll('[data-level-ability]').forEach(button=>button.addEventListener('click',()=>useAbility(button.dataset.levelAbility)));
 }
 
 function renderCombatStatus(){
@@ -331,8 +351,8 @@ function renderCombatStatus(){
 }
 
 /**
- * Usa una de las 3 habilidades generales (`heal`/`shield`/`bleed`, ver
- * `abilityDefinitions()`), no las de clase/subclase. Valida nivel, cooldown
+ * Usa una de las tres habilidades que cada clase obtiene en niveles 5, 15
+ * y 25. Valida nivel, cooldown
  * y maná, aplica el efecto correspondiente y — a diferencia de
  * `playerAttack` — es quien decide directamente si termina la pelea
  * (`endBattle('win')`) o le pasa el turno al monstruo (`startMonsterTurn`).
@@ -348,29 +368,32 @@ function useAbility(key){
   battle.busy = true;
   const usedFreeSkill = spendSkillCost(rawCost);
   battle.playerStatus.cooldowns[key] = ability.cooldown;
-  Sound.skill();
-  if(key==='heal'){
-    playCombatVfx('heal','player');
-    const heal = Math.round(battle.playerMaxHp*.30*(1+runRelicValue('healPower')));
-    const before = battle.playerHp;
-    battle.playerHp = Math.min(battle.playerMaxHp,battle.playerHp+heal);
-    if(battle.isRun && battle.playerHp>before) battle.healingUsed = true;
-    spawnFloatText('player',`+${heal}`,'heal');
-    showFeedback('✚ CURACIÓN',`+${heal} vida`,'mana');
-  } else if(key==='shield'){
-    playCombatVfx('shield','player');
-    battle.playerStatus.shieldTurns = 2;
-    showFeedback('🛡 ESCUDO', 'Los próximos 2 golpes hacen menos daño', 'mana');
-  } else {
-    playCombatVfx('slash','monster','critical');
-    playCombatVfx('poison','monster');
-    const dmg = Math.max(1,Math.round(atkDamage()*.75));
-    battle.monster.hp = Math.max(0,battle.monster.hp-dmg);
-    battle.monster.status.bleedTurns = 3 + runRelicValue('bleedTurns');
-    battle.monster.status.bleedDamage = Math.max(1,Math.round(atkDamage()*.28));
-    spawnFloatText('monster',`🩸 -${dmg}`,'crit');
-    showFeedback('🩸 SANGRADO',`${battle.monster.status.bleedTurns} turnos de hemorragia${usedFreeSkill ? ' · sin coste' : ''}`);
+  gainCombatMomentum(`level-${key}`,32);
+  Sound.classSkill(state.characterClass);
+  const ps=battle.playerStatus, monster=battle.monster;
+  let detail=ability.hint;
+  if(ability.effect==='shieldBash'){
+    const dmg=subclassHit(.92,{heavy:true});monster.status.stunnedTurns=Math.max(monster.status.stunnedTurns,1);ps.shieldTurns=Math.max(ps.shieldTurns,1);detail=`${dmg} daño · aturdido · 1 escudo.`;
+  }else if(ability.effect==='ironFury'){
+    ps.furyTurns=Math.max(ps.furyTurns,3);ps.shieldTurns=Math.max(ps.shieldTurns,2);playCombatVfx('shield','player');detail='Furia para 3 golpes · 2 escudos.';
+  }else if(ability.effect==='colossus'){
+    const execute=monster.hp<=monster.maxHp*.35;const dmg=subclassHit(execute?3.15:2.18,{heavy:true,ignoreArmor:true});detail=`${dmg} daño${execute?' · EJECUCIÓN':''}.`;
+  }else if(ability.effect==='piercingArrow'){
+    const dmg=subclassHit(1.24,{heavy:true,ignoreArmor:true});detail=`${dmg} daño que atraviesa la defensa.`;
+  }else if(ability.effect==='bloodTrap'){
+    const dmg=subclassHit(.72);monster.status.stunnedTurns=Math.max(monster.status.stunnedTurns,1);monster.status.bleedTurns=Math.max(monster.status.bleedTurns,4+runRelicValue('bleedTurns'));monster.status.bleedDamage=Math.max(monster.status.bleedDamage,Math.round(atkDamage()*.33));playCombatVfx('poison','monster');detail=`${dmg} daño · inmovilizado · Sangrado 4 turnos.`;
+  }else if(ability.effect==='arrowStorm'){
+    const hits=Array.from({length:5},()=>subclassHit(.46));const total=hits.reduce((sum,value)=>sum+value,0);showActionDamageTotal(total,{classId:'archer',isSkill:true,hits:5});detail=`5 impactos · ${total} daño total.`;
+  }else if(ability.effect==='runicBolt'){
+    const dmg=subclassHit(.98);const mana=Math.max(1,Math.round(battle.playerMaxMana*.09));battle.playerMana=Math.min(battle.playerMaxMana,battle.playerMana+mana);ps.arcaneCharges=Math.min(3,ps.arcaneCharges+1);detail=`${dmg} daño · +${mana} maná · carga ${ps.arcaneCharges}/3.`;
+  }else if(ability.effect==='frostPrison'){
+    const dmg=subclassHit(1.08);monster.status.stunnedTurns=Math.max(monster.status.stunnedTurns,1);ps.shieldTurns=Math.max(ps.shieldTurns,1);playCombatVfx('shield','player');detail=`${dmg} daño · aturdido · 1 escudo.`;
+  }else if(ability.effect==='cataclysm'){
+    const charges=ps.arcaneCharges||0;const dmg=subclassHit(2.18+charges*.56,{heavy:true,ignoreArmor:true});ps.arcaneCharges=0;showActionDamageTotal(dmg,{classId:'mage',isSkill:true,hits:1});detail=`${dmg} daño · ${charges} carga${charges===1?'':'s'} consumida${charges===1?'':'s'}.`;
   }
+  if(usedFreeSkill) detail+=' · sin coste';
+  addLog(`${ability.icon} ${ability.label}: ${detail}`,'combat');
+  showFeedback(`${ability.icon} ${ability.label.toUpperCase()}`,detail,'reward');
   syncBattleUi();
   if(battle.monster.hp<=0){ setTimeout(()=>{ if(isCurrentBattle(abilityBattle)) endBattle('win'); },350); return; }
   resolvePlayerActionEnd(abilityBattle);

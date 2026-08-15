@@ -22,6 +22,8 @@ function playerAttack(isSkill){
   const cost = visibleSkillCost(rawCost);
   if(isSkill && battle.playerMana < cost) return;
   const momentumFinisher = consumeMomentumFinisher();
+  const action = classCombatAction(isSkill);
+  action.totalDamage=0;
   battle.momentumFinisher = momentumFinisher;
   gainCombatMomentum(isSkill?'skill':'attack',isSkill?26:18);
   battle.busy = true;
@@ -29,13 +31,32 @@ function playerAttack(isSkill){
   if(isSkill) {
     Sound.classSkill(state.characterClass);
     const usedFreeSkill = spendSkillCost(rawCost);
-    if(Math.random()<.28) battle.monster.status.stunnedTurns = 1;
+    if(action.stunChance && Math.random()<action.stunChance){
+      battle.monster.status.stunnedTurns = 1;
+      setTimeout(()=>Sound.statusProc?.('stun'),150);
+    }
+    if(action.guard){
+      battle.playerStatus.shieldTurns = Math.max(battle.playerStatus.shieldTurns,1);
+      battle.playerStatus.counterReady = Math.max(battle.playerStatus.counterReady,1);
+      showFeedback('🛡 EMBATE DEL JURAMENTO','El próximo golpe queda protegido y será contraatacado','mana');
+    }
+    if(action.bleedTurns){
+      battle.monster.status.bleedTurns = Math.max(battle.monster.status.bleedTurns,action.bleedTurns);
+      battle.monster.status.bleedDamage = Math.max(battle.monster.status.bleedDamage,Math.max(1,Math.round(atkDamage()*.18)));
+      setTimeout(()=>Sound.statusProc?.('bleed'),160);
+    }
+    if(action.arcanePerCharge){
+      action.consumedCharges = battle.playerStatus.arcaneCharges;
+      action.damage *= 1 + action.arcanePerCharge*action.consumedCharges;
+      battle.playerStatus.arcaneCharges = 0;
+      if(action.consumedCharges) showFeedback('✦ NOVA SOBRECARGADA',`${action.consumedCharges} carga${action.consumedCharges===1?'':'s'} consumida${action.consumedCharges===1?'':'s'}`,'mana');
+    }
     flashArena('skill');
     burstSparks('var(--mana)', 8);
     if(usedFreeSkill) showFeedback('✧ HABILIDAD GRATUITA','El Sello del Alba se consume este combate','mana');
   } else {
     Sound.classAttack(state.characterClass);
-    battle.playerMana = Math.min(battle.playerMaxMana, battle.playerMana + 3);
+    battle.playerMana = Math.min(battle.playerMaxMana, battle.playerMana + (action.mana||3));
   }
   if(momentumFinisher){
     Sound.crit();
@@ -54,11 +75,11 @@ function playerAttack(isSkill){
     syncBattleUi();
   }
 
-  let hits = 1;
-  while(hits < 4 && Math.random() < extraTurnChance()) hits++;
+  let hits = Math.max(1,action.hits||1);
+  if(!isSkill) while(hits < 4 && Math.random() < extraTurnChance()) hits++;
   if(hits>1) showComboBadge(hits);
 
-  runPlayerHits(hits, isSkill, 0);
+  runPlayerHits(hits, isSkill, 0, battle, action);
 }
 
 function showComboBadge(hits){
@@ -128,7 +149,7 @@ function companionAssist(force=false){
  * timeout esperaba, la llamada se ignora en silencio. Al terminar todos los
  * golpes, dispara el turno del monstruo (`startMonsterTurn`, en combat-run.js).
  */
-function runPlayerHits(totalHits, isSkill, doneCount, reference=battle){
+function runPlayerHits(totalHits, isSkill, doneCount, reference=battle, action=classCombatAction(isSkill)){
   if(!isCurrentBattle(reference)) return;
   const pf = document.querySelector('.fighter.player');
   const mf = document.querySelector('.fighter.monster');
@@ -153,7 +174,7 @@ function runPlayerHits(totalHits, isSkill, doneCount, reference=battle){
     const fury = battle.playerStatus.furyTurns>0;
     const executionMarked = battle.playerStatus.executionMarkTurns>0 && battle.monster.hp<=battle.monster.maxHp*.5;
     const momentumHit = !!reference.momentumFinisher;
-    let rawDmg = atkDamage() * combatStance().attack * (isSkill ? 2.3 * (currentClass().skillMult + subclassBonus('skillMult')) * (1+runRelicValue('skillPower')) : 1) * comboMult * (0.85+Math.random()*0.3);
+    let rawDmg = atkDamage() * combatStance().attack * action.damage * (isSkill ? (action.legacy?1:1+subclassBonus('skillMult'))*(1+runRelicValue('skillPower')) : 1) * comboMult * (0.85+Math.random()*0.3);
     if(momentumHit) rawDmg *= 1.5;
     reference.momentumFinisher = false;
     if(marked) rawDmg *= 1.30;
@@ -165,6 +186,7 @@ function runPlayerHits(totalHits, isSkill, doneCount, reference=battle){
     const vulnerable = battle.monster.status.breakVulnerableTurns>0;
     if(vulnerable) rawDmg *= 1.25;
     const dmg = Math.max(1, Math.round(rawDmg*affinityDamageMultiplier(battle.monster,isSkill)));
+    action.totalDamage=(action.totalDamage||0)+dmg;
     battle.monster.hp = Math.max(0, battle.monster.hp - dmg);
     if(vulnerable) battle.monster.status.breakVulnerableTurns--;
     if(marked) battle.playerStatus.markedTurns--;
@@ -194,12 +216,13 @@ function runPlayerHits(totalHits, isSkill, doneCount, reference=battle){
         arenaEl.classList.remove('hit-shake','mega-shake'); void arenaEl.offsetWidth; arenaEl.classList.add(shakeClass);
       }
       const tag = isCrit ? 'CRIT ' : '';
-      spawnFloatText('monster', tag+'-'+dmg, (isCrit?'crit':'')+(isBigHit?' big':''), doneCount);
+      spawnFloatText('monster', tag+'-'+dmg, (isCrit?'crit':'')+(isBigHit?' big':''), doneCount,{classId:state.characterClass,value:dmg,isCrit,isSkill});
       addLog(`${isSkill?'✦ Habilidad':'⚔ Ataque'}${isCrit?' crítico':''}: ${battle.monster.name} recibe ${dmg} de daño.`, isCrit?'crit':'combat');
       pf.classList.remove('attacking');
       syncBattleUi();
 
       if(battle.monster.hp <= 0){
+        showActionDamageTotal(action.totalDamage,{classId:state.characterClass,isSkill,hits:doneCount+1});
         mf.classList.add('dead');
         battle.busy = false;
         setTimeout(()=>{ if(isCurrentBattle(reference)) endBattle('win'); }, 500);
@@ -208,8 +231,15 @@ function runPlayerHits(totalHits, isSkill, doneCount, reference=battle){
 
       doneCount++;
       if(doneCount < totalHits){
-        setTimeout(()=>runPlayerHits(totalHits, isSkill, doneCount, reference), 320);
+        setTimeout(()=>runPlayerHits(totalHits, isSkill, doneCount, reference, action), 320);
         return;
+      }
+
+      showActionDamageTotal(action.totalDamage,{classId:state.characterClass,isSkill,hits:totalHits});
+
+      if(action.grantArcaneAfter){
+        battle.playerStatus.arcaneCharges = Math.min(3,battle.playerStatus.arcaneCharges+action.grantArcaneAfter);
+        showFeedback('✦ CARGA ARCANA',`${battle.playerStatus.arcaneCharges}/3 · potencia tu próxima Nova Astral`,'mana');
       }
 
       setTimeout(()=>{
@@ -234,60 +264,6 @@ function doTrain(){
   saveState();
 }
 
-let subclassChoiceOpen = false;
-/* ================= ELECCIÓN DE SUBCLASE Y RENACER ================= */
-function subclassBonusText(bonuses={}){
-  const labels={hp:'Vida',mana:'Maná',atk:'Ataque',def:'Defensa',crit:'Crítico',critDmg:'Daño crítico',dodge:'Evasión',speed:'Rapidez',skillMult:'Poder de habilidad',manaDiscount:'Ahorro de maná',companionRate:'Frecuencia del compañero',companionPower:'Daño del compañero'};
-  return Object.entries(bonuses).map(([key,value])=>{
-    const percentage=['crit','critDmg','dodge','speed'].includes(key) ? value : ['skillMult','manaDiscount','companionRate','companionPower'].includes(key) ? Math.round(value*100) : null;
-    return `+${percentage===null?value:percentage}${percentage===null?'':'%'} ${labels[key]||key}`;
-  }).join(' · ');
-}
-function openSubclassChoice(forRebirth=false){
-  if(subclassChoiceOpen || state.subclass) return;
-  const choices=SUBCLASSES[state.characterClass] || {};
-  if(!Object.keys(choices).length) return;
-  subclassChoiceOpen=true;
-  const overlay=document.createElement('div');
-  overlay.className='subclass-overlay';
-  overlay.id='subclassOverlay';
-  overlay.innerHTML=`<section class="subclass-modal" role="dialog" aria-modal="true"><div class="subclass-kicker">✦ PRIMER RENACIMIENTO</div><h2>ELEGÍ TU SENDA</h2><p>Esta especialización será permanente para <b>${escapeHtml(state.name)}</b>.</p><div class="subclass-grid">${Object.entries(choices).map(([id,sub])=>`<button class="subclass-card" data-subclass="${id}">${sub.image?`<img src="${sub.image}" alt="${sub.label}" decoding="async">`:`<span>${sub.icon}</span>`}<b>${sub.icon} ${sub.label}</b><small>${sub.description}</small><em>${subclassBonusText(sub.bonuses)}</em><strong>ELEGIR SENDA</strong></button>`).join('')}</div></section>`;
-  document.body.appendChild(overlay);
-  requestAnimationFrame(()=>overlay.classList.add('show'));
-  overlay.querySelectorAll('[data-subclass]').forEach(button=>button.addEventListener('click',()=>{
-    const id=button.dataset.subclass, sub=choices[id];
-    if(!sub || !confirm(`¿Elegir ${sub.label}? Esta senda quedará guardada con el personaje.`)) return;
-    state.subclass=id;
-    subclassChoiceOpen=false;
-    overlay.remove();
-    Sound.victory();
-    showFeedback(`${sub.icon} ${sub.label.toUpperCase()}`, subclassBonusText(sub.bonuses), 'level');
-    addLog(`✦ Senda desbloqueada: ${sub.label} — ${subclassBonusText(sub.bonuses)}.`, 'level');
-    if(forRebirth) performRebirth(); else { render(); saveState(); }
-  }));
-}
-function performRebirth(){
-  Sound.victory();
-  state.resets++;
-  state.level = 1;
-  state.exp = 0;
-  const freshStats = defaultState(state.name, state.characterClass).stats;
-  state.stats = { ...freshStats };
-  state.robustness = 0;
-  state.perception = 0;
-  state.critRateStat = 0;
-  state.critDmgStat = 0;
-  state.allocatedPoints = emptyPointMap();
-  state.pendingPoints = emptyPointMap();
-  state.statPoints = rebirthStartingPoints();
-  if(state.missions?.week) state.missions.week.resets = (state.missions.week.resets||0) + 1;
-  if(state.missions?.month) state.missions.month.resets = (state.missions.month.resets||0) + 1;
-  addLog(`✦ RENACIMIENTO #${state.resets} — Marca Eterna obtenida · +${resetStatBonus()} progreso base · ${state.statPoints} puntos iniciales`, 'reset');
-  showFeedback(`✦ MARCA ETERNA ${state.resets}`, `Nivel 1 · ${state.statPoints} puntos iniciales · equipo conservado`, 'level');
-  rollMissionReset();
-  render();
-  saveState();
-}
 function doReset(){
   if(state.level < LEVEL_CAP || battle || (runState && runState.phase!=='ended')) return;
   if(state.resets===0 && !state.subclass){ openSubclassChoice(true); return; }

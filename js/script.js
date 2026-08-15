@@ -104,7 +104,7 @@ function defaultState(name, classId='warrior') {
     weeklyChallenge: { key:null, wins:0, claimed:false },
     lastRunSummary: null,
     bestRunSummary: null,
-    settings: { musicVolume:100, sfxVolume:100, musicEnabled:false, sfxEnabled:true, graphics:'high', reducedMotion:false },
+    settings: { musicVolume:100, sfxVolume:100, musicEnabled:false, sfxEnabled:true, graphics:'high', reducedMotion:false, performanceMode:'auto' },
     log: []
   };
 }
@@ -885,6 +885,7 @@ function normalizeState(){
   state.settings.sfxEnabled = state.settings.sfxEnabled !== false;
   state.settings.graphics = ['high','medium','low'].includes(state.settings.graphics) ? state.settings.graphics : 'high';
   state.settings.reducedMotion = !!state.settings.reducedMotion;
+  state.settings.performanceMode = ['auto','on','off'].includes(state.settings.performanceMode) ? state.settings.performanceMode : 'auto';
   state.log = Array.isArray(state.log) ? state.log : [];
   state.achievementsClaimed = state.achievementsClaimed || {};
   state.bestiary = state.bestiary || {};
@@ -2081,11 +2082,23 @@ function ensureShop(){
   }
 }
 
+function detectLowEndDevice(){
+  const memory = Number(navigator.deviceMemory) || 0;
+  const cores = Number(navigator.hardwareConcurrency) || 0;
+  const saveData = !!(navigator.connection && navigator.connection.saveData);
+  const slowUpdates = !!(window.matchMedia && window.matchMedia('(update: slow)').matches);
+  return saveData || slowUpdates || (memory > 0 && memory <= 4) || (cores > 0 && cores <= 4);
+}
+function performanceModeActive(){
+  const mode = state?.settings?.performanceMode || 'auto';
+  return mode === 'on' || (mode === 'auto' && detectLowEndDevice());
+}
 function applyVisualSettings(){
   const settings = state.settings || {};
   document.body.classList.toggle('graphics-medium', settings.graphics === 'medium');
   document.body.classList.toggle('graphics-low', settings.graphics === 'low');
   document.body.classList.toggle('reduce-motion', !!settings.reducedMotion);
+  document.body.classList.toggle('performance-mode', performanceModeActive());
   if(Sound){
     Sound.musicEnabled = !!settings.musicEnabled;
     Sound.applyVolumes();
@@ -2144,7 +2157,7 @@ function renderOptions(){
   box.querySelector('#motionBtn').addEventListener('click',()=>{ state.settings.reducedMotion=!state.settings.reducedMotion; applyVisualSettings(); saveState(); renderOptions(); });
   box.querySelector('#testSoundBtn').addEventListener('click',()=>Sound.preview());
   box.querySelector('#optionsFullscreenBtn').addEventListener('click',()=>toggleGameMode());
-  box.querySelector('#resetOptionsBtn').addEventListener('click',()=>{ state.settings={musicVolume:100,sfxVolume:100,musicEnabled:false,sfxEnabled:true,graphics:'high',reducedMotion:false}; Sound.musicEnabled=false; applyVisualSettings(); saveState(); renderOptions(); });
+  box.querySelector('#resetOptionsBtn').addEventListener('click',()=>{ state.settings={musicVolume:100,sfxVolume:100,musicEnabled:false,sfxEnabled:true,graphics:'high',reducedMotion:false,performanceMode:'auto'}; Sound.musicEnabled=false; applyVisualSettings(); saveState(); renderOptions(); });
 }
 
 function adventurerDaysSince(){
@@ -2216,6 +2229,7 @@ const HUB_PARTICLES = [
   {x:'90%',y:'60%',size:'2px',dur:'8s',delay:'2.3s'}
 ];
 function hubParticlesHTML(){
+  if(performanceModeActive()) return '';
   return `<div class="hub-particles" aria-hidden="true">${HUB_PARTICLES.map(p=>`<span style="--x:${p.x};--y:${p.y};--size:${p.size};--dur:${p.dur};--delay:${p.delay}"></span>`).join('')}</div>`;
 }
 
@@ -2285,7 +2299,8 @@ function renderOptionsHub(){
     const musicOn=!!s.musicEnabled, sfxOn=s.sfxEnabled!==false;
     box.innerHTML=`${head}<section class="hub-detail settings-detail"><button class="hub-back" data-options-back>← VOLVER A OPCIONES</button><section class="settings-group"><h4>Audio</h4><div class="setting-row"><div class="setting-label"><b>♫ Música</b><small>Ambiente del menú y combate</small></div><input class="settings-range" id="musicVolume" type="range" min="0" max="100" value="${s.musicVolume}"><output id="musicVolumeValue">${s.musicVolume}%</output></div><div class="setting-row"><div class="setting-label"><b>✦ Efectos</b><small>Golpes, recompensas y avisos</small></div><input class="settings-range" id="sfxVolume" type="range" min="0" max="100" value="${s.sfxVolume}"><output id="sfxVolumeValue">${s.sfxVolume}%</output></div><div class="settings-switch"><span>Música en segundo plano</span><button id="musicEnabledBtn" class="${musicOn?'active':''}">${musicOn?'ACTIVADA':'SILENCIADA'}</button></div><div class="settings-switch"><span>Efectos de sonido</span><button id="sfxEnabledBtn" class="${sfxOn?'active':''}">${sfxOn?'ACTIVADOS':'SILENCIADOS'}</button></div></section><div class="hub-action-row"><button id="testSoundBtn">✦ PROBAR SONIDO</button></div></section>`;
   } else if(activeOptionsView==='visual'){
-    box.innerHTML=`${head}<section class="hub-detail settings-detail"><button class="hub-back" data-options-back>← VOLVER A OPCIONES</button><section class="settings-group"><h4>Imagen y comodidad</h4><div class="setting-label" style="margin-bottom:9px"><b>Calidad gráfica</b><small>Reducila si el juego va lento.</small></div><div class="quality-grid">${[['high','Alta','Efectos completos'],['medium','Media','Menos partículas'],['low','Baja','Mayor fluidez']].map(([id,title,detail])=>`<button class="quality-btn ${s.graphics===id?'active':''}" data-quality="${id}">${title}<small style="display:block;font:8px 'JetBrains Mono';margin-top:4px;color:var(--parchment-dim)">${detail}</small></button>`).join('')}</div><div class="settings-switch"><span>Reducir animaciones</span><button id="motionBtn" class="${s.reducedMotion?'active':''}">${s.reducedMotion?'ACTIVADO':'DESACTIVADO'}</button></div></section></section>`;
+    const performanceStatus=performanceModeActive()?'ACTIVO':'INACTIVO';
+    box.innerHTML=`${head}<section class="hub-detail settings-detail"><button class="hub-back" data-options-back>← VOLVER A OPCIONES</button><section class="settings-group"><h4>Imagen y comodidad</h4><div class="setting-label" style="margin-bottom:9px"><b>Calidad gráfica</b><small>Reducila si el juego va lento.</small></div><div class="quality-grid">${[['high','Alta','Efectos completos'],['medium','Media','Menos partículas'],['low','Baja','Mayor fluidez']].map(([id,title,detail])=>`<button class="quality-btn ${s.graphics===id?'active':''}" data-quality="${id}">${title}<small style="display:block;font:8px 'JetBrains Mono';margin-top:4px;color:var(--parchment-dim)">${detail}</small></button>`).join('')}</div><div class="setting-label performance-label"><b>Modo rendimiento</b><small>Reduce desenfoques, partículas y efectos temporales. En Automático se activa solo en equipos modestos.</small></div><div class="quality-grid performance-grid">${[['auto','Automático',performanceStatus],['on','Activado','Máxima fluidez'],['off','Desactivado','Calidad elegida']].map(([id,title,detail])=>`<button class="quality-btn ${s.performanceMode===id?'active':''}" data-performance="${id}">${title}<small>${detail}</small></button>`).join('')}</div><div class="settings-switch"><span>Reducir animaciones</span><button id="motionBtn" class="${s.reducedMotion?'active':''}">${s.reducedMotion?'ACTIVADO':'DESACTIVADO'}</button></div></section></section>`;
   } else {
     box.innerHTML=`${head}<section class="hub-detail settings-detail"><button class="hub-back" data-options-back>← VOLVER A OPCIONES</button><section class="settings-group"><h4>Sistema</h4><p class="settings-intro">Probá la respuesta del juego, alterná la vista amplia o restaurá todos los ajustes de este personaje.</p><div class="hub-action-row"><button id="testSoundBtn">✦ PROBAR SONIDO</button><button id="optionsFullscreenBtn">⛶ ALTERNAR MODO JUEGO</button><button class="settings-action danger" id="resetOptionsBtn">↺ RESTAURAR OPCIONES</button></div></section></section>`;
   }
@@ -2297,10 +2312,11 @@ function renderOptionsHub(){
   box.querySelector('#musicEnabledBtn')?.addEventListener('click',()=>{state.settings.musicEnabled=!state.settings.musicEnabled;Sound.musicEnabled=state.settings.musicEnabled;if(Sound.musicEnabled){Sound.init();if(Sound.scene==='menu'&&Sound.menuAudioEl){Sound.syncMenuAudio();}else{Sound.playNextNote();}}else{Sound.syncMenuAudio();}Sound.applyVolumes();saveState();renderOptionsHub();});
   box.querySelector('#sfxEnabledBtn')?.addEventListener('click',()=>{state.settings.sfxEnabled=!state.settings.sfxEnabled;Sound.applyVolumes();Sound.click();saveState();renderOptionsHub();});
   box.querySelectorAll('[data-quality]').forEach(button=>button.addEventListener('click',()=>{state.settings.graphics=button.dataset.quality;applyVisualSettings();saveState();renderOptionsHub();}));
+  box.querySelectorAll('[data-performance]').forEach(button=>button.addEventListener('click',()=>{state.settings.performanceMode=button.dataset.performance;applyVisualSettings();saveState();renderOptionsHub();}));
   box.querySelector('#motionBtn')?.addEventListener('click',()=>{state.settings.reducedMotion=!state.settings.reducedMotion;applyVisualSettings();saveState();renderOptionsHub();});
   box.querySelector('#testSoundBtn')?.addEventListener('click',()=>Sound.preview());
   box.querySelector('#optionsFullscreenBtn')?.addEventListener('click',()=>toggleGameMode());
-  box.querySelector('#resetOptionsBtn')?.addEventListener('click',()=>{state.settings={musicVolume:100,sfxVolume:100,musicEnabled:false,sfxEnabled:true,graphics:'high',reducedMotion:false};Sound.musicEnabled=false;applyVisualSettings();saveState();activeOptionsView='home';renderOptionsHub();});
+  box.querySelector('#resetOptionsBtn')?.addEventListener('click',()=>{state.settings={musicVolume:100,sfxVolume:100,musicEnabled:false,sfxEnabled:true,graphics:'high',reducedMotion:false,performanceMode:'auto'};Sound.musicEnabled=false;applyVisualSettings();saveState();activeOptionsView='home';renderOptionsHub();});
 }
 
 function buyItem(id){

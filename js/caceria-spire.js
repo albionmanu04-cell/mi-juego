@@ -2,7 +2,7 @@
 (function(){
   'use strict';
   const SECTION_ID = 'secCardHunt';
-  const SNAPSHOT_VERSION = 2;
+  const SNAPSHOT_VERSION = 3;
   const MAX_SETTLEMENT_HISTORY = 30;
   let hunt = null;
   let huntStateRef = null;
@@ -28,6 +28,13 @@
     {key:'stormvale', name:'Valle de la Tormenta', asset:'assets/images/caceria-acto-8-valle-tormenta-v2.webp', mark:'ϟ'},
     {key:'crimsonabyss', name:'Abismo Carmesí', asset:'assets/images/caceria-acto-9-abismo-carmesi-v2.webp', mark:'◆'}
   ];
+  const CAMPAIGN_ACTS = typeof CARD_HUNT_CAMPAIGN_ACTS==='number' ? CARD_HUNT_CAMPAIGN_ACTS : HUNT_SCENES.length;
+  const ENDLESS_START_ACT = CAMPAIGN_ACTS+1;
+  const ENDLESS_TARGET_STATS = {
+    fight:{hp:144,damage:23},
+    elite:{hp:222,damage:29},
+    boss:{hp:292,damage:37}
+  };
   const ENEMY_POOLS = [
     {
       normal:[
@@ -390,6 +397,20 @@
     if(!hunt) return 0;
     return Math.max(1,((Math.max(1,Math.floor(n(hunt.act,1)))-1)*Math.max(1,Math.floor(n(hunt.maxFloor,5))))+Math.max(0,Math.floor(n(hunt.floor,0)))+1);
   }
+  function endlessAscension(act=hunt?.act){
+    if(typeof cardHuntEndlessAscension==='function') return cardHuntEndlessAscension(act);
+    return Math.max(0,Math.floor(n(act,1))-CAMPAIGN_ACTS);
+  }
+  function endlessDifficulty(act=hunt?.act,type='fight'){
+    if(typeof cardHuntEndlessDifficulty==='function') return cardHuntEndlessDifficulty(act,type);
+    const ascension=endlessAscension(act);
+    return ascension
+      ? {ascension,hp:Math.pow(1.12,ascension),damage:Math.pow(1.085,ascension),reward:1+Math.min(2.5,ascension*.12),chargeBonus:Math.min(.42,.08+ascension*.025)}
+      : {ascension:0,hp:1,damage:1,reward:1,chargeBonus:0};
+  }
+  function endlessUnlocked(){
+    return !!(state?.cardHuntEndlessUnlocked || n(state?.campaignWins,0)>0);
+  }
   function canRetire(){
     return !!hunt && hunt.status==='active' && hunt.reward>0 && ['map','event','sanctuary','treasure','shop','victory'].includes(hunt.screen);
   }
@@ -404,7 +425,7 @@
     return !!run && ['active','won'].includes(run.status) && !['intro','lost','settled'].includes(run.screen);
   }
   function isFinalVictory(){
-    return !!hunt && hunt.screen==='victory' && hunt.act>=HUNT_SCENES.length && hunt.floor>=hunt.maxFloor-1 && hunt.enemy?.type==='boss';
+    return !!hunt && !hunt.endless && hunt.screen==='victory' && hunt.act===CAMPAIGN_ACTS && hunt.floor>=hunt.maxFloor-1 && hunt.enemy?.type==='boss';
   }
   function evolutionEngine(){ return window.CardEvolution; }
   function evolutionClaimed(act=hunt?.act){ return !!hunt?.evolutionsClaimed?.[String(act)]; }
@@ -432,7 +453,7 @@
     return chosen.slice(0,3).map(card=>card.id);
   }
   function beginEvolution(){
-    if(!hunt || hunt.enemy?.type!=='boss' || isFinalVictory() || evolutionClaimed()) return false;
+    if(!hunt || hunt.endless || hunt.enemy?.type!=='boss' || isFinalVictory() || evolutionClaimed()) return false;
     const candidateIds=chooseEvolutionCandidates();
     if(!candidateIds.length){
       hunt.evolutionsClaimed[String(hunt.act)]={skipped:true,claimedAt:Date.now()};
@@ -514,7 +535,7 @@
   }
   function restoreCardHunt(snapshot){
     const owner=currentCharacterId();
-    if(!owner || !snapshot || ![1,SNAPSHOT_VERSION].includes(Number(snapshot.version)) || snapshot.ownerCharacterId!==owner || !snapshot.run || typeof snapshot.run!=='object') return false;
+    if(!owner || !snapshot || ![1,2,SNAPSHOT_VERSION].includes(Number(snapshot.version)) || snapshot.ownerCharacterId!==owner || !snapshot.run || typeof snapshot.run!=='object') return false;
     const saved=snapshot.run;
     if(['lost','settled'].includes(saved.status)) return false;
     createRun();
@@ -523,7 +544,10 @@
     hunt.ownerCharacterId=owner;
     hunt.runId=typeof saved.runId==='string' && saved.runId.trim() ? saved.runId.slice(0,120) : fallback.runId;
     hunt.status=['active','won'].includes(saved.status) ? saved.status : 'active';
-    hunt.act=Math.max(1,Math.min(HUNT_SCENES.length,Math.floor(n(saved.act,1))));
+    hunt.endless=saved.endless===true;
+    hunt.act=hunt.endless
+      ? Math.max(ENDLESS_START_ACT,Math.min(100000,Math.floor(n(saved.act,ENDLESS_START_ACT))))
+      : Math.max(1,Math.min(CAMPAIGN_ACTS,Math.floor(n(saved.act,1))));
     hunt.maxFloor=5;
     hunt.floor=Math.max(0,Math.min(hunt.maxFloor-1,Math.floor(n(saved.floor,0))));
     hunt.maxHp=Math.max(1,Math.floor(n(saved.maxHp,fallback.maxHp)));
@@ -574,8 +598,9 @@
     hunt.returnScreen=['map','event','sanctuary','treasure','shop','victory'].includes(saved.returnScreen) ? saved.returnScreen : 'map';
     if(['combat','victory'].includes(hunt.screen) && !hunt.enemy) hunt.screen='map';
     if(hunt.screen==='evolution' && (!hunt.enemy||hunt.enemy.type!=='boss'||!hunt.pendingEvolution)) hunt.screen='map';
-    if(hunt.screen==='complete') hunt.status='won';
-    if(hunt.status==='won') hunt.screen='complete';
+    if(hunt.screen==='complete'&&!hunt.endless) hunt.status='won';
+    if(hunt.status==='won'&&!hunt.endless) hunt.screen='complete';
+    if(hunt.endless) hunt.status='active';
     hunt.settling=false;
     note('Expedición restaurada desde el último punto seguro.');
     return true;
@@ -598,6 +623,63 @@
       map:makeMap(), selectedNode:null, routeLane:null, routeHistory:[],
       notes:['La senda se abre. Elegí el primer destino.'], reward:0, defeatedCount:0, maxDepth:0, turn:1, lastAction:null};
   }
+  function captureEndlessLoadout(){
+    if(!hunt) return null;
+    const loadout={
+      version:1,
+      savedAt:Date.now(),
+      characterClass:heroClass(),
+      deck:cloneForSave(hunt.deck||[]),
+      cardPool:cloneForSave(hunt.cardPool||[]),
+      unlockedCards:cloneForSave(hunt.unlockedCards||[]),
+      evolutionsClaimed:cloneForSave(hunt.evolutionsClaimed||{}),
+      maxHp:Math.max(heroMaxHp(),Math.floor(n(hunt.maxHp,heroMaxHp()))),
+      maxMana:Math.max(heroMaxMana(),Math.floor(n(hunt.maxMana,heroMaxMana())))
+    };
+    state.cardHuntEndlessLoadout=loadout;
+    state.cardHuntEndlessUnlocked=true;
+    return loadout;
+  }
+  function fallbackEndlessDeck(){
+    const engine=evolutionEngine();
+    return buildDeck().map((card,index)=>{
+      const branches=engine?.branchesFor?.(card)||[];
+      if(!branches.length) return card;
+      return engine.evolve(card,branches[index%branches.length].id)||card;
+    });
+  }
+  function startEndlessRun(){
+    if(!endlessUnlocked()) return;
+    const saved=state.cardHuntEndlessLoadout && typeof state.cardHuntEndlessLoadout==='object'
+      ? cloneForSave(state.cardHuntEndlessLoadout)
+      : null;
+    createRun();
+    hunt.endless=true;
+    hunt.act=ENDLESS_START_ACT;
+    hunt.floor=0;
+    hunt.screen='map';
+    hunt.status='active';
+    hunt.map=makeMap();
+    hunt.routeLane=null;
+    hunt.routeHistory=[];
+    hunt.reward=0;
+    hunt.maxDepth=CAMPAIGN_ACTS*hunt.maxFloor;
+    hunt.deck=Array.isArray(saved?.deck)&&saved.deck.length ? saved.deck : fallbackEndlessDeck();
+    hunt.cardPool=Array.isArray(saved?.cardPool) ? saved.cardPool : buildAdvancedPool();
+    hunt.unlockedCards=Array.isArray(saved?.unlockedCards) ? saved.unlockedCards : [];
+    hunt.evolutionsClaimed=saved?.evolutionsClaimed && typeof saved.evolutionsClaimed==='object' ? saved.evolutionsClaimed : {};
+    const legacyBoost=saved?0:45;
+    const legacyManaBoost=saved?0:24;
+    hunt.maxHp=Math.max(heroMaxHp()+legacyBoost,Math.floor(n(saved?.maxHp,heroMaxHp()+legacyBoost)));
+    hunt.maxMana=Math.max(heroMaxMana()+legacyManaBoost,Math.floor(n(saved?.maxMana,heroMaxMana()+legacyManaBoost)));
+    hunt.hp=hunt.maxHp;
+    hunt.mana=hunt.maxMana;
+    hunt.notes=[`Ascensión 1: los enemigos tienen más vida, daño e intenciones agresivas.`];
+    state.cardHuntEndlessUnlocked=true;
+    safe(()=>showFeedback('♾ ABISMO INFINITO','Ascensión 1 · el botín vuelve a estar en riesgo','danger'));
+    safe(()=>window.Sound?.setScene?.('danger'));
+    render();
+  }
   function resetHunt(){
     const confirmed=window.confirm(
       '¿Reiniciar la Cacería actual?\n\nPerderás el avance y el botín de esta expedición. Tu personaje, equipo, nivel y progreso permanente se conservarán.'
@@ -613,6 +695,8 @@
       finishedAt:Date.now(),
       retreated:outcome==='retired',
       completed,
+      endless:!!hunt.endless,
+      ascension:hunt.endless?endlessAscension(hunt.act):0,
       maxDepth:Math.max(hunt.maxDepth||0,completed?HUNT_SCENES.length*hunt.maxFloor:0),
       enemies:Math.max(0,Math.floor(n(hunt.defeatedCount,0))),
       runGold:reward,
@@ -635,10 +719,11 @@
         .slice(0,MAX_SETTLEMENT_HISTORY)
     );
   }
-  async function settleCardHunt(outcome){
+  async function settleCardHunt(outcome,continueEndless=false){
     if(!hunt || hunt.settling || hunt.ownerCharacterId!==currentCharacterId()) return;
     const completed=outcome==='completed';
     if((completed && hunt.screen!=='complete') || (!completed && hunt.screen!=='retire-confirm')) return;
+    if(completed) captureEndlessLoadout();
     const existing=state.cardHuntSettlements?.[hunt.runId];
     if(existing){
       hunt.status='settled';
@@ -649,6 +734,7 @@
       hunt.reward=0;
       state.cardHuntSnapshot=null;
       await saveState();
+      if(continueEndless){ startEndlessRun(); return; }
       render();
       return;
     }
@@ -689,6 +775,7 @@
     safe(()=>showFeedback('BOTÍN ASEGURADO',`+${reward} oro${essence?` · +${essence} esencia`:''}`,'reward'));
     safe(()=>window.Sound?.reward?.());
     await saveState();
+    if(continueEndless){ startEndlessRun(); return; }
     render();
   }
   function retireCardHunt(){
@@ -1043,14 +1130,32 @@
     const group=scene.enemies||ENEMY_POOLS[region];
     const pool=type==='boss' ? group.boss : type==='elite' ? group.elite : group.normal;
     const e=pool[Math.floor(Math.random()*pool.length)];
-    const scale=1+f*.12+(type==='elite'?.34:0)+(type==='boss'?.66:0);
-    const enemy={name:e[0],icon:e[1],image:e[4],type, regionKey:scene.key,regionName:scene.name,maxHp:Math.round(e[2]*scale),hp:Math.round(e[2]*scale),damage:Math.round(e[3]*scale),intent:'Atacar', intentText:'', guard:0, acid:0, poison:0, marked:0, affinity:e[5] || (type==='elite'?'Blindado':type==='boss'?'Furioso':'Inestable')};
+    const tierBonus=(type==='elite'?.34:0)+(type==='boss'?.66:0);
+    const scale=1+f*.12+tierBonus;
+    const difficulty=endlessDifficulty(hunt.act,type);
+    const endlessBase=ENDLESS_TARGET_STATS[type]||ENDLESS_TARGET_STATS.fight;
+    const campaignPeakScale=1+((CAMPAIGN_ACTS*5)-1)*.12+tierBonus;
+    const maxHp=hunt.endless
+      ? Math.round(endlessBase.hp*campaignPeakScale*difficulty.hp)
+      : Math.round(e[2]*scale);
+    const damage=hunt.endless
+      ? Math.round(endlessBase.damage*campaignPeakScale*difficulty.damage)
+      : Math.round(e[3]*scale);
+    const enemy={name:e[0],icon:e[1],image:e[4],type, regionKey:scene.key,regionName:scene.name,maxHp,hp:maxHp,damage,intent:'Atacar', intentText:'', guard:0, acid:0, poison:0, marked:0, endless:!!hunt.endless, ascension:difficulty.ascension, chargeBonus:difficulty.chargeBonus, affinity:e[5] || (type==='elite'?'Blindado':type==='boss'?'Furioso':'Inestable')};
     rollIntent(enemy);
     return enemy;
   }
   function rollIntent(enemy){
-    const pool=enemy.type==='boss' ? ['attack','attack','charge','guard'] : enemy.type==='elite' ? ['attack','charge','guard'] : ['attack','attack','guard'];
-    const kind=pool[Math.floor(Math.random()*pool.length)];
+    const ascension=Math.max(0,Math.floor(n(enemy.ascension,0)));
+    const pool=enemy.endless
+      ? (enemy.type==='boss'
+          ? ['attack','charge','charge','charge','guard']
+          : enemy.type==='elite'||ascension>=4
+            ? ['attack','charge','charge','guard']
+            : ['attack','attack','charge','guard'])
+      : enemy.type==='boss' ? ['attack','attack','charge','guard'] : enemy.type==='elite' ? ['attack','charge','guard'] : ['attack','attack','guard'];
+    const forcedCharge=enemy.endless&&Math.random()<Math.max(0,n(enemy.chargeBonus,0));
+    const kind=forcedCharge?'charge':pool[Math.floor(Math.random()*pool.length)];
     enemy.intentKind=kind;
     if(kind==='guard'){ enemy.intent='Fortificarse'; enemy.intentText=`+${Math.ceil(enemy.damage*.8)} guardia`; }
     else if(kind==='charge'){ enemy.intent='Golpe cargado'; enemy.intentText=`${Math.ceil(enemy.damage*1.55)} daño`; }
@@ -1253,7 +1358,10 @@
     hunt.floor++;
     if(hunt.floor>=hunt.maxFloor){
       hunt.act++; hunt.floor=0; hunt.map=makeMap(); hunt.routeLane=null; hunt.routeHistory=[];
-      note(`Entrás al Acto ${hunt.act}. La senda se vuelve más cruel.`);
+      const ascension=endlessAscension(hunt.act);
+      note(hunt.endless
+        ? `Ascensión ${ascension}: la vida y el daño enemigos vuelven a aumentar.`
+        : `Entrás al Acto ${hunt.act}. La senda se vuelve más cruel.`);
     }
     hunt.screen='map'; hunt.enemy=null; hunt.selectedNode=null;
     safe(()=>window.Sound?.setScene?.('hunt'));
@@ -1530,11 +1638,13 @@
   function victory(){
     if(hunt.enemy.victoryResolved) return;
     hunt.enemy.victoryResolved=true;
-    const reward=12+hunt.floor*5+(hunt.enemy.type==='elite'?22:0)+(hunt.enemy.type==='boss'?45:0);
-    const finalBoss=hunt.enemy.type==='boss'&&hunt.act>=HUNT_SCENES.length&&hunt.floor>=hunt.maxFloor-1;
-    const exp=typeof cardHuntExperienceReward==='function'
+    const difficulty=endlessDifficulty(hunt.act,hunt.enemy.type);
+    const reward=Math.round((12+hunt.floor*5+(hunt.enemy.type==='elite'?22:0)+(hunt.enemy.type==='boss'?45:0))*difficulty.reward);
+    const finalBoss=!hunt.endless&&hunt.enemy.type==='boss'&&hunt.act===CAMPAIGN_ACTS&&hunt.floor>=hunt.maxFloor-1;
+    let exp=typeof cardHuntExperienceReward==='function'
       ? cardHuntExperienceReward(hunt.enemy.type,hunt.act,finalBoss)
       : Math.max(1,Math.floor(expToNext(state.level)*({fight:.04,elite:.10,boss:.20}[hunt.enemy.type]||.04)));
+    if(hunt.endless&&exp>0) exp=Math.max(1,Math.floor(exp*(1+Math.min(.75,difficulty.ascension*.05))));
     hunt.enemy.goldReward=reward;
     hunt.enemy.experienceReward=exp;
     if(exp>0){
@@ -1548,6 +1658,12 @@
     state.totalWins=Math.max(0,n(state.totalWins,0))+1;
     if(hunt.enemy.type==='boss') state.totalBossWins=Math.max(0,n(state.totalBossWins,0))+1;
     state.maxHuntDepth=Math.max(Math.floor(n(state.maxHuntDepth,0)),hunt.maxDepth);
+    if(hunt.endless){
+      state.cardHuntEndlessUnlocked=true;
+      state.cardHuntBestEndlessDepth=Math.max(Math.floor(n(state.cardHuntBestEndlessDepth,0)),hunt.maxDepth);
+      state.cardHuntBestEndlessAscension=Math.max(Math.floor(n(state.cardHuntBestEndlessAscension,0)),difficulty.ascension);
+      if(hunt.enemy.type==='boss') note(`Ascensión ${difficulty.ascension} superada. La siguiente región será todavía más hostil.`);
+    }
     state.missions.day.hunts=Math.max(0,n(state.missions.day.hunts,0))+1;
     state.missions.week.wins=Math.max(0,n(state.missions.week.wins,0))+1;
     safe(()=>addLog(`Venciste a ${hunt.enemy.name} en Cacería: +${exp} EXP y +${reward} oro de expedición.`,'win'));
@@ -1648,7 +1764,13 @@
   function show(){
     syncCardHuntOwner();
     const localPreview=location.protocol==='file:'||['localhost','127.0.0.1'].includes(location.hostname);
-    if(!evolutionPreviewConsumed&&localPreview&&new URLSearchParams(location.search).has('previewAltar')){
+    const previewParams=new URLSearchParams(location.search);
+    if(!evolutionPreviewConsumed&&localPreview&&previewParams.has('previewEndless')){
+      evolutionPreviewConsumed=true;
+      state.cardHuntEndlessUnlocked=true;
+      startEndlessRun();
+      note('Vista de prueba local: Abismo Infinito habilitado.');
+    }else if(!evolutionPreviewConsumed&&localPreview&&previewParams.has('previewAltar')){
       evolutionPreviewConsumed=true;
       createRun();
       hunt.floor=hunt.maxFloor-1;
@@ -1671,24 +1793,26 @@
     document.body.classList.toggle('card-evolution-open',hunt.screen==='evolution');
     const vis=visual(), img=vis.image ? `<img src="${escape(vis.image)}" alt="">` : '<span>⚔</span>';
     const scene=huntScene();
+    const ascension=hunt.endless?endlessAscension(hunt.act):0;
+    const endlessStats=hunt.endless?endlessDifficulty(hunt.act,'fight'):null;
     const retireButton=canRetire()?`<button data-action="restart" data-hunt-command="retire" class="cardspire-retire" title="Terminar la expedición y guardar el oro acumulado">⚑ Guardar botín</button>`:'';
-    const hud=`<header class="cardspire-hud"><div class="cardspire-hud-actions"><button data-action="back" class="cardspire-back">← Santuario</button><button data-action="reset-hunt" class="cardspire-reset" title="Reiniciar la expedición si quedó trabada" aria-label="Reiniciar Cacería">↻ Reiniciar</button></div><div class="cardspire-title"><small>${scene.mark} ${escape(scene.name.toUpperCase())}</small><b>ACTO ${hunt.act} · SENDA ${hunt.floor+1}/${hunt.maxFloor}</b></div><div class="cardspire-resources"><span>♥ ${Math.ceil(hunt.hp)}/${hunt.maxHp}</span><span>✦ ${Math.ceil(hunt.mana)}/${hunt.maxMana}</span><span>◈ ${hunt.reward}</span></div></header>`;
+    const hud=`<header class="cardspire-hud"><div class="cardspire-hud-actions"><button data-action="back" class="cardspire-back">← Santuario</button><button data-action="reset-hunt" class="cardspire-reset" title="Reiniciar la expedición si quedó trabada" aria-label="Reiniciar Cacería">↻ Reiniciar</button></div><div class="cardspire-title"><small>${hunt.endless?'♾ ABISMO INFINITO':scene.mark} · ${escape(scene.name.toUpperCase())}</small><b>${hunt.endless?`ASCENSIÓN ${ascension}`:`ACTO ${hunt.act}`} · SENDA ${hunt.floor+1}/${hunt.maxFloor}</b></div><div class="cardspire-resources"><span>♥ ${Math.ceil(hunt.hp)}/${hunt.maxHp}</span><span>✦ ${Math.ceil(hunt.mana)}/${hunt.maxMana}</span><span>◈ ${hunt.reward}</span></div></header>`;
     let content='';
-    if(hunt.screen==='intro') content=`<section class="cardspire-intro"><div class="cardspire-seal">✦</div><p class="cardspire-kicker">LA SENDA DEL ABISMO</p><h2>Una expedición.<br>Un mazo. Mil decisiones.</h2><p>Elegí tu ruta, usá las cartas con inteligencia y llevá el botín hasta el final.</p><button data-action="begin" class="cardspire-primary">COMENZAR EXPEDICIÓN <b>→</b></button><div class="cardspire-features"><span>⚔ Combate por turnos</span><span>◇ Rutas cambiantes</span><span>✦ Recompensas de run</span></div></section>`;
+    if(hunt.screen==='intro') content=`<section class="cardspire-intro"><div class="cardspire-seal">✦</div><p class="cardspire-kicker">LA SENDA DEL ABISMO</p><h2>Una expedición.<br>Un mazo. Mil decisiones.</h2><p>Elegí tu ruta, usá las cartas con inteligencia y llevá el botín hasta el final.</p><div class="cardspire-result-actions"><button data-action="begin" class="cardspire-primary">COMENZAR EXPEDICIÓN <b>→</b></button>${endlessUnlocked()?`<button data-action="start-endless" class="cardspire-primary cardspire-endless-button">♾ ABISMO INFINITO <small>Desde Ascensión 1</small></button>`:''}</div><div class="cardspire-features"><span>⚔ Combate por turnos</span><span>◇ Rutas cambiantes</span><span>✦ Recompensas de run</span></div></section>`;
     else if(hunt.screen==='map') content=mapMarkup();
     else if(hunt.screen==='event') content=eventMarkup();
     else if(hunt.screen==='sanctuary') content=sanctuaryMarkup();
     else if(hunt.screen==='treasure') content=treasureMarkup();
     else if(hunt.screen==='shop') content=shopMarkup();
     else if(hunt.screen==='combat') content=combatMarkup(img);
-    else if(hunt.screen==='victory') content=`<section class="cardspire-result win"><div class="result-icon">✦</div><p>VICTORIA</p><h2>${escape(hunt.enemy.name)} cayó</h2><span>+${Math.max(0,Math.floor(n(hunt.enemy.goldReward,0)))} oro de expedición · +${Math.max(0,Math.floor(n(hunt.enemy.experienceReward,0)))} EXP permanente</span><button data-action="advance" class="cardspire-primary">${isFinalVictory()?'CULMINAR EXPEDICIÓN':hunt.enemy?.type==='boss'&&!evolutionClaimed()?'DESPERTAR UNA CARTA':'SEGUIR POR LA SENDA'} →</button></section>`;
+    else if(hunt.screen==='victory') content=`<section class="cardspire-result win ${hunt.endless?'cardspire-infinite-result':''}"><div class="result-icon">${hunt.endless?'♾':'✦'}</div><p>${hunt.endless?`ASCENSIÓN ${ascension}`:'VICTORIA'}</p><h2>${escape(hunt.enemy.name)} cayó</h2><span>+${Math.max(0,Math.floor(n(hunt.enemy.goldReward,0)))} oro de expedición · +${Math.max(0,Math.floor(n(hunt.enemy.experienceReward,0)))} EXP permanente</span><button data-action="advance" class="cardspire-primary">${isFinalVictory()?'CULMINAR EXPEDICIÓN':hunt.endless&&hunt.enemy?.type==='boss'?`DESCENDER A ASCENSIÓN ${ascension+1}`:hunt.enemy?.type==='boss'&&!evolutionClaimed()?'DESPERTAR UNA CARTA':'SEGUIR POR LA SENDA'} →</button></section>`;
     else if(hunt.screen==='evolution') content=evolutionMarkup();
     else if(hunt.screen==='retire-confirm') content=`<section class="cardspire-result cardspire-retirement"><div class="result-icon">⚑</div><p>REGRESAR CON VIDA</p><h2>¿Asegurar el botín?</h2><span>La expedición terminará y ${escape(hero().name||'tu héroe')} conservará todo el oro acumulado.</span><div class="cardspire-payout"><b>◈ ${hunt.reward} oro</b></div><div class="cardspire-result-actions"><button data-action="begin" data-hunt-command="cancel-retire" class="cardspire-secondary">CONTINUAR CACERÍA</button><button data-action="restart" data-hunt-command="confirm-retire" class="cardspire-primary">RETIRARSE Y COBRAR →</button></div></section>`;
-    else if(hunt.screen==='complete') content=`<section class="cardspire-result win cardspire-complete"><div class="result-icon">♛</div><p>ABISMO CONQUISTADO</p><h2>La senda es tuya</h2><span>Completaste los nueve actos. Asegurá ahora todo el botín de la campaña.</span><div class="cardspire-payout"><b>◈ ${hunt.reward} oro</b><b>✦ 10 esencia</b></div><button data-action="restart" data-hunt-command="settle-complete" class="cardspire-primary">ASEGURAR RECOMPENSAS →</button></section>`;
-    else if(hunt.screen==='settled') content=`<section class="cardspire-result win cardspire-complete"><div class="result-icon">${hunt.settledOutcome==='completed'?'♛':'⚑'}</div><p>BOTÍN ASEGURADO</p><h2>${hunt.settledOutcome==='completed'?'Cacería completada':'Regresaste con vida'}</h2><span>La recompensa ya fue sumada al progreso permanente de ${escape(hero().name||'tu héroe')}.</span><div class="cardspire-payout"><b>◈ +${hunt.settledReward||0} oro</b>${hunt.settledEssence?`<b>✦ +${hunt.settledEssence} esencia</b>`:''}</div><button data-action="restart" class="cardspire-primary">NUEVA EXPEDICIÓN →</button></section>`;
-    else content=`<section class="cardspire-result loss"><div class="result-icon">☾</div><p>LA SENDA TE RECHAZÓ</p><h2>La expedición terminó</h2><span>El oro de expedición se perdió, pero tu leyenda continúa.</span><button data-action="restart" class="cardspire-primary">INTENTAR OTRA VEZ →</button></section>`;
+    else if(hunt.screen==='complete') content=`<section class="cardspire-result win cardspire-complete"><div class="result-icon">♛</div><p>ABISMO CONQUISTADO</p><h2>La senda es tuya</h2><span>Completaste los nueve actos. Podés asegurar el botín y regresar, o conservar tu mazo para entrar al desafío infinito.</span><div class="cardspire-payout"><b>◈ ${hunt.reward} oro</b><b>✦ 10 esencia</b><b>♾ Modo infinito desbloqueado</b></div><div class="cardspire-result-actions"><button data-action="restart" data-hunt-command="settle-complete" class="cardspire-secondary">ASEGURAR Y VOLVER</button><button data-action="restart" data-hunt-command="settle-endless" class="cardspire-primary cardspire-endless-button">ASEGURAR Y ENTRAR AL INFINITO →</button></div></section>`;
+    else if(hunt.screen==='settled') content=`<section class="cardspire-result win cardspire-complete"><div class="result-icon">${hunt.settledOutcome==='completed'?'♛':'⚑'}</div><p>BOTÍN ASEGURADO</p><h2>${hunt.settledOutcome==='completed'?'Cacería completada':'Regresaste con vida'}</h2><span>La recompensa ya fue sumada al progreso permanente de ${escape(hero().name||'tu héroe')}.</span><div class="cardspire-payout"><b>◈ +${hunt.settledReward||0} oro</b>${hunt.settledEssence?`<b>✦ +${hunt.settledEssence} esencia</b>`:''}${hunt.endless?`<b>♾ Récord: profundidad ${state.cardHuntBestEndlessDepth||hunt.maxDepth||0}</b>`:''}</div><div class="cardspire-result-actions"><button data-action="restart" class="cardspire-secondary">NUEVA CAMPAÑA</button>${endlessUnlocked()?`<button data-action="start-endless" class="cardspire-primary cardspire-endless-button">♾ ENTRAR AL INFINITO</button>`:''}</div></section>`;
+    else content=`<section class="cardspire-result loss ${hunt.endless?'cardspire-infinite-result':''}"><div class="result-icon">${hunt.endless?'♾':'☾'}</div><p>${hunt.endless?'EL ABISMO RECLAMA TU SENDA':'LA SENDA TE RECHAZÓ'}</p><h2>La expedición terminó</h2><span>El oro de expedición se perdió, pero ${hunt.endless?`tu récord quedó en la profundidad ${state.cardHuntBestEndlessDepth||hunt.maxDepth||0}`:'tu leyenda continúa'}.</span><div class="cardspire-result-actions"><button data-action="restart" class="cardspire-secondary">NUEVA CAMPAÑA</button>${endlessUnlocked()?`<button data-action="start-endless" class="cardspire-primary cardspire-endless-button">♾ REINTENTAR INFINITO</button>`:''}</div></section>`;
     if(retireButton) content=`<div class="cardspire-retire-row">${retireButton}</div>${content}`;
-    app.innerHTML=`<main class="cardspire-shell scene-${scene.key}" style="--cardspire-scene:url('/${scene.asset}')">${hud}<div class="cardspire-main">${content}</div></main>`;
+    app.innerHTML=`<main class="cardspire-shell scene-${scene.key} ${hunt.endless?'endless-mode':''}" style="--cardspire-scene:url('/${scene.asset}')">${hud}<div class="cardspire-main">${hunt.endless?`<aside class="cardspire-endless-banner"><b>♾ ASCENSIÓN ${ascension}</b><span>Vida enemiga ×${endlessStats.hp.toFixed(2)} · Daño ×${endlessStats.damage.toFixed(2)} · Recompensa ×${endlessStats.reward.toFixed(2)}</span></aside>`:''}${content}</div></main>`;
     bind();
     snapshotCardHunt();
   }
@@ -1732,6 +1856,8 @@
   }
   function mapMarkup(){
     const scene=huntScene();
+    const ascension=hunt.endless?endlessAscension(hunt.act):0;
+    const difficulty=hunt.endless?endlessDifficulty(hunt.act,'fight'):null;
     const current=hunt.map[hunt.floor]||[];
     const reachableIndexes=reachableNodeIndexes();
     const displayRows=[...hunt.map].reverse();
@@ -1763,8 +1889,8 @@
       return `<div class="cardspire-map-row ${row.length===1?'single':''} ${active?'current':''} ${passed?'passed':''} ${future?'future':''}" style="--route-columns:${row.length}">${traveler}${nodes}</div>`;
     }).join('');
     return `<section class="cardspire-map-view">
-      <div class="cardspire-region"><i>${scene.mark}</i><span>REGIÓN ACTUAL</span><b>${escape(scene.name)}</b><small>${escape(scene.roster||'')}</small></div>
-      <div class="cardspire-map-copy"><p>RUTA DE EXPEDICIÓN</p><h2>Elegí tu camino</h2><span>${escape(scene.theme||'Solo podés avanzar por las líneas conectadas a tu posición.')}</span><em>${escape(scene.warning||'')}</em></div>
+      <div class="cardspire-region"><i>${hunt.endless?'♾':scene.mark}</i><span>${hunt.endless?`ECO INFINITO · ASCENSIÓN ${ascension}`:'REGIÓN ACTUAL'}</span><b>${escape(scene.name)}</b><small>${escape(scene.roster||'')}</small></div>
+      <div class="cardspire-map-copy"><p>${hunt.endless?'RUTA SIN FINAL':'RUTA DE EXPEDICIÓN'}</p><h2>${hunt.endless?'El Abismo vuelve a cambiar':'Elegí tu camino'}</h2><span>${escape(scene.theme||'Solo podés avanzar por las líneas conectadas a tu posición.')}</span><em>${hunt.endless?`Enemigos ascendidos: vida ×${difficulty.hp.toFixed(2)} · daño ×${difficulty.damage.toFixed(2)}. Cada guardián aumenta la dificultad.`:escape(scene.warning||'')}</em></div>
       <div class="cardspire-map-board">
         ${mapRoutesMarkup(displayRows)}
         <div class="cardspire-map">${rows}</div>
@@ -2011,7 +2137,7 @@
     const last=hunt.lastAction?`<div class="cardspire-impact ${hunt.lastAction.kind} fx-${escape(hunt.lastAction.fx||'impact')}"><span class="skill-fx-layer"></span><i>${hunt.lastAction.icon}</i><b>${escape(hunt.lastAction.text)}</b></div>`:'';
     const heroStates=[hunt.block&&`⬡ Bloqueo ${hunt.block}`,hunt.strength&&`⚑ Fuerza +${hunt.strength}`].filter(Boolean).map(x=>`<span>${x}</span>`).join('');
     const enemyStates=[e.guard&&`⬡ Guardia ${e.guard}`,e.vulnerable>0&&`✹ Vulnerable ${e.vulnerable}`].filter(Boolean).map(x=>`<span>${x}</span>`).join('');
-    return `<section class="cardspire-combat"><div class="cardspire-battle-top"><span>COMBATE · TURNO ${hunt.turn}</span><span>MAZO ${hunt.draw.length} · DESCARTE ${hunt.discard.length}</span><span class="affinity">✦ ${escape(e.affinity)} <small>${e.affinity==='Blindado'?'Rompé su guardia antes de gastar cartas fuertes.':e.affinity==='Furioso'?'Sus golpes cargados hacen mucho más daño.':'Alterna entre atacar y protegerse.'}</small></span></div><div class="cardspire-fighters"><article class="fighter hero"><div class="fighter-art">${img}</div><div class="fighter-sheet"><small>${escape(label()).toUpperCase()}</small><b>${escape(hero().name||'Aventurero')}</b><div class="bar hp"><i style="width:${pct(hunt.hp,hunt.maxHp)}"></i></div><span>${Math.ceil(hunt.hp)} / ${hunt.maxHp}</span><div class="combat-states hero-states">${heroStates}</div></div></article><div class="cardspire-versus">VS<small>TURNO ${hunt.turn}</small></div><article class="fighter enemy"><div class="fighter-sheet"><small>${e.type==='boss'?'GUARDIÁN':e.type==='elite'?'ÉLITE':'CRIATURA'}</small><b>${escape(e.name)}</b><div class="bar enemyhp"><i style="width:${pct(e.hp,e.maxHp)}"></i></div><span>${Math.ceil(e.hp)} / ${e.maxHp}</span><div class="combat-states enemy-states">${enemyStates}</div><em class="intent-${e.intentKind}">⚠ ${e.intent}: ${e.intentText}</em></div><div class="enemy-symbol">${enemyArt}</div></article>${last}</div><div class="cardspire-turn"><span>MANÁ <b>${Math.ceil(hunt.mana)}/${hunt.maxMana}</b></span><button data-action="end" class="cardspire-end">TERMINAR TURNO →</button></div><p class="cardspire-hand-label">ATAQUE Y DEFENSA GRATIS · LAS TÁCTICAS CONSUMEN MANÁ</p><div class="cardspire-hand-wrap"><div class="cardspire-hand">${cards||'<p>Sin cartas: terminá el turno.</p>'}</div></div><div class="cardspire-notes">${hunt.notes.slice(0,2).map(x=>`<span>${escape(x)}</span>`).join('')}</div></section>`;
+    return `<section class="cardspire-combat"><div class="cardspire-battle-top"><span>${hunt.endless?`♾ ASCENSIÓN ${endlessAscension(hunt.act)} · `:''}COMBATE · TURNO ${hunt.turn}</span><span>MAZO ${hunt.draw.length} · DESCARTE ${hunt.discard.length}</span><span class="affinity">✦ ${escape(e.affinity)} <small>${e.affinity==='Blindado'?'Rompé su guardia antes de gastar cartas fuertes.':e.affinity==='Furioso'?'Sus golpes cargados hacen mucho más daño.':'Alterna entre atacar y protegerse.'}</small></span></div><div class="cardspire-fighters"><article class="fighter hero"><div class="fighter-art">${img}</div><div class="fighter-sheet"><small>${escape(label()).toUpperCase()}</small><b>${escape(hero().name||'Aventurero')}</b><div class="bar hp"><i style="width:${pct(hunt.hp,hunt.maxHp)}"></i></div><span>${Math.ceil(hunt.hp)} / ${hunt.maxHp}</span><div class="combat-states hero-states">${heroStates}</div></div></article><div class="cardspire-versus">VS<small>TURNO ${hunt.turn}</small></div><article class="fighter enemy"><div class="fighter-sheet"><small>${hunt.endless?'ASCENDIDO · ':''}${e.type==='boss'?'GUARDIÁN':e.type==='elite'?'ÉLITE':'CRIATURA'}</small><b>${escape(e.name)}</b><div class="bar enemyhp"><i style="width:${pct(e.hp,e.maxHp)}"></i></div><span>${Math.ceil(e.hp)} / ${e.maxHp}</span><div class="combat-states enemy-states">${enemyStates}</div><em class="intent-${e.intentKind}">⚠ ${e.intent}: ${e.intentText}</em></div><div class="enemy-symbol">${enemyArt}</div></article>${last}</div><div class="cardspire-turn"><span>MANÁ <b>${Math.ceil(hunt.mana)}/${hunt.maxMana}</b></span><button data-action="end" class="cardspire-end">TERMINAR TURNO →</button></div><p class="cardspire-hand-label">ATAQUE Y DEFENSA GRATIS · LAS TÁCTICAS CONSUMEN MANÁ</p><div class="cardspire-hand-wrap"><div class="cardspire-hand">${cards||'<p>Sin cartas: terminá el turno.</p>'}</div></div><div class="cardspire-notes">${hunt.notes.slice(0,2).map(x=>`<span>${escape(x)}</span>`).join('')}</div></section>`;
   }
   function bind(){
     section.querySelector('[data-action="back"]')?.addEventListener('click',back);
@@ -2024,11 +2150,13 @@
       render();
     });
     section.querySelector('[data-action="advance"]')?.addEventListener('click',advance);
+    section.querySelectorAll('[data-action="start-endless"]').forEach(button=>button.addEventListener('click',startEndlessRun));
     section.querySelector('[data-action="restart"]')?.addEventListener('click',event=>{
       const command=event.currentTarget.dataset.huntCommand;
       if(command==='retire'){ retireCardHunt(); return; }
       if(command==='confirm-retire'){ settleCardHunt('retired'); return; }
       if(command==='settle-complete'){ settleCardHunt('completed'); return; }
+      if(command==='settle-endless'){ settleCardHunt('completed',true); return; }
       createRun(); show();
     });
     section.querySelector('[data-action="end"]')?.addEventListener('click',endTurn);
@@ -2064,7 +2192,9 @@
         active:hasStartedProgress(run),
         depth:run ? Math.max(calculatedDepth,Math.floor(n(run.maxDepth,0))) : 0,
         reward:run ? Math.max(0,Math.floor(n(run.reward,0))) : 0,
-        screen:run?.screen || 'intro'
+        screen:run?.screen || 'intro',
+        endless:run?.endless===true,
+        ascension:run?.endless ? endlessAscension(run.act) : 0
       };
     },
     prepareCharacterSwitch:()=>{

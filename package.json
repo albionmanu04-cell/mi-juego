@@ -1,10 +1,11 @@
 {
   "name": "forja-eterna",
-  "version": "2.4.2",
+  "version": "2.20.15",
   "private": true,
   "description": "RPG web estático con progreso local y sincronización segura.",
   "type": "module",
   "scripts": {
+    "start": "node scripts/serve-local.mjs",
     "test": "node scripts/validate-project.mjs && node --test",
     "test:syntax": "node scripts/check-syntax.mjs",
     "check": "npm run test:syntax && npm test",

@@ -31,11 +31,23 @@ function ensureShop(){
 }
 
 /* ================= OPCIONES Y AJUSTES VISUALES ================= */
+function detectLowEndDevice(){
+  const memory = Number(navigator.deviceMemory) || 0;
+  const cores = Number(navigator.hardwareConcurrency) || 0;
+  const saveData = !!(navigator.connection && navigator.connection.saveData);
+  const slowUpdates = !!(window.matchMedia && window.matchMedia('(update: slow)').matches);
+  return saveData || slowUpdates || (memory > 0 && memory <= 4) || (cores > 0 && cores <= 4);
+}
+function performanceModeActive(){
+  const mode = state?.settings?.performanceMode || 'auto';
+  return mode === 'on' || (mode === 'auto' && detectLowEndDevice());
+}
 function applyVisualSettings(){
   const settings = state.settings || {};
   document.body.classList.toggle('graphics-medium', settings.graphics === 'medium');
   document.body.classList.toggle('graphics-low', settings.graphics === 'low');
   document.body.classList.toggle('reduce-motion', !!settings.reducedMotion);
+  document.body.classList.toggle('performance-mode', performanceModeActive());
   if(Sound){
     Sound.musicEnabled = !!settings.musicEnabled;
     Sound.applyVolumes();
@@ -80,7 +92,9 @@ function profileHubStats(){
     equipped:Object.values(state.equipment||{}).filter(Boolean).length,
     expNeed:expToNext(state.level),
     runActive:huntSummary.active,
-    runDepth:huntSummary.depth
+    runDepth:huntSummary.depth,
+    runEndless:huntSummary.endless===true,
+    runAscension:Math.max(0,Math.floor(finiteNumber(huntSummary.ascension,0)))
   };
 }
 
@@ -129,6 +143,7 @@ const HUB_PARTICLES = [
   {x:'90%',y:'60%',size:'2px',dur:'8s',delay:'2.3s'}
 ];
 function hubParticlesHTML(){
+  if(performanceModeActive()) return '';
   return `<div class="hub-particles" aria-hidden="true">${HUB_PARTICLES.map(p=>`<span style="--x:${p.x};--y:${p.y};--size:${p.size};--dur:${p.dur};--delay:${p.delay}"></span>`).join('')}</div>`;
 }
 
@@ -221,7 +236,7 @@ function renderProfileHub(){
     const nextQuestHTML = pendingAch.length
       ? `<div class="next-quest-panel"><h4>✦ PRÓXIMA LEYENDA</h4><div class="next-quest-list">${pendingAch.map(a=>`<div class="next-quest-item"><span class="next-quest-mark">${achievementGlyph(a.id)}</span><span>${escapeHtml(a.label)}</span></div>`).join('')}</div></div>`
       : `<div class="next-quest-panel done"><h4>✦ PRÓXIMA LEYENDA</h4><p>Completaste todos los hitos disponibles. Tu leyenda no tiene techo.</p></div>`;
-    box.innerHTML=`${particles}${head}<section class="hub-detail"><button class="hub-back" data-profile-back>← VOLVER AL PERFIL</button><h3 class="hub-detail-title">PROGRESO DE EXPEDICIÓN</h3><p class="hub-detail-sub">Los hitos que definen el camino de tu aventurero.</p><div class="hub-detail-grid"><div class="hub-detail-stat" style="--stat-color:#e8622c"><small>VICTORIAS</small><b>${state.totalWins||0}</b></div><div class="hub-detail-stat" style="--stat-color:#ef6666"><small>GUARDIANES</small><b>${state.totalBossWins||0}</b></div><div class="hub-detail-stat" style="--stat-color:#7bc9c9"><small>MEJOR PROFUNDIDAD</small><b>${state.maxHuntDepth||0}</b></div><div class="hub-detail-stat" style="--stat-color:#5fb0dd"><small>RESETS</small><b>${state.resets||0}</b></div><div class="hub-detail-stat" style="--stat-color:#7bc981"><small>DISPONIBLES</small><b>${availableStatResets()}</b></div><div class="hub-detail-stat" style="--stat-color:#ff8445"><small>RACHA</small><b>${winStreak}</b></div></div>${nextQuestHTML}<div class="profile-run-badge">${data.runActive?`🃏 Expedición en curso · profundidad ${data.runDepth}`:'✦ No hay expedición activa. Podés preparar una nueva cacería.'}</div><div class="hub-action-row"><button data-profile-action="hunt">IR A CACERÍA</button></div></section>`;
+    box.innerHTML=`${particles}${head}<section class="hub-detail"><button class="hub-back" data-profile-back>← VOLVER AL PERFIL</button><h3 class="hub-detail-title">PROGRESO DE EXPEDICIÓN</h3><p class="hub-detail-sub">Los hitos que definen el camino de tu aventurero.</p><div class="hub-detail-grid"><div class="hub-detail-stat" style="--stat-color:#e8622c"><small>VICTORIAS</small><b>${state.totalWins||0}</b></div><div class="hub-detail-stat" style="--stat-color:#ef6666"><small>GUARDIANES</small><b>${state.totalBossWins||0}</b></div><div class="hub-detail-stat" style="--stat-color:#7bc9c9"><small>MEJOR PROFUNDIDAD</small><b>${state.maxHuntDepth||0}</b></div><div class="hub-detail-stat" style="--stat-color:#b277ff"><small>MEJOR ASCENSIÓN</small><b>♾ ${state.cardHuntBestEndlessAscension||0}</b></div><div class="hub-detail-stat" style="--stat-color:#5fb0dd"><small>RESETS</small><b>${state.resets||0}</b></div><div class="hub-detail-stat" style="--stat-color:#7bc981"><small>DISPONIBLES</small><b>${availableStatResets()}</b></div><div class="hub-detail-stat" style="--stat-color:#ff8445"><small>RACHA</small><b>${winStreak}</b></div></div>${nextQuestHTML}<div class="profile-run-badge">${data.runActive?(data.runEndless?`♾ Abismo Infinito · Ascensión ${data.runAscension} · profundidad ${data.runDepth}`:`🃏 Expedición en curso · profundidad ${data.runDepth}`):'✦ No hay expedición activa. Podés preparar una nueva cacería.'}</div><div class="hub-action-row"><button data-profile-action="hunt">IR A CACERÍA</button></div></section>`;
   } else if(activeProfileView==='achievements'){
     box.innerHTML=`${particles}${head}<section class="hub-detail"><button class="hub-back" data-profile-back>← VOLVER AL PERFIL</button><h3 class="hub-detail-title">SALÓN DE LOGROS</h3><p class="hub-detail-sub">${data.completed.length} de ${ACHIEVEMENTS.length} hitos completados.</p><div class="hub-detail-list">${ACHIEVEMENTS.map(a=>{const done=a.check(state),claimed=!!state.achievementsClaimed[a.id];return `<div class="profile-achievement ${done?'done':''}"><span class="achievement-mark">${achievementGlyph(a.id)}</span><div><b>${escapeHtml(a.label)}</b><small>${done?(claimed?'Recompensa reclamada':'Disponible para reclamar en Gremio'):'Aún no completado'}</small></div><span class="achievement-status">${done?'✓':'—'}</span></div>`;}).join('')}</div><div class="hub-action-row"><button data-profile-action="guild">ABRIR LOGROS DEL GREMIO</button></div></section>`;
   } else if(activeProfileView==='collection'){
@@ -292,7 +307,8 @@ function renderOptionsHub(){
     const musicOn=!!s.musicEnabled, sfxOn=s.sfxEnabled!==false;
     box.innerHTML=`${head}<section class="hub-detail settings-detail"><button class="hub-back" data-options-back>← VOLVER A OPCIONES</button><section class="settings-group"><h4>Audio</h4><div class="setting-row"><div class="setting-label"><b>♫ Música</b><small>Ambiente del menú y combate</small></div><input class="settings-range" id="musicVolume" type="range" min="0" max="100" value="${s.musicVolume}"><output id="musicVolumeValue">${s.musicVolume}%</output></div><div class="setting-row"><div class="setting-label"><b>✦ Efectos</b><small>Golpes, recompensas y avisos</small></div><input class="settings-range" id="sfxVolume" type="range" min="0" max="100" value="${s.sfxVolume}"><output id="sfxVolumeValue">${s.sfxVolume}%</output></div><div class="settings-switch"><span>Música en segundo plano</span><button id="musicEnabledBtn" class="${musicOn?'active':''}">${musicOn?'ACTIVADA':'SILENCIADA'}</button></div><div class="settings-switch"><span>Efectos de sonido</span><button id="sfxEnabledBtn" class="${sfxOn?'active':''}">${sfxOn?'ACTIVADOS':'SILENCIADOS'}</button></div></section><div class="hub-action-row"><button id="testSoundBtn">✦ PROBAR SONIDO</button></div></section>`;
   } else if(activeOptionsView==='visual'){
-    box.innerHTML=`${head}<section class="hub-detail settings-detail"><button class="hub-back" data-options-back>← VOLVER A OPCIONES</button><section class="settings-group"><h4>Imagen y comodidad</h4><div class="setting-label" style="margin-bottom:9px"><b>Calidad gráfica</b><small>Reducila si el juego va lento.</small></div><div class="quality-grid">${[['high','Alta','Efectos completos'],['medium','Media','Menos partículas'],['low','Baja','Mayor fluidez']].map(([id,title,detail])=>`<button class="quality-btn ${s.graphics===id?'active':''}" data-quality="${id}">${title}<small style="display:block;font:8px 'JetBrains Mono';margin-top:4px;color:var(--parchment-dim)">${detail}</small></button>`).join('')}</div><div class="settings-switch"><span>Reducir animaciones</span><button id="motionBtn" class="${s.reducedMotion?'active':''}">${s.reducedMotion?'ACTIVADO':'DESACTIVADO'}</button></div></section></section>`;
+    const performanceStatus=performanceModeActive()?'ACTIVO':'INACTIVO';
+    box.innerHTML=`${head}<section class="hub-detail settings-detail"><button class="hub-back" data-options-back>← VOLVER A OPCIONES</button><section class="settings-group"><h4>Imagen y comodidad</h4><div class="setting-label" style="margin-bottom:9px"><b>Calidad gráfica</b><small>Reducila si el juego va lento.</small></div><div class="quality-grid">${[['high','Alta','Efectos completos'],['medium','Media','Menos partículas'],['low','Baja','Mayor fluidez']].map(([id,title,detail])=>`<button class="quality-btn ${s.graphics===id?'active':''}" data-quality="${id}">${title}<small style="display:block;font:8px 'JetBrains Mono';margin-top:4px;color:var(--parchment-dim)">${detail}</small></button>`).join('')}</div><div class="setting-label performance-label"><b>Modo rendimiento</b><small>Reduce desenfoques, partículas y efectos temporales. En Automático se activa solo en equipos modestos.</small></div><div class="quality-grid performance-grid">${[['auto','Automático',performanceStatus],['on','Activado','Máxima fluidez'],['off','Desactivado','Calidad elegida']].map(([id,title,detail])=>`<button class="quality-btn ${s.performanceMode===id?'active':''}" data-performance="${id}">${title}<small>${detail}</small></button>`).join('')}</div><div class="settings-switch"><span>Reducir animaciones</span><button id="motionBtn" class="${s.reducedMotion?'active':''}">${s.reducedMotion?'ACTIVADO':'DESACTIVADO'}</button></div></section></section>`;
   } else {
     box.innerHTML=`${head}<section class="hub-detail settings-detail"><button class="hub-back" data-options-back>← VOLVER A OPCIONES</button><section class="settings-group"><h4>Sistema</h4><p class="settings-intro">Probá la respuesta del juego, alterná la vista amplia o restaurá todos los ajustes de este personaje.</p><div class="hub-action-row"><button id="testSoundBtn">✦ PROBAR SONIDO</button><button id="optionsFullscreenBtn">⛶ ALTERNAR MODO JUEGO</button><button class="settings-action danger" id="resetOptionsBtn">↺ RESTAURAR OPCIONES</button></div></section></section>`;
   }
@@ -304,10 +320,11 @@ function renderOptionsHub(){
   box.querySelector('#musicEnabledBtn')?.addEventListener('click',()=>{state.settings.musicEnabled=!state.settings.musicEnabled;Sound.musicEnabled=state.settings.musicEnabled;if(Sound.musicEnabled){Sound.init();if(Sound.scene==='menu'&&Sound.menuAudioEl){Sound.syncMenuAudio();}else{Sound.playNextNote();}}else{Sound.syncMenuAudio();}Sound.applyVolumes();saveState();renderOptionsHub();});
   box.querySelector('#sfxEnabledBtn')?.addEventListener('click',()=>{state.settings.sfxEnabled=!state.settings.sfxEnabled;Sound.applyVolumes();Sound.click();saveState();renderOptionsHub();});
   box.querySelectorAll('[data-quality]').forEach(button=>button.addEventListener('click',()=>{state.settings.graphics=button.dataset.quality;applyVisualSettings();saveState();renderOptionsHub();}));
+  box.querySelectorAll('[data-performance]').forEach(button=>button.addEventListener('click',()=>{state.settings.performanceMode=button.dataset.performance;applyVisualSettings();saveState();renderOptionsHub();}));
   box.querySelector('#motionBtn')?.addEventListener('click',()=>{state.settings.reducedMotion=!state.settings.reducedMotion;applyVisualSettings();saveState();renderOptionsHub();});
   box.querySelector('#testSoundBtn')?.addEventListener('click',()=>Sound.preview());
   box.querySelector('#optionsFullscreenBtn')?.addEventListener('click',()=>toggleGameMode());
-  box.querySelector('#resetOptionsBtn')?.addEventListener('click',()=>{state.settings={musicVolume:100,sfxVolume:100,musicEnabled:false,sfxEnabled:true,graphics:'high',reducedMotion:false};Sound.musicEnabled=false;applyVisualSettings();saveState();activeOptionsView='home';renderOptionsHub();});
+  box.querySelector('#resetOptionsBtn')?.addEventListener('click',()=>{state.settings={musicVolume:100,sfxVolume:100,musicEnabled:false,sfxEnabled:true,graphics:'high',reducedMotion:false,performanceMode:'auto'};Sound.musicEnabled=false;applyVisualSettings();saveState();activeOptionsView='home';renderOptionsHub();});
 }
 
 /* ================= COMPRA Y EQUIPAMIENTO ================= */

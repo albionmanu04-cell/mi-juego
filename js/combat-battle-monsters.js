@@ -62,7 +62,8 @@ function renderMonsterIntent(){
   if(!box || !battle) return;
   const intent = monsterTacticalReadout();
   box.className = `enemy-intent intent-${intent.key}`;
-  box.innerHTML = `<small>PRÓXIMA INTENCIÓN</small><b>${intent.icon} ${intent.label}</b><em>${intent.damageText}</em>`;
+  const category=intent.hits?'ATAQUE':intent.key==='break'?'INCAPACITADO':'PREPARACIÓN';
+  box.innerHTML = `<div><small>EN SU PRÓXIMO TURNO</small><span>${category}</span></div><b>${intent.icon} ${intent.label}</b><strong>${intent.damageText}</strong><em>${intent.hint}</em>`;
   box.title = intent.hint;
 }
 function monsterTacticalReadout(){
@@ -113,4 +114,3 @@ function makeMonster(tier, biomeKey=''){
   const form = monsterFormForTier(safeTier,true,biomeKey);
   return { name:form.name, hp, maxHp:hp, dmg, tier:safeTier, isBoss:false, visualType:form.type, color:form.color, image:form.image, visualBoss:false };
 }
-

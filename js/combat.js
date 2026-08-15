@@ -776,6 +776,7 @@ function playCombatFinisher(isBoss=false){
 function burstSparks(color='var(--gold-bright)', amount=10){
   const arena = document.getElementById('arena');
   if(!arena) return;
+  if(document.body.classList.contains('performance-mode')) return;
   for(let i=0;i<amount;i++){
     const spark = document.createElement('i');
     const angle = Math.random()*Math.PI*2;
@@ -804,6 +805,7 @@ const CLASS_ATTACK_VFX = {
   priest:'assets/images/fx-priest.webp', assassin:'assets/images/fx-assassin.webp', tamer:'assets/images/fx-tamer.webp'
 };
 function playClassAttackSprite(isSkill=false){
+  if(document.body.classList.contains('performance-mode')) return;
   const target = document.querySelector('.fighter.monster .sprite-box');
   const classKey = state.characterClass || 'warrior';
   const source = CLASS_ATTACK_VFX[classKey] || CLASS_ATTACK_VFX.warrior;
@@ -817,6 +819,7 @@ function playClassAttackSprite(isSkill=false){
   setTimeout(()=>effect.remove(), isSkill ? 850 : 680);
 }
 function playCombatVfx(kind, side='monster', extra=''){
+  if(document.body.classList.contains('performance-mode')) return;
   const fighter = document.querySelector(`.fighter.${side==='player' ? 'player' : 'monster'} .sprite-box`);
   const source = COMBAT_VFX[kind];
   if(!fighter || !source) return;
@@ -888,6 +891,7 @@ function setCombatStance(key){
 function playAssassinAttackEffect(isSkill){
   const arena = document.getElementById('arena');
   if(!arena) return;
+  if(document.body.classList.contains('performance-mode')) return;
   const fx = document.createElement('div');
   fx.className = `assassin-fx ${isSkill?'skill':''}`;
   fx.innerHTML = `<i class="afterimage"></i><i class="afterimage two"></i><i class="dagger-streak"></i><i class="dagger-streak b"></i>${isSkill?'<i class="dagger-streak c"></i>':''}`;

@@ -259,6 +259,55 @@ const Sound = {
     } else this.skill();
   },
 
+  /* Segundo golpe acústico, corto y sincronizado con el número de daño.
+     Complementa la salida del arma sin repetir toda la firma de clase. */
+  impactAccent(classId, intensity='normal', hits=1) {
+    this.init();
+    const heavy=intensity==='heavy';
+    if(classId==='warrior'){
+      this.sfxTone(heavy?72:96,.16,'sine',heavy?.10:.065,32,.055);
+      this.noise(heavy?.13:.08,heavy?.075:.04,heavy?430:720,'lowpass',.05);
+    }else if(classId==='archer'){
+      const arrows=Math.max(1,Math.min(5,Number(hits)||1));
+      for(let index=0;index<arrows;index++){
+        const delay=.045+index*.045;
+        this.sfxTone(1180+index*85,.055,'triangle',.028,620,delay);
+        this.noise(.04,.018,3600,'highpass',delay);
+      }
+    }else if(classId==='mage'){
+      this.sfxTone(330,.24,'sine',heavy?.06:.04,990,.045);
+      this.sfxTone(660,.2,'triangle',heavy?.045:.028,1320,.09);
+    }
+  },
+
+  enemyIntent(intent='attack') {
+    this.init();
+    if(intent==='heavy'){
+      this.sfxTone(92,.18,'sawtooth',.07,48);this.sfxTone(73,.2,'sawtooth',.06,38,.11);
+    }else if(intent==='poison'){
+      this.sfxTone(260,.18,'sine',.04,82);this.noise(.12,.025,560,'bandpass',.04);
+    }else if(intent==='bleed'){
+      this.noise(.07,.035,3100,'highpass');this.sfxTone(620,.1,'sawtooth',.04,150,.035);
+    }else if(intent==='stun'){
+      this.sfxTone(880,.08,'square',.035,440);this.sfxTone(330,.14,'square',.04,110,.075);
+    }else if(intent==='guard'){
+      this.sfxTone(170,.12,'triangle',.045,390);this.noise(.06,.022,1450,'bandpass');
+    }else if(intent==='regen'){
+      this.sfxTone(330,.18,'sine',.035,520);this.sfxTone(520,.18,'sine',.028,780,.07);
+    }else{
+      this.sfxTone(190,.1,'triangle',.035,105);this.noise(.045,.018,1000,'bandpass');
+    }
+  },
+
+  statusProc(status='stun') {
+    this.init();
+    if(status==='poison') this.poison();
+    else if(status==='bleed'){this.noise(.09,.045,3200,'highpass');this.sfxTone(740,.1,'sawtooth',.04,135);}
+    else if(status==='stun'){this.sfxTone(980,.08,'square',.045,420);this.sfxTone(390,.16,'square',.035,120,.075);}
+    else if(status==='regen') this.heal();
+    else this.warning();
+  },
+
   enemyAttack(monster, blocked=false) {
     this.init();
     if(blocked){ this.shield(); return; }
@@ -561,6 +610,66 @@ const Sound = {
       this.sfxTone(freq,.22,'sine',.066,freq*1.18,index*.07);
     });
     this.sfxTone(1046.5,.18,'sine',.026,1318.5,.18);
+  },
+
+  materialPickup(material='', tier='comun') {
+    this.init();
+    const key=String(material).toLowerCase();
+    const rare=tier==='epico'||tier==='raro';
+    if(key.includes('storm')){
+      this.noise(.12,.045,3600,'highpass');
+      this.sfxTone(980,.15,'sawtooth',.055,1960);this.sfxTone(1470,.1,'square',.025,730,.035);
+    }else if(key.includes('obsidian')||key.includes('moss')){
+      this.noise(.09,.055,640,'lowpass');
+      this.sfxTone(125,.16,'triangle',.075,58);this.sfxTone(310,.08,'square',.025,180,.045);
+    }else if(key.includes('ichor')||key.includes('spore')||key.includes('eye')){
+      this.sfxTone(330,.18,'sine',.045,92);this.noise(.13,.035,720,'bandpass');
+      this.sfxTone(510,.12,'triangle',.026,240,.055);
+    }else if(key.includes('rune')||key.includes('carapace')||key.includes('bronze')){
+      [392,587.33,783.99].forEach((freq,index)=>this.sfxTone(freq,.16,'sine',.04,freq*1.16,index*.045));
+      this.noise(.06,.018,2400,'highpass',.04);
+    }else{
+      this.noise(.06,.025,1500,'bandpass');this.sfxTone(440,.13,'triangle',.04,660);
+    }
+    if(rare) this.sfxTone(1046.5,.2,'sine',.025,1567.98,.11);
+  },
+
+  forgeCraft(kind='material', tier='comun') {
+    this.init();
+    [0,.12].forEach((delay,index)=>{
+      this.noise(.075,.07,1250+index*420,'bandpass',delay);
+      this.sfxTone(165+index*35,.11,'square',.07,72,delay);
+    });
+    const root=kind==='arma'?293.66:kind==='armadura'?220:kind==='reliquia'?392:329.63;
+    const notes=tier==='epico'?[1,1.25,1.5,2]:tier==='raro'?[1,1.25,1.5]:[1,1.5];
+    notes.forEach((ratio,index)=>this.sfxTone(root*ratio,.3,'triangle',.048,root*ratio*1.12,.24+index*.065));
+    if(tier==='epico') this.noise(.28,.035,3200,'highpass',.28);
+  },
+
+  rankedEquip(kind='material') {
+    this.init();
+    if(kind==='arma'){
+      this.noise(.12,.052,2800,'highpass');this.sfxTone(620,.14,'sawtooth',.055,170);
+    }else if(kind==='armadura'){
+      this.noise(.11,.07,560,'lowpass');this.sfxTone(115,.18,'square',.08,48);
+    }else{
+      [523.25,783.99,1046.5].forEach((freq,index)=>this.sfxTone(freq,.2,'sine',.04,freq*1.08,index*.045));
+    }
+  },
+
+  perkProc(perk='ward') {
+    this.init();
+    if(perk==='thorns'){
+      this.noise(.08,.055,2600,'highpass');this.sfxTone(760,.1,'sawtooth',.065,180);
+    }else if(perk==='resist'){
+      this.sfxTone(290,.18,'triangle',.045,580);this.sfxTone(580,.13,'sine',.03,870,.045);
+    }else if(perk==='pierce'){
+      this.noise(.07,.04,3400,'highpass');this.sfxTone(980,.12,'square',.05,210);
+    }else if(perk==='execute'){
+      this.sfxTone(145,.2,'sawtooth',.09,42);this.noise(.13,.075,950,'bandpass',.025);
+    }else{
+      this.sfxTone(240,.16,'triangle',.05,520);this.noise(.065,.025,1900,'bandpass');
+    }
   },
 
   altarReveal() {

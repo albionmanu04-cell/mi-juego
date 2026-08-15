@@ -25,6 +25,9 @@ function buildCombatDeck(){
   subclassAbilityDefinitions().forEach((ability,index)=>{
     cards.push(deckCard(`subclass-${ability.key}`,'subclass',ability.label,ability.icon,index===0?1:2,ability.hint,{abilityKey:ability.key}));
   });
+  abilityDefinitions().filter(ability=>state.level>=ability.level).forEach(ability=>{
+    cards.push(deckCard(`level-${ability.key}`,'levelAbility',ability.label,ability.icon,2,ability.hint,{abilityKey:ability.key}));
+  });
   if(state.characterClass==='tamer') cards.push(deckCard('tame','tame','Lazo de Captura','🪢',1,'Intentá domar a un enemigo por debajo del 50% de vida.'));
   const expanded=[];
   cards.forEach(card=>{ for(let i=0;i<(card.copies||1);i++) expanded.push({...card, uid:`${card.id}-${i}-${Math.random().toString(36).slice(2,7)}`}); });
@@ -86,6 +89,10 @@ function deckManaCost(card){
     const ability=subclassAbilityDefinitions().find(entry=>entry.key===card.abilityKey);
     return ability ? visibleSkillCost(subclassAbilityCost(ability)) : 0;
   }
+  if(card.type==='levelAbility'){
+    const ability=abilityDefinitions().find(entry=>entry.key===card.abilityKey);
+    return ability ? visibleSkillCost(Math.round(battle.playerMaxMana*ability.cost)) : 0;
+  }
   if(card.type==='tame') return battle.monster.isBoss || battle.monster.hp>battle.monster.maxHp*.5;
   return 0;
 }
@@ -96,6 +103,10 @@ function deckCardBlocked(card){
   if(card.type==='subclass'){
     const ability=subclassAbilityDefinitions().find(entry=>entry.key===card.abilityKey);
     return !ability || (battle.playerStatus.cooldowns[card.abilityKey]||0)>0 || battle.playerMana<deckManaCost(card) || (ability.requiresCompanion&&!state.companion);
+  }
+  if(card.type==='levelAbility'){
+    const ability=abilityDefinitions().find(entry=>entry.key===card.abilityKey);
+    return !ability || state.level<ability.level || (battle.playerStatus.cooldowns[card.abilityKey]||0)>0 || battle.playerMana<deckManaCost(card);
   }
   return card.type==='skill' && battle.playerMana<deckManaCost(card);
 }
@@ -145,6 +156,7 @@ function playDeckCard(uid){
   else if(card.type==='skill') playerAttack(true);
   else if(card.type==='signature') useClassAbility();
   else if(card.type==='subclass') useSubclassAbility(card.abilityKey);
+  else if(card.type==='levelAbility') useAbility(card.abilityKey);
   else if(card.type==='tame') tryTameMonster();
   else if(card.type==='guard') playDeckGuard(battle);
   else if(card.type==='focus') playDeckFocus(battle);
@@ -166,7 +178,7 @@ function renderDeckCombatActions(box){
   const affinity=monsterAffinity(battle.monster);
   const cardHtml=battle.hand.map(card=>{
     const blocked=deckCardBlocked(card), mana=deckManaCost(card);
-    const footer=card.type==='signature' && battle.playerStatus.classCooldown>0 ? `Recarga ${battle.playerStatus.classCooldown}` : card.type==='subclass' && battle.playerStatus.cooldowns[card.abilityKey]>0 ? `Recarga ${battle.playerStatus.cooldowns[card.abilityKey]}` : mana ? `${mana} maná` : 'Sin maná';
+    const footer=card.type==='signature' && battle.playerStatus.classCooldown>0 ? `Recarga ${battle.playerStatus.classCooldown}` : ['subclass','levelAbility'].includes(card.type) && battle.playerStatus.cooldowns[card.abilityKey]>0 ? `Recarga ${battle.playerStatus.cooldowns[card.abilityKey]}` : mana ? `${mana} maná` : 'Sin maná';
     return `<button class="deck-card deck-${card.type} ${blocked?'disabled':''}" data-deck-card="${card.uid}" ${blocked?'disabled':''} title="${escapeHtml(card.description)}"><span class="deck-card-cost">${card.cost}</span><span class="deck-card-icon">${card.icon}</span><strong>${escapeHtml(card.label)}</strong><small>${escapeHtml(card.description)}</small><em>${footer}</em></button>`;
   }).join('') || '<div class="deck-empty">No quedan cartas en tu mano.</div>';
   box.innerHTML=`
