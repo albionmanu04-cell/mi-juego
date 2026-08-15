@@ -2,6 +2,15 @@
 
 Este proyecto usa versionado semántico: `MAYOR.MENOR.PARCHE`.
 
+## [2.20.16] - 2026-08-15
+
+### Parche urgente de herramientas internas
+
+- `Botín de prueba`, `Banco de pruebas` y `Simular derrota` dejan de mostrarse en las partidas de jugadores.
+- Las herramientas permanecen disponibles únicamente al entrar expresamente como desarrollador desde un entorno local.
+- Las acciones internas también validan el modo de ejecución antes de entregar objetos, ejecutar ensayos o simular pérdidas.
+- Se agregó una verificación automática para impedir que estas herramientas vuelvan a filtrarse en una publicación.
+
 ## [2.20.15] - 2026-08-15
 
 ### Decisión de extracción y recuperación segura

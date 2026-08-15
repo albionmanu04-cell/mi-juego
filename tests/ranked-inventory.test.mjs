@@ -218,6 +218,16 @@ test('el inventario integra ranuras, comparación y banco de pruebas',()=>{
   assert.match(rankedUi,/bench-defense/);
 });
 
+test('las herramientas de prueba sólo aparecen y funcionan en desarrollo local',()=>{
+  const rankedUi=readFileSync(join(root,'js','caceria-ranked.js'),'utf8');
+  assert.match(rankedUi,/function developerToolsEnabled\(\)/);
+  assert.match(rankedUi,/developerMode===true/);
+  assert.match(rankedUi,/isLocalDeveloperEnvironment\(\)/);
+  assert.match(rankedUi,/developerToolsEnabled\(\)\?'<button type="button" class="ranked-test-loot"/);
+  assert.match(rankedUi,/developerToolsEnabled\(\)\?benchMarkup\(data\):''/);
+  assert.match(rankedUi,/\['test-loot','test-defeat','confirm-defeat','bench-attack','bench-defense'\]\.includes\(action\) && !developerToolsEnabled\(\)/);
+});
+
 test('la actualización táctica expone intenciones, estados e informe detallado',()=>{
   const rankedUi=readFileSync(join(root,'js','caceria-ranked.js'),'utf8');
   for(const contract of ['EN SU PRÓXIMO TURNO','RESPUESTA','Golpe devastador','Mordida venenosa','SANGRADO','ATURDIDO','REGENERACIÓN','BOTÍN RECUPERADO','EQUIPO QUE SOBREVIVIÓ']) assert.match(rankedUi,new RegExp(contract));

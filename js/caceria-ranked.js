@@ -30,6 +30,9 @@
     {eyebrow:'PASO 2 DE 3',icon:'◈',title:'PR = TU RANGO',body:'Cada incursión nueva calcula Puntos Ranked. Extraerte, avanzar, abatir criaturas y recuperar valor suma PR; caer puede restarlos.',points:['PR SUBE TU DIVISIÓN','HIERRO → ETERNO','NUNCA BAJA DE 0']},
     {eyebrow:'PASO 3 DE 3',icon:'✦',title:'XP = RECOMPENSAS',body:'La XP de temporada se obtiene jugando, fabricando y completando misiones. No se gasta: al alcanzar cada nivel reclamás su recompensa.',points:['XP NO ES PR','LA XP NO SE GASTA','RECOMPENSAS AL ALIJO']}
   ];
+  function developerToolsEnabled(){
+    return typeof developerMode!=='undefined' && developerMode===true && typeof isLocalDeveloperEnvironment==='function' && isLocalDeveloperEnvironment();
+  }
   const SECTOR_META=[
     {name:'La Ciénaga del Núcleo',shortName:'Ciénaga del Núcleo',hint:'Territorio de limos · observá su rareza y patrón',icon:'◉',theme:'slime'},
     {name:'El Bosque Sepulcral',shortName:'Bosque Sepulcral',hint:'Territorio de lobos · controlá el sangrado y sus emboscadas',icon:'⌁',theme:'wolf'},
@@ -555,18 +558,18 @@
           <p>Lo almacenado acá no entra a la expedición y no se pierde.</p>
           <button type="button" class="ranked-stack-all" data-action="stack-stash"><span>≋</span><b>APILAR TODO</b><small>Unir materiales compatibles</small></button>
           <div class="ranked-stash-list">${data.stash.map(item=>itemMarkup(item,'stash')).join('') || '<div class="ranked-empty">El alijo está vacío.</div>'}</div>
-          <button type="button" class="ranked-test-loot" data-action="test-loot">+ BOTÍN DE PRUEBA</button>
+          ${developerToolsEnabled()?'<button type="button" class="ranked-test-loot" data-action="test-loot">+ BOTÍN DE PRUEBA</button>':''}
         </section>
         <section class="ranked-panel ranked-loadout">
           <div class="ranked-panel-title"><div><small>EQUIPO EN RIESGO</small><h2>MOCHILA 4×4</h2></div><b>${occupied}/16</b></div>
           <p>Todo lo que llevás puede perderse al caer. Ordená, girá y apilá antes de entrar.</p>
           ${loadoutMarkup(data)}
           ${gridMarkup(data)}
-          <div class="ranked-pack-actions"><button type="button" data-action="auto-sort">ORDENAR AUTOMÁTICO</button><button type="button" class="danger ${defeatArmed?'is-armed':''}" data-action="${defeatArmed?'confirm-defeat':'test-defeat'}">${defeatArmed?'CONFIRMAR PÉRDIDA':'SIMULAR DERROTA'}</button></div>
+          <div class="ranked-pack-actions"><button type="button" data-action="auto-sort">ORDENAR AUTOMÁTICO</button>${developerToolsEnabled()?`<button type="button" class="danger ${defeatArmed?'is-armed':''}" data-action="${defeatArmed?'confirm-defeat':'test-defeat'}">${defeatArmed?'CONFIRMAR PÉRDIDA':'SIMULAR DERROTA'}</button>`:''}</div>
           <div class="ranked-secure-title"><span>SELLOS SEGUROS</span><small>2 espacios protegidos incluso al caer</small></div>
           <div class="ranked-secure">${data.secure.map((item,index)=>`<div class="ranked-secure-slot" data-secure-index="${index}"><span class="ranked-secure-number">0${index+1}</span>${item?itemMarkup(item,'secure'):'<span class="ranked-secure-empty">SOLTÁ UN MATERIAL 1×1</span>'}</div>`).join('')}</div>
           <button type="button" class="ranked-deploy" data-action="run-start"><small>RUTA ${data.stats.unlockedTerritory+1}/5 · ${activeTerritory.shortName.toUpperCase()} · 5 SECTORES</small><b>INICIAR INCURSIÓN RANKED →</b><span>En esta ruta sólo aparecen ${data.stats.unlockedTerritory===0?'limos':data.stats.unlockedTerritory===1?'lobos':data.stats.unlockedTerritory===2?'arañas':data.stats.unlockedTerritory===3?'gólems':'dragones'} · ${occupied}/16 casillas · ${equippedCount}/3 piezas equipadas</span></button>
-          ${benchMarkup(data)}
+          ${developerToolsEnabled()?benchMarkup(data):''}
         </section>
         <aside class="ranked-panel ranked-details"><div class="ranked-panel-title"><div><small>LECTURA TÁCTICA</small><h2>OBJETO</h2></div></div>${detailMarkup(found)}</aside>
       </main>
@@ -669,6 +672,7 @@
     commit(result.removed?`Se liberaron ${result.removed} ranura${result.removed===1?'':'s'} al combinar materiales del alijo.`:'El alijo ya estaba apilado al máximo.');
   }
   function addTestLoot(){
+    if(!developerToolsEnabled()) return;
     const ids=Object.keys(Core.TEMPLATES);
     const templateId=ids[Math.floor(Math.random()*ids.length)];
     const item=Core.makeItem(templateId,1+Math.floor(Math.random()*Math.min(3,Core.template(templateId).maxStack)));
@@ -678,6 +682,7 @@
     commit(`${Core.template(templateId).name} apareció en el alijo de pruebas.`);
   }
   function simulateDefeat(){
+    if(!developerToolsEnabled()) return;
     const data=rankedState();
     const equipped=Core.EQUIPMENT_SLOTS.filter(slot=>data.loadout?.[slot]).length;
     if(!data.backpack.length&&!equipped){ commit('La mochila y el equipamiento de riesgo ya están vacíos. Los sellos siguen protegidos.'); return; }
@@ -1186,6 +1191,7 @@
     },state.settings?.reducedMotion?700:1250);
   }
   function runBenchTest(type){
+    if(!developerToolsEnabled()) return;
     const stats=playerRunStats(rankedState());
     if(type==='attack'){
       const average=(stats.attack+2.5).toFixed(1).replace('.0','');
@@ -1201,6 +1207,7 @@
   }
   function handleAction(action){
     if(interactionLocked && action.startsWith('run-')) return;
+    if(['test-loot','test-defeat','confirm-defeat','bench-attack','bench-defense'].includes(action) && !developerToolsEnabled()) return;
     const found=selected();
     if(action==='back'){
       rankedSound('click');

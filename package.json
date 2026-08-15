@@ -1,6 +1,6 @@
 {
   "name": "forja-eterna",
-  "version": "2.20.15",
+  "version": "2.20.16",
   "private": true,
   "description": "RPG web estático con progreso local y sincronización segura.",
   "type": "module",
